@@ -1,0 +1,12 @@
+{
+    "rules": [
+        {
+            "regex": "^test$",
+            "react": "tested"
+        },
+        {
+            "regex": "^hello$",
+            "react": "Hello"
+        }
+    ]
+}
