@@ -1,17 +1,18 @@
-import { readFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import { log, error } from '../utils/logger.js';
 import config from "../configs/config.js";
+import { channel } from 'diagnostics_channel';
 
-let rules;
+let rules = [];
 
 export const init = () => {
     readFile(config.rulesPath, 'utf-8',)
-        .then(data => rules = JSON.parse(data).rules)
+        .then(data => rules = JSON.parse(data))
         .then(() => log(rules))
-        .catch(err => console.error(err));
+        .catch((e) => console.log(e));
 };
 
-export const reply = ({channel, content}) => {
+export const response = ({channel, content}) => {
     if (!rules) return;
 
     try {
@@ -27,4 +28,27 @@ export const reply = ({channel, content}) => {
         error(channel, `${e}`);
         return;
     }
+};
+
+export const append = (channel, {regex, react}) => {
+    try {
+        rules.forEach(e => {
+            if (regex === e.regex) throw `React with added regex [${regex}] exists and has react: "${e.react}"`;
+        })
+    } catch (e) {
+        channel.send(`${e}`);
+        return;
+    }
+
+    rules = [
+        ...rules,
+        {
+            "regex": regex,
+            "react": react
+        }
+    ]
+    writeFile(config.rulesPath, JSON.stringify(rules, null, 2))
+        .then(() => log(rules))
+        .then(() => channel.send(`Новая реакция была добавлена`))
+        .catch((err) => console.error(err));
 };
