@@ -11,7 +11,7 @@ export const init = () => {
         .catch((e) => console.log(e));
 };
 
-export const execute = async ({channel, content, client}) => {
+export const execute = async ({channel, content}) => {
     if (!rules) return;
 
     try {

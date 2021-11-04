@@ -1,6 +1,6 @@
 import { writeFile } from 'fs/promises';
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { rules } from '../response';
+import { rules } from '../response.js';
 
 export default {
     data: new SlashCommandBuilder()
