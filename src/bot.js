@@ -1,28 +1,32 @@
 import { Client, Intents } from "discord.js";
-//import { init as initInteractions, execute } from "./actions/interaction.js";
-import { init as initResponses, response } from "./actions/response.js";
+import { init as initInteractions, execute as executeInteractions } from "./actions/interaction.js";
+import { init as initResponses, execute as executeResponces } from "./actions/response.js";
 import config from "./configs/config.js";
 import { log, error } from './utils/logger.js';
 
-export const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
-//initInteractions();
-initResponses();
+const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
 client.once('ready', () => {
+    client.commands = {}
+
     client.user.setPresence({ activities: [{ name: `/help for help` }], status: 'online' });
+
+    initInteractions(client);
+    initResponses();
+    
 	log('Готов к труду и обороне');
 });
 
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
-
-    //execute(interaction);
+    
+    executeInteractions(interaction);
 });
 
 client.on('messageCreate', (message) => {
     if (message.author.bot) return;
 
-    response(message);
+    executeResponces(message);
 });
 
 client.login(config.token);

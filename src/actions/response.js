@@ -11,31 +11,34 @@ export const init = () => {
         .catch((e) => console.log(e));
 };
 
-export const response = async ({channel, content}) => {
+export const execute = async ({channel, content}) => {
     if (!rules) return;
 
     /** */
     let args = content.split(" ");
     if (args[0][0] === config.prefix) {
         switch (args[0].substr(1)) {
+            case 'ping':
+                log('ping');
+            break;
+
             case 'append':
                 if (!args[1] || !args[2]) return;
 
-                append(channel, {
-                    regex: args[1],
-                    react: args[2]
-                });
+                log('append');
             break;
 
             case 'play':
                 if (!args[1]) return;
+
+                
+                log('play');
 
                 // let searchResults = await ytsr(args[1], {
                 //     gl: 'RU',
                 //     hl: 'ru',
                 //     limit: 1
                 // });
-                // log(`Play smth`);
                 // log(searchResults.items);
             break;
         }
@@ -56,28 +59,4 @@ export const response = async ({channel, content}) => {
         error(channel, `${e}`);
         return;
     }
-};
-
-export const append = (channel, {regex, react}) => {
-    try {
-        if (!regex || !react) throw `Regex or react is undefined: [regex: "${regex}", react: "${react}"]`
-        rules.forEach(e => {
-            if (regex === e.regex) throw `React with added regex [${regex}] exists and has react: "${e.react}"`;
-        })
-    } catch (e) {
-        channel.send(`${e}`);
-        return;
-    }
-
-    rules = [
-        ...rules,
-        {
-            "regex": regex,
-            "react": react
-        }
-    ]
-    writeFile(config.rulesPath, JSON.stringify(rules, null, 2))
-        .then(() => log(rules))
-        .then(() => channel.send(`Новая реакция была добавлена`))
-        .catch((err) => console.error(err));
 };
