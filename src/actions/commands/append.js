@@ -1,4 +1,6 @@
+import { writeFile } from 'fs/promises';
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { rules } from '../response';
 
 export default {
     data: new SlashCommandBuilder()
@@ -18,14 +20,14 @@ export default {
     }
 }
 
-const append = (channel, {regex, react}) => {
+const append = (reply, {regex, react}) => {
     try {
         if (!regex || !react) throw `Regex or react is undefined: [regex: "${regex}", react: "${react}"]`
         rules.forEach(e => {
             if (regex === e.regex) throw `React with added regex [${regex}] exists and has react: "${e.react}"`;
         })
     } catch (e) {
-        channel.send(`${e}`);
+        reply(`${e}`);
         return;
     }
 
@@ -38,6 +40,6 @@ const append = (channel, {regex, react}) => {
     ]
     writeFile(config.rulesPath, JSON.stringify(rules, null, 2))
         .then(() => log(rules))
-        .then(() => channel.send(`Новая реакция была добавлена`))
+        .then(() => reply(`Новая реакция была добавлена`))
         .catch((err) => console.error(err));
 };

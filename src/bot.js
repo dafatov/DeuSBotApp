@@ -2,7 +2,7 @@ import { Client, Intents } from "discord.js";
 import { init as initInteractions, execute as executeInteractions } from "./actions/interaction.js";
 import { init as initResponses, execute as executeResponces } from "./actions/response.js";
 import config from "./configs/config.js";
-import { log, error } from './utils/logger.js';
+import { log } from './utils/logger.js';
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 

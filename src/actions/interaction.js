@@ -4,10 +4,9 @@ import config from "../configs/config.js";
 import fs from 'fs';
 import { error, log } from '../utils/logger.js'
 import Collection from '@discordjs/collection';
-import { channel } from 'diagnostics_channel';
 
 export const init = (client) => {
-    let rest = new REST({ version: '9' }).setToken(config.token);
+    const rest = new REST({ version: '9' }).setToken(config.token);
     client.commands = new Collection();
 
     fs.readdirSync('./src/actions/commands')
@@ -34,6 +33,6 @@ export const execute = async (interaction) => {
     try {
         await command.execute(interaction);
     } catch (e) {
-        error(channel, `${e}`)
+        error(interaction.channel, `${e}`)
     }
 }
