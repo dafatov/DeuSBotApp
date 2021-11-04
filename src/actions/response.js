@@ -1,7 +1,6 @@
 import { readFile, writeFile } from 'fs/promises';
 import { log, error } from '../utils/logger.js';
 import config from "../configs/config.js";
-import { channel } from 'diagnostics_channel';
 
 let rules = [];
 
@@ -12,8 +11,37 @@ export const init = () => {
         .catch((e) => console.log(e));
 };
 
-export const response = ({channel, content}) => {
+export const response = async ({channel, content}) => {
     if (!rules) return;
+
+    /** */
+    let args = content.split(" ");
+    if (args[0][0] === config.prefix) {
+        switch (args[0].substr(1)) {
+            case 'append':
+                if (!args[1] || !args[2]) return;
+
+                append(channel, {
+                    regex: args[1],
+                    react: args[2]
+                });
+            break;
+
+            case 'play':
+                if (!args[1]) return;
+
+                // let searchResults = await ytsr(args[1], {
+                //     gl: 'RU',
+                //     hl: 'ru',
+                //     limit: 1
+                // });
+                // log(`Play smth`);
+                // log(searchResults.items);
+            break;
+        }
+        return;
+    }
+    /** */
 
     try {
         rules.forEach(e => {
@@ -32,6 +60,7 @@ export const response = ({channel, content}) => {
 
 export const append = (channel, {regex, react}) => {
     try {
+        if (!regex || !react) throw `Regex or react is undefined: [regex: "${regex}", react: "${react}"]`
         rules.forEach(e => {
             if (regex === e.regex) throw `React with added regex [${regex}] exists and has react: "${e.react}"`;
         })

@@ -4,8 +4,9 @@ export const log = (msg) => {
     if (typeof(msg) === 'object') {
         console.log(`${prefix}:`);
         console.log(msg);
-    } else
+    } else {
         console.log(`${prefix}: ${msg}`);
+    }
 }
 
 export const error = (channel, msg) => {

@@ -2,5 +2,9 @@
   {
     "regex": "regex",
     "react": "no regex"
+  },
+  {
+    "regex": "hello",
+    "react": "Hello"
   }
 ]
