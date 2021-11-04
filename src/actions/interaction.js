@@ -17,7 +17,7 @@ export const init = (client) => {
                     client.commands.set(command.data.name, command);
                 })
                 .catch(err => log(err));
-        });;
+        });
 
     if (!client.commands || client.commands.keyArray().length === 0) return;
     rest.put(Routes.applicationGuildCommands(config.clientId, config.guildId), {

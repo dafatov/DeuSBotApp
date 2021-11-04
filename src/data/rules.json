@@ -6,5 +6,9 @@
   {
     "regex": "hello",
     "react": "Hello"
+  },
+  {
+    "regex": "da",
+    "react": "pizda"
   }
 ]
