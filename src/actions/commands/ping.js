@@ -14,9 +14,9 @@ module.exports = {
 const ping = async (interaction) => {
     const embed = new MessageEmbed()
         .setColor('#000000')
-        .setTitle('Пинг')
+        .setTitle('Мое время обработки данных')
         .setTimestamp()
-        .setDescription(`Задержка равна ${Math.round(interaction.client.ws.ping)}мс`);
+        .setDescription(`Решал на досуге задачи тысячелетия и решил за ${Math.round(interaction.client.ws.ping)}мс. Их все.`);
 
     try {
         await interaction.reply({embeds: [embed]})

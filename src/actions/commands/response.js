@@ -1,7 +1,7 @@
 const { writeFile } = require('fs/promises');
 const config = require('../../configs/config.js');
 const { log } = require('../../utils/logger.js');
-const { getRules, addRule, removeRule } = require('../responses.js');
+const { getRules, setRule, removeRule } = require('../responses.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 
@@ -10,28 +10,28 @@ const {start, count} = {start: 0, count: 5};
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('response')
-        .setDescription('Управление реакциями бота')
+        .setDescription('Манипулирование реакциями')
         .addSubcommand(s => s
-            .setName('add')
-            .setDescription('Добавить реакцию')
+            .setName('set')
+            .setDescription('Добавление или изменение реакции')
             .addStringOption(o => o
                 .setName('regex')
-                .setDescription('Шаблон, провоцирующий реакцию')
+                .setDescription('Шаблон, определяющий на какое сообщение реагировать')
                 .setRequired(true))
             .addStringOption(o => o
                 .setName('react')
-                .setDescription('Текст сообщения реакции')
+                .setDescription('Текст реакции')
                 .setRequired(true)))
         .addSubcommand(s => s
             .setName('remove')
-            .setDescription('Удалить реакцию')
+            .setDescription('Удаление существубщей реакции. Может удалять то, чего нет')
             .addStringOption(o => o
                 .setName('regex')
-                .setDescription('Шаблон, провоцирующий реакцию')
+                .setDescription('Шаблон, определяющий на какое сообщение реагировать')
                 .setRequired(true)))
         .addSubcommand(s => s
             .setName('show')
-            .setDescription('Вывести реакции')),
+            .setDescription('Отображение существующий реакций в виде списка')),
     async execute(interaction) {
         await response(interaction);
     },
@@ -41,8 +41,8 @@ module.exports = {
 }
 
 const response = async (interaction) => {
-    if (interaction.options.getSubcommand() === 'add') {
-        await add(interaction);
+    if (interaction.options.getSubcommand() === 'set') {
+        await set(interaction);
     } else if (interaction.options.getSubcommand() === 'remove') {
         await remove(interaction);
     } else if (interaction.options.getSubcommand() === 'show') {
@@ -58,7 +58,7 @@ const onResponse = async (interaction) => {
     }
 };
 
-const add = async (interaction) => {
+const set = async (interaction) => {
     let {regex, react} = {
         regex: interaction.options.getString("regex"),
         react: interaction.options.getString("react")
@@ -67,20 +67,16 @@ const add = async (interaction) => {
 
     try {
         if (!regex || !react) throw `Regex or react is undefined: [regex: "${regex}", react: "${react}"]`
-        getRules().forEach(e => {
-            if (regex === e.regex) throw `React with added regex [${regex}] exists and has react: "${e.react}"`;
-        })
 
-        addRule({
+        setRule({
             "regex": regex,
             "react": react
         });
         await writeFile(config.rulesPath, JSON.stringify(getRules(), null, 2))
-            .then(() => log(getRules()))
             .then(async () => {
                 const embed = new MessageEmbed()
                     .setColor('#00ff00')
-                    .setTitle('Реакция успешно добавлена')
+                    .setTitle('Я создал реакцию')
                     .setTimestamp()
                     .addField(regex, react);
 
@@ -108,11 +104,10 @@ const remove = async (interaction) => {
 
         removeRule(regex);
         await writeFile(config.rulesPath, JSON.stringify(getRules(), null, 2))
-            .then(() => log(getRules()))
             .then(async () => {
                 const embed = new MessageEmbed()
                     .setColor('#00ff00')
-                    .setTitle('Реакция успешно удалена')
+                    .setTitle('Я уничтожил реакцию')
                     .setTimestamp()
                     .setDescription(regex);
 
@@ -137,7 +132,7 @@ const show = async (interaction) => {
 
     const embed = new MessageEmbed()
         .setColor('#000000')
-        .setTitle('Список реакций:')
+        .setTitle('Все реакции на текущий момент')
         .setFooter(`${start + 1} - ${Math.min(start + count, rules.length)} из ${rules.length} по ${count}`);
 
     embed.setFields(rules
@@ -154,11 +149,12 @@ const show = async (interaction) => {
                 .setCustomId('show_previous')
                 .setLabel('Previous')
                 .setStyle('PRIMARY')
-                .setDisabled(true),
+                .setDisabled(start <= 0),
             new MessageButton()
                 .setCustomId('show_next')
                 .setLabel('Next')
-                .setStyle('PRIMARY'),
+                .setStyle('PRIMARY')
+                .setDisabled(start + count >= getRules().length),
         );
 
     try {

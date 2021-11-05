@@ -4,9 +4,10 @@ const config = require("../configs/config.js");
 
 let rules = [];
 
-module.exports.addRule = (rule) => {
+module.exports.setRule = (rule) => {
     rules = [
-        ...rules,
+        ...rules
+            .filter(r => r.regex !== rule.regex),
         rule
     ]
 }
