@@ -1,14 +1,27 @@
-// import { SlashCommandBuilder } from '@discordjs/builders';
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const { MessageEmbed } = require('discord.js');
 
-// export default {
-//     data: new SlashCommandBuilder().
-//         setName('ping').
-//         setDescription('Пинг и отпинг'),
-//     async execute({channel, client}) {
-//         await ping(channel, client);
-//     }
-// }
+module.exports = {
+    data: new SlashCommandBuilder().
+        setName('ping').
+        setDescription('Пинг и отпинг'),
+    async execute(interaction) {
+        await ping(interaction);
+    },
+    async listener(interaction) {}
+}
 
-export const ping = (channel, client) => {
-    channel.send(`Задержка равна ${Math.round(client.ws.ping)}мс`);
+const ping = async (interaction) => {
+    const embed = new MessageEmbed()
+        .setColor('#000000')
+        .setTitle('Пинг')
+        .setTimestamp()
+        .setDescription(`Задержка равна ${Math.round(interaction.client.ws.ping)}мс`);
+
+    try {
+        await interaction.reply({embeds: [embed]})
+        log(`[Response.Show] Список реакций успешно обновлен`);
+    } catch (e) {
+        error(`[Response.Show]:\n${e}`)
+    }
 }

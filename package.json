@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A bot for discord by DemetriouS",
   "main": "src/bot.js",
-  "type": "module",
+  "type": "commonjs",
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

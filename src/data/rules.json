@@ -1,14 +1,1 @@
-[
-  {
-    "regex": "regex",
-    "react": "no regex"
-  },
-  {
-    "regex": "hello",
-    "react": "Hello"
-  },
-  {
-    "regex": "da",
-    "react": "pizda"
-  }
-]
+[]

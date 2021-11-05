@@ -1,19 +1,16 @@
-export const log = (msg) => {
-    let prefix = "[Log]";
+module.exports.log = (msg) => {
+    consolePrint('[Log]', msg)
+}
 
+module.exports.error = (msg) => {
+    consolePrint('[Err]', msg)
+}
+
+const consolePrint = (prefix, msg) => {
     if (typeof(msg) === 'object') {
         console.log(`${prefix}:`);
         console.log(msg);
     } else {
         console.log(`${prefix}: ${msg}`);
     }
-}
-
-export const error = (channel, msg) => {
-    let prefix = "[Err]";
-
-    if (typeof(msg) === 'object') return;
-
-    channel.send(`${prefix}: ${msg}`);
-    console.error();(`${prefix}: ${msg}`);
 }
