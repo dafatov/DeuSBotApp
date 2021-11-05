@@ -133,7 +133,7 @@ const show = async (interaction) => {
     const embed = new MessageEmbed()
         .setColor('#000000')
         .setTitle('Все реакции на текущий момент')
-        .setFooter(`${start + 1} - ${Math.min(start + count, rules.length)} из ${rules.length} по ${count}`);
+        .setFooter(`${Math.min(start + 1, rules.length)} - ${Math.min(start + count, rules.length)} из ${rules.length} по ${count}`);
 
     embed.setFields(rules
         .slice(start, count)
