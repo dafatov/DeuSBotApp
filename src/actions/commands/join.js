@@ -1,8 +1,8 @@
-const {log, error} = require("../../utils/logger.js")
+const { log } = require("../../utils/logger.js")
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { joinVoiceChannel } = require("@discordjs/voice");
 const { MessageEmbed } = require("discord.js");
-const { notify } = require("../commands.js");
+const { notify, notifyError } = require("../commands.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -27,7 +27,7 @@ module.exports.join = async (interaction) => {
 
         
         await notify('join', interaction, {embeds: [embed]});
-        log(`[Join] Пригласить бота можно только в свой голосовой канал`);
+        log(`[join] Пригласить бота можно только в свой голосовой канал`);
         return;
     }
 
@@ -48,17 +48,8 @@ module.exports.join = async (interaction) => {
 
         await notify('join', interaction, {embeds: [embed]});
         log(`[Join] Бот успешно приглашен в канал ${voiceChannel.name}`);
-        return;
     } catch(e) {
-        const embed = new MessageEmbed()
-            .setColor('#ff0000')
-            .setTitle('Ошибка')
-            .setTimestamp()
-            .setDescription(`${e}`);
-            console.log(interaction);
-        await notify('join', interaction, {embeds: [embed]});
-        log(`[Join]:\n${e}`);
-        return;
+        notifyError('join', e, interaction);
     }
 }
 

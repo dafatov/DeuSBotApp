@@ -1,10 +1,10 @@
 const { writeFile } = require('fs/promises');
 const config = require('../../configs/config.js');
-const { log, error } = require('../../utils/logger.js');
+const { log } = require('../../utils/logger.js');
 const { getRules, setRule, removeRule } = require('../responses.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
-const { notify } = require('../commands.js');
+const { notify, notifyError } = require('../commands.js');
 
 const {start, count} = {start: 0, count: 5};
 
@@ -82,18 +82,11 @@ const set = async (interaction) => {
                     .addField(regex, react);
 
                 await notify('response', interaction, {embeds: [embed]});
-                log(`[Response.Add] Реакция успешно добавлена`);
+                log(`[response.add] Реакция успешно добавлена`);
             })
             .catch((err) => {throw err});
     } catch (e) {
-        const embed = new MessageEmbed()
-            .setColor('#ff0000')
-            .setTitle('Ошибка')
-            .setTimestamp()
-            .setDescription(e);
-        await notify('response', interaction, {embeds: [embed]});
-        error(`[Response.Add]:\n${e}`);
-        return;
+        notifyError('response.set', e, interaction);
     }
 };
 
@@ -113,18 +106,11 @@ const remove = async (interaction) => {
                     .setDescription(regex);
 
                 await notify('response', interaction, {embeds: [embed]});
-                log(`[Response.Remove] Реакция успешно удалена`);
+                log(`[response.remove] Реакция успешно удалена`);
             })
             .catch((err) => {throw err});
     } catch (e) {
-        const embed = new MessageEmbed()
-            .setColor('#ff0000')
-            .setTitle('Ошибка')
-            .setTimestamp()
-            .setDescription(e);
-        await notify('response', interaction, {embeds: [embed]});
-        error(`[Response.Remove]:\n${e}`);
-        return;
+        notifyError('response.remove', e, interaction);
     }
 };
 
@@ -160,9 +146,9 @@ const show = async (interaction) => {
 
     try {
         await notify('response', interaction, {embeds: [embed], components: [row]});
-        log(`[Response.Show] Список реакций успешно выведен`);
+        log(`[response.show] Список реакций успешно выведен`);
     } catch (e) {
-        error(`[Response.Show]:\n${e}`)
+        notifyError('response.show', e, interaction);
     }
 };
 
@@ -193,9 +179,9 @@ const onShow = async (interaction) => {
 
     try {
         await notify('response', interaction, {embeds: [embed], components: [row]});
-        log(`[Response.Show] Список реакций успешно обновлен`);
+        log(`[response.show.update] Список реакций успешно обновлен`);
     } catch (e) {
-        error(`[Response.Show]:\n${e}`)
+        notifyError('response.show.update', e, interaction);
     }
 }
 

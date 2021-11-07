@@ -41,6 +41,5 @@ module.exports.execute = async (message) => {
         });
     } catch (e) {
         error(e);
-        return;
     }
 };

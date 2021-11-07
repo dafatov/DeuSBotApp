@@ -2,7 +2,7 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const config = require("../configs/config.js");
 const fs = require('fs');
-const { error, log } = require('../utils/logger.js');
+const { log, error } = require('../utils/logger.js');
 const Collection = require('@discordjs/collection');
 
 module.exports.init = async (client) => {
@@ -40,4 +40,14 @@ module.exports.notify = async (commandName, interaction, content) => {
     } else {
         interaction.channel.send(content);
     }
+}
+
+module.exports.notifyError = async (commandName, e, interaction) => {
+    const embed = new MessageEmbed()
+        .setColor('#ff0000')
+        .setTitle('Ошибка')
+        .setTimestamp()
+        .setDescription(`${e}`);
+    await notify('play', interaction, {embeds: [embed]});
+    error(`[${commandName}]:\n${e}`);
 }
