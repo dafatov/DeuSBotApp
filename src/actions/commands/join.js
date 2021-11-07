@@ -24,8 +24,6 @@ module.exports.join = async (interaction) => {
             .setDescription(`Ты хотел, чтобы я пришел? Мог бы и сам зайти для приличия.
                 Я решил, что не стоит заходить в какой-то жалкий канал, когда никто не сможет осознать все мое величие`)
             .setTimestamp();
-
-        
         await notify('join', interaction, {embeds: [embed]});
         log(`[join] Пригласить бота можно только в свой голосовой канал`);
         return;
@@ -45,7 +43,6 @@ module.exports.join = async (interaction) => {
             .setTitle('Я зашел')
             .setDescription(`Зашел к тебе в войс. Теперь ты сможешь погреться во всем моем великолепии и послушать музыку для ушей.
             Канал же ${voiceChannel.name} называется? О нем теперь будут слагать легенды`);
-
         await notify('join', interaction, {embeds: [embed]});
         log(`[Join] Бот успешно приглашен в канал ${voiceChannel.name}`);
     } catch(e) {

@@ -29,6 +29,19 @@ module.exports = {
 const play = async (interaction) => {
     const audio = interaction.options.getString('audio');
 
+    if (interaction.client.queue.connection &&
+        interaction.client.queue.connection.joinConfig.channelId !==
+            interaction.member.voice.channel.id) {
+        const embed = new MessageEmbed()
+            .setColor('#ffff00')
+            .setTitle('Канал не тот')
+            .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
+            .setTimestamp();
+        await notify('play', interaction, {embeds: [embed]});
+        log(`[play] Добавить композицию не вышло: не совпадают каналы`);
+        return;
+    }
+
     try {
         getPlaylistID(audio).then(async a => {
             ytpl(a).then(async p => {
@@ -50,6 +63,7 @@ const play = async (interaction) => {
                     hl: 'ru',
                     limit: 1
                 }).then(async r => {
+                    if (r.items.length === 0) throw "Ничего не найдено";
                     ytdl.getBasicInfo(r.items[0].url).then(async i => {
                         await playUrl(interaction, i);
                         await playPlayer(interaction);
@@ -134,6 +148,7 @@ const playPlayer = async (interaction) => {
                 return;
             }
             console.log(`[Event]: ${interaction.client.queue.songs[0].title}`);
+            interaction.client.queue.nowPlaying = interaction.client.queue.songs[0];
             interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.songs.shift().url, { 
                 filter: 'audioonly', 
                 quality: 'highestaudio'
@@ -142,6 +157,7 @@ const playPlayer = async (interaction) => {
     }
     if (interaction.client.queue.player.state.status !== AudioPlayerStatus.Playing) {
         console.log(`[Inter]: ${interaction.client.queue.songs[0].title}`);
+        interaction.client.queue.nowPlaying = interaction.client.queue.songs[0];
         interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.songs.shift().url, { 
             filter: 'audioonly', 
             quality: 'highestaudio'
