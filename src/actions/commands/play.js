@@ -6,7 +6,7 @@ const { validateURL } = require("ytdl-core");
 const ytdl = require("ytdl-core");
 const { log, error } = require("../../utils/logger.js");
 const { join } = require("./join.js");
-const { timeFormat } = require("../../utils/converter.js");
+const { timeFormatSeconds } = require("../../utils/converter.js");
 const ytsr = require("ytsr");
 const { getPlaylistID } = require("ytpl");
 const ytpl = require("ytpl");
@@ -40,7 +40,7 @@ const add = async (interaction) => {
                 p.items.forEach(i => {
                     info = {
                         title: i.title,
-                        length: timeFormat(i.durationSec),
+                        length: timeFormatSeconds(i.durationSec),
                         url: i.shortUrl,
                         isLive: i.isLive,
                         preview: i.thumbnails[0].url
@@ -95,15 +95,23 @@ const add = async (interaction) => {
                         quality: 'highestaudio'
                     })));
                 }
-                
                 /** */
-            }).catch(err => {throw err});
-        }).catch(() => { 
+            }).catch(async e => {
+                const embed = new MessageEmbed()
+                    .setColor('#ff0000')
+                    .setTitle('Ошибка')
+                    .setTimestamp()
+                    .setDescription(`${e}`);
+                await notify('play', interaction, {embeds: [embed]});
+                log(`[Join]: ${e}`);
+                return;
+            });
+        }).catch(() => {
             if (validateURL(audio)) {
                 ytdl.getBasicInfo(audio).then(async i => {
                     info = {
                         title: i.videoDetails.title,
-                        length: timeFormat(i.videoDetails.lengthSeconds),
+                        length: timeFormatSeconds(i.videoDetails.lengthSeconds),
                         url: i.videoDetails.video_url,
                         isLive: i.videoDetails.isLiveContent,
                         preview: i.videoDetails.thumbnails[0].url
@@ -131,7 +139,7 @@ const add = async (interaction) => {
                     ytdl.getBasicInfo(r.items[0].url).then(async i => {
                         info = {
                             title: i.videoDetails.title,
-                            length: timeFormat(i.videoDetails.lengthSeconds),
+                            length: timeFormatSeconds(i.videoDetails.lengthSeconds),
                             url: i.videoDetails.video_url,
                             isLive: i.videoDetails.isLiveContent,
                             preview: i.videoDetails.thumbnails[0].url
@@ -160,76 +168,6 @@ const add = async (interaction) => {
             .setDescription(e);
         await notify('play', interaction, {embeds: [embed]});
         log(`[Join]:\n${e}`);
-        return;
-    }
-}
-
-//https://www.youtube.com/watch?v=DNzvzacF7MM
-const play = async (interaction) => {
-    const audio = interaction.options.getString('audio');
-    let info;
-
-    try {
-        //await StreamDownloader(audio).then(async data => {
-            /*const data = await StreamDownloader(audio, {BypassRatelimit: true});
-            info = {
-                title: data.tracks[0].title,
-                length: timeFormat(data.tracks[0].duration),
-                url: data.tracks[0].url,
-                stream: data.tracks[0].stream,  
-                isLive: data.tracks[0].is_live,
-                preview: data.tracks[0].thumbnail
-            };
-            interaction.client.queue.songs.push(info);*/
-
-            const embed = new MessageEmbed()
-                .setColor('#00ff00')
-                //.setTitle(info.title)
-                //.setURL(info.url)
-                //.setDescription(`Длительность: ${info.isLive ? 
-                //    '<Стрим>' : info.length}`)
-                //.setThumbnail(info.preview)
-                .setTimestamp()
-                .setFooter(`Композицию заказал пользователь ${interaction.user.username}`);
-            await notify('play', interaction, {embeds: [embed]});
-            //await interaction.channel.send({embeds: [embed]});
-            log(`[Play.Add] Композиция успешно добавлена в очередь`);      
-            console.log(interaction.reply);
-        //}).catch(err => {throw err});
-
-        
-        
-        /*if(Data.error) throw error;
-        
-        let Audio_Resource = createAudioResource(Data.tracks[0].stream, {
-            inputType: Data.tracks[0].stream_type
-        });
-
-        if (!interaction.client.queue.connection) await join(interaction);
-        if (!interaction.client.queue.player) {
-            interaction.client.queue.player = createAudioPlayer({
-                behaviors: {
-                    noSubscriber: NoSubscriberBehavior.Stop
-                }
-            });
-            interaction.client.queue.connection.subscribe(interaction.client.queue.player);
-            interaction.client.queue.player.on('debug', console.log);
-            interaction.client.queue.player.on('error', console.error);
-            /*interaction.client.queue.player.on(AudioPlayerStatus.Idle, () => {
-                interaction.client.queue.player.play(Audio_Resource);
-            })*/
-        /*}
-        if (interaction.client.queue.player.state.status !== AudioPlayerStatus.Playing) {
-            interaction.client.queue.player.play(Audio_Resource);
-        }*/
-    } catch (e) {
-        const embed = new MessageEmbed()
-            .setColor('#ff0000')
-            .setTitle('Ошибка')
-            .setTimestamp()
-            .setDescription(`${e}`);
-        //await notify('play', interaction, {embeds: [embed]});
-        log(e);
         return;
     }
 }

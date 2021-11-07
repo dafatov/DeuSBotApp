@@ -1,6 +1,6 @@
 const { writeFile } = require('fs/promises');
 const config = require('../../configs/config.js');
-const { log } = require('../../utils/logger.js');
+const { log, error } = require('../../utils/logger.js');
 const { getRules, setRule, removeRule } = require('../responses.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
@@ -92,7 +92,7 @@ const set = async (interaction) => {
             .setTimestamp()
             .setDescription(e);
         await notify('response', interaction, {embeds: [embed]});
-        log(`[Response.Add]:\n${e}`);
+        error(`[Response.Add]:\n${e}`);
         return;
     }
 };
@@ -123,7 +123,7 @@ const remove = async (interaction) => {
             .setTimestamp()
             .setDescription(e);
         await notify('response', interaction, {embeds: [embed]});
-        log(`[Response.Remove]:\n${e}`);
+        error(`[Response.Remove]:\n${e}`);
         return;
     }
 };
