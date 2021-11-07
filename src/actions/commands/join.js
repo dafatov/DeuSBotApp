@@ -2,53 +2,63 @@ const {log, error} = require("../../utils/logger.js")
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { joinVoiceChannel } = require("@discordjs/voice");
 const { MessageEmbed } = require("discord.js");
+const { notify } = require("../commands.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('join')
         .setDescription('Пригласить бота к текущему голосовому каналу'),
     async execute(interaction) {
-        await join(interaction);
+        await module.exports.join(interaction);
     },
     async listener(interaction) {}
 }
 
-const join = async (interaction) => {
+module.exports.join = async (interaction) => {
     let voiceChannel = interaction.member.voice.channel;
     
     if (!voiceChannel) {
         const embed = new MessageEmbed()
-                    .setColor('#ffff00')
-                    .setTitle('Бот не смог')
-                    .setDescription('Пригласить бота можно только в свой голосовой канал')
-                    .setTimestamp();
+            .setColor('#ffff00')
+            .setTitle('Канал не смог меня принять')
+            .setDescription(`Ты хотел, чтобы я пришел? Мог бы и сам зайти для приличия.
+                Я решил, что не стоит заходить в какой-то жалкий канал, когда никто не сможет осознать все мое величие`)
+            .setTimestamp();
 
-        await interaction.reply({embeds: [embed]});
+        
+        await notify('join', interaction, {embeds: [embed]});
         log(`[Join] Пригласить бота можно только в свой голосовой канал`);
         return;
     }
 
+    if (interaction.client.queue.connection) return;
+
     try {
-        joinVoiceChannel({
+        interaction.client.queue.connection = joinVoiceChannel({
             channelId: voiceChannel.id,
             guildId: voiceChannel.guildId,
-            adapterCreator: voiceChannel.guild.voiceAdapterCreator
+            adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+            debug: true
         })
         const embed = new MessageEmbed()
-                        .setColor('#ff0000')
-                        .setTitle('Бот присоединился')
-                        .setDescription(`Бот успешно приглашен в канал ${voiceChannel.name}`);
+            .setColor('#00ff00')
+            .setTitle('Я зашел')
+            .setDescription(`Зашел к тебе в войс. Теперь ты сможешь погреться во всем моем великолепии и послушать музыку для ушей.
+            Канал же ${voiceChannel.name} называется? О нем теперь будут слагать легенды`);
 
-        await interaction.reply({embeds: [embed]});
+        await notify('join', interaction, {embeds: [embed]});
         log(`[Join] Бот успешно приглашен в канал ${voiceChannel.name}`);
+        return;
     } catch(e) {
         const embed = new MessageEmbed()
             .setColor('#ff0000')
             .setTitle('Ошибка')
             .setTimestamp()
-            .setDescription(e);
-        await interaction.reply({embeds: [embed]});
+            .setDescription(`${e}`);
+            console.log(interaction);
+        await notify('join', interaction, {embeds: [embed]});
         log(`[Join]:\n${e}`);
         return;
     }
 }
+

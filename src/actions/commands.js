@@ -33,3 +33,11 @@ module.exports.execute = async (interaction) => {
         error(e);
     }
 }
+
+module.exports.notify = async (commandName, interaction, content) => {
+    if (interaction.commandName === commandName) {
+        await interaction.reply(content);
+    } else {
+        interaction.channel.send(content);
+    }
+}

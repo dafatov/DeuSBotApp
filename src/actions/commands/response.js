@@ -4,6 +4,7 @@ const { log } = require('../../utils/logger.js');
 const { getRules, setRule, removeRule } = require('../responses.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
+const { notify } = require('../commands.js');
 
 const {start, count} = {start: 0, count: 5};
 
@@ -80,7 +81,7 @@ const set = async (interaction) => {
                     .setTimestamp()
                     .addField(regex, react);
 
-                await interaction.reply({embeds: [embed]});
+                await notify('response', interaction, {embeds: [embed]});
                 log(`[Response.Add] Реакция успешно добавлена`);
             })
             .catch((err) => {throw err});
@@ -90,7 +91,7 @@ const set = async (interaction) => {
             .setTitle('Ошибка')
             .setTimestamp()
             .setDescription(e);
-        interaction.reply({embeds: [embed]});
+        await notify('response', interaction, {embeds: [embed]});
         log(`[Response.Add]:\n${e}`);
         return;
     }
@@ -111,7 +112,7 @@ const remove = async (interaction) => {
                     .setTimestamp()
                     .setDescription(regex);
 
-                await interaction.reply({embeds: [embed]});
+                await notify('response', interaction, {embeds: [embed]});
                 log(`[Response.Remove] Реакция успешно удалена`);
             })
             .catch((err) => {throw err});
@@ -121,7 +122,7 @@ const remove = async (interaction) => {
             .setTitle('Ошибка')
             .setTimestamp()
             .setDescription(e);
-        interaction.reply({embeds: [embed]});
+        await notify('response', interaction, {embeds: [embed]});
         log(`[Response.Remove]:\n${e}`);
         return;
     }
@@ -158,7 +159,7 @@ const show = async (interaction) => {
         );
 
     try {
-        await interaction.reply({embeds: [embed], components: [row]})
+        await notify('response', interaction, {embeds: [embed], components: [row]});
         log(`[Response.Show] Список реакций успешно выведен`);
     } catch (e) {
         error(`[Response.Show]:\n${e}`)
@@ -191,7 +192,7 @@ const onShow = async (interaction) => {
     .setFooter(`${start + 1} - ${Math.min(start + count, getRules().length)} из ${getRules().length} по ${count}`);
 
     try {
-        await interaction.update({embeds: [embed], components: [row]})
+        await notify('response', interaction, {embeds: [embed], components: [row]});
         log(`[Response.Show] Список реакций успешно обновлен`);
     } catch (e) {
         error(`[Response.Show]:\n${e}`)

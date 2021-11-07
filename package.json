@@ -21,6 +21,8 @@
     "@discordjs/voice": "^0.7.2",
     "discord-api-types": "^0.24.0",
     "discord.js": "^13.3.1",
+    "ffmpeg-static": "^4.4.0",
+    "libsodium-wrappers": "^0.7.9",
     "node": "^16.13.0",
     "ytdl-core": "^4.9.1",
     "ytpl": "^2.2.3",

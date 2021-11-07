@@ -1,5 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
+const { notify } = require('../commands');
+const { log, error } = require('../../utils/logger.js');
 
 module.exports = {
     data: new SlashCommandBuilder().
@@ -19,7 +21,7 @@ const ping = async (interaction) => {
         .setDescription(`Решал на досуге задачи тысячелетия и решил за ${Math.round(interaction.client.ws.ping)}мс. Их все.`);
 
     try {
-        await interaction.reply({embeds: [embed]})
+        await notify('ping', interaction, {embeds: [embed]});
         log(`[Response.Show] Список реакций успешно обновлен`);
     } catch (e) {
         error(`[Response.Show]:\n${e}`)
