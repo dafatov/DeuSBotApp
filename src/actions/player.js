@@ -1,3 +1,5 @@
+const { log } = require('../utils/logger.js');
+
 module.exports.init = async (client) => {
     client.queue = {
         connection: null,
@@ -5,4 +7,5 @@ module.exports.init = async (client) => {
         nowPlaying: null,
         songs: []
     }
+    log(`Успешно зарегестрирован плеер`)
 }

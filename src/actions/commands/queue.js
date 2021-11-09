@@ -35,12 +35,17 @@ const queue = async (interaction) => {
     const row = new MessageActionRow()
     .addComponents(
         new MessageButton()
-            .setCustomId('show_previous')
+            .setCustomId('previous')
             .setLabel('Previous')
             .setStyle('PRIMARY')
             .setDisabled(start <= 0),
         new MessageButton()
-            .setCustomId('show_next')
+            .setCustomId('update')
+            .setLabel('Update')
+            .setStyle('PRIMARY')
+            .setDisabled(songs.length === 0),
+        new MessageButton()
+            .setCustomId('next')
             .setLabel('Next')
             .setStyle('PRIMARY')
             .setDisabled(start + count >= songs.length),
@@ -61,15 +66,19 @@ const onQueue = async (interaction) => {
     let row = interaction.message.components[0];
     let {start, count} = calcPages(embed.footer.text);
 
-    if (interaction.customId === 'show_next') start += count;
-    if (interaction.customId === 'show_previous') start -= count;
+    if (interaction.customId === 'next') start += count;
+    if (interaction.customId === 'previous') start -= count;
+    if (interaction.customId === 'update') start = Math.min(start, songs.length - 1);
     
     row.components.forEach(b => {
-        if (b.customId === 'show_next') {
+        if (b.customId === 'next') {
             b.setDisabled(start + count >= songs.length);
         }
-        if (b.customId === 'show_previous') {
+        if (b.customId === 'previous') {
             b.setDisabled(start <= 0);
+        }
+        if (b.customId === 'update') {
+            b.setDisabled(songs.length === 0);
         }
     })
 
