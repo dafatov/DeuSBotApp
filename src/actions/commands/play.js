@@ -151,7 +151,8 @@ const playPlayer = async (interaction) => {
             interaction.client.queue.nowPlaying = interaction.client.queue.songs[0];
             interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.songs.shift().url, { 
                 filter: 'audioonly', 
-                quality: 'highestaudio'
+                quality: 'highestaudio',
+                highWaterMark: 1 << 25
             })));
         })
     }

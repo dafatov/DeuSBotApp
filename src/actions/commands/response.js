@@ -175,10 +175,11 @@ const onShow = async (interaction) => {
             name: rule.regex,
             value: rule.react
         })))
+        //Данные количества на странице (count) беруться из footer'а. Да, костыль
     .setFooter(`${start + 1} - ${Math.min(start + count, getRules().length)} из ${getRules().length} по ${count}`);
 
     try {
-        await notify('response', interaction, {embeds: [embed], components: [row]});
+        await interaction.update({embeds: [embed], components: [row]});
         log(`[response.show.update] Список реакций успешно обновлен`);
     } catch (e) {
         notifyError('response.show.update', e, interaction);
