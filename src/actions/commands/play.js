@@ -11,6 +11,7 @@ const ytsr = require("ytsr");
 const { getPlaylistID } = require("ytpl");
 const ytpl = require("ytpl");
 const { notify, notifyError } = require("../commands.js");
+const config = require("../../configs/config.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -149,7 +150,12 @@ const playPlayer = async (interaction) => {
             }
             console.log(`[Event]: ${interaction.client.queue.songs[0].title}`);
             interaction.client.queue.nowPlaying = interaction.client.queue.songs[0];
-            interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.songs.shift().url, { 
+            interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.songs.shift().url, {
+                requestOptions: {
+                    headers: {
+                      cookie: config.cookie,
+                    },
+                },
                 filter: 'audioonly', 
                 quality: 'highestaudio',
                 highWaterMark: 1 << 25
@@ -159,9 +165,15 @@ const playPlayer = async (interaction) => {
     if (interaction.client.queue.player.state.status !== AudioPlayerStatus.Playing) {
         console.log(`[Inter]: ${interaction.client.queue.songs[0].title}`);
         interaction.client.queue.nowPlaying = interaction.client.queue.songs[0];
-        interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.songs.shift().url, { 
+        interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.songs.shift().url, {
+            requestOptions: {
+                headers: {
+                  cookie: config.cookie,
+                },
+            },
             filter: 'audioonly', 
-            quality: 'highestaudio'
+            quality: 'highestaudio',
+            highWaterMark: 1 << 25
         })));
     }
 }
