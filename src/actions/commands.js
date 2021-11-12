@@ -16,10 +16,12 @@ module.exports.init = async (client) => {
             client.commands.set(command.data.name, command);
         });
     if (!client.commands || client.commands.keyArray().length === 0) return;
-    await rest.put(Routes.applicationGuildCommands(config.clientId, config.guildId), {
-        body: client.commands.map((value) => value.data.toJSON())
-    }).then(() => log(`Успешно зарегистрировал команд: ${client.commands.keyArray().length}`))
-	.catch((e) => error(e));
+    client.guilds.cache.forEach(async guild => {
+        await rest.put(Routes.applicationGuildCommands(client.user.id, guild.id), {
+            body: client.commands.map((value) => value.data.toJSON())
+        }).then(() => log(`Успешно зарегистрировал команд: ${client.commands.keyArray().length} для гильдии: ${guild.name}`))
+        .catch((e) => error(e));
+    })
 };
 
 module.exports.execute = async (interaction) => {
