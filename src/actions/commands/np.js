@@ -14,7 +14,9 @@ module.exports = {
 }
 
 const np = async (interaction) => {
-    if (!interaction.client.queue.connection || !interaction.client.queue.player) {
+    let info = interaction.client.queue.nowPlaying;
+
+    if (!interaction.client.queue.connection || !interaction.client.queue.player || !info) {
         const embed = new MessageEmbed()
             .setColor('#ffff00')
             .setTitle('Так ничего и не играло')
@@ -39,7 +41,6 @@ const np = async (interaction) => {
             return;
     }
 
-    let info = interaction.client.queue.nowPlaying;
     const embed = new MessageEmbed()
         .setColor('#00ff00')
         .setTitle(info.title)
