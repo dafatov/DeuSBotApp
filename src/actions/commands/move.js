@@ -49,13 +49,25 @@ const move = async (interaction) => {
 
     let targetIndex = interaction.options.getInteger("target") - 1;
     let positionIndex = interaction.options.getInteger("position") - 1;
-    let target = interaction.client.queue.songs[targetIndex].title;
+    let targetTitle = interaction.client.queue.songs[targetIndex].title;
+
+    if (targetIndex < 1 || targetIndex + 1 > interaction.client.queue.songs.length
+        || positionIndex < 1 || positionIndex + 1 > interaction.client.queue.songs.length) {
+            const embed = new MessageEmbed()
+                .setColor('#ffff00')
+                .setTitle('Ты это.. Вселенной ошибся, чел.')
+                .setDescription(`Типа знаешь вселенная расширяется, а твой мозг походу нет. Ну вышел ты за пределы размеров очереди.`)
+                .setTimestamp();
+            await notify('move', interaction, {embeds: [embed]});
+            log(`[move] Удалить композицию не вышло: выход за пределы очереди`);
+            return;
+    }
 
     arrayMoveMutable(interaction.client.queue.songs, targetIndex, positionIndex);
     const embed = new MessageEmbed()
         .setColor('#00ff00')
         .setTitle('Целевая композиция передвинута')
-        .setDescription(`Композиция **${target}** протолкала всех локтями на **${positionIndex + 1}**.
+        .setDescription(`Композиция **${targetTitle}** протолкала всех локтями на **${positionIndex + 1}**.
             Кто бы сомневался. Донатеры \*\*\*ые`);
     await notify('move', interaction, {embeds: [embed]});
     log(`[move] Композиция была успешно пропущено`);

@@ -30,7 +30,7 @@ module.exports.init = async () => {
 module.exports.execute = async (message) => {
     if (!rules) return;
 
-    try {
+    try {//Добавить обработку при неверных регулярках
         rules.forEach(e => {
             if (!e.regex || !e.react) throw `One of response [regex: "${e.regex}", react: "${e.react}"] is not valid.\nCheck syntax!`;
 
