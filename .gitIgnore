@@ -26,5 +26,6 @@ yarn-error.log*
 /.idea
 /*.iml
 
-src/configs/config.js
+src/configs/config.local.js
 todo.txt
+/logs

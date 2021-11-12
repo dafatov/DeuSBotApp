@@ -6,7 +6,7 @@ const { validateURL } = require("ytdl-core");
 const ytdl = require("ytdl-core");
 const { log } = require("../../utils/logger.js");
 const { join } = require("./join.js");
-const { timeFormatSeconds } = require("../../utils/converter.js");
+const { timeFormatSeconds, timeFormatmSeconds } = require("../../utils/converter.js");
 const ytsr = require("ytsr");
 const { getPlaylistID } = require("ytpl");
 const ytpl = require("ytpl");
@@ -141,14 +141,16 @@ const playPlayer = async (interaction) => {
             }
         });
         interaction.client.queue.connection.subscribe(interaction.client.queue.player);
-        interaction.client.queue.player.on('debug', console.log);
         interaction.client.queue.player.on('error', console.error);
-        interaction.client.queue.player.on(AudioPlayerStatus.Idle, () => {
+        interaction.client.queue.player.on(AudioPlayerStatus.Idle, (a, b) => {
+            let p = a.playbackDuration
+            log(`[play]: [${timeFormatmSeconds(p)}/${interaction.client.queue.nowPlaying.length}] `);
             if (interaction.client.queue.songs.length === 0) {
+                interaction.client.queue.nowPlaying = null;
                 interaction.client.queue.player.stop();
                 return;
             }
-            console.log(`[Event]: ${interaction.client.queue.songs[0].title}`);
+            log(`[play][Event]: ${interaction.client.queue.songs[0].title}`);
             interaction.client.queue.nowPlaying = interaction.client.queue.songs[0];
             interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.songs.shift().url, {
                 requestOptions: {
@@ -163,7 +165,7 @@ const playPlayer = async (interaction) => {
         })
     }
     if (interaction.client.queue.player.state.status !== AudioPlayerStatus.Playing) {
-        console.log(`[Inter]: ${interaction.client.queue.songs[0].title}`);
+        log(`[play][Inter]: ${interaction.client.queue.songs[0].title}`);
         interaction.client.queue.nowPlaying = interaction.client.queue.songs[0];
         interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.songs.shift().url, {
             requestOptions: {

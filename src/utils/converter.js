@@ -3,3 +3,9 @@ module.exports.timeFormatSeconds = (s) => {
     
     return time.toLocaleTimeString();
 }
+
+module.exports.timeFormatmSeconds = (ms) => {
+    let time = new Date(0, 0, 0, 0, 0, 0, ms);
+    
+    return time.toLocaleTimeString();
+}

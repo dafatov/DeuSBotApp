@@ -56,7 +56,6 @@ const set = async (interaction) => {
         regex: interaction.options.getString("regex"),
         react: interaction.options.getString("react")
     };
-    console.log(interaction);
 
     try {
         if (!regex || !react) throw `Regex or react is undefined: [regex: "${regex}", react: "${react}"]`
