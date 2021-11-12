@@ -28,7 +28,7 @@ const filePrint = (prefix, msg) => {
         mkdirSync(`${config.logesPath}`);
     }
 
-    appendFileSync(`${config.logesPath}/${date.toLocaleDateString()}.log`,
+    appendFileSync(`${config.logesPath}/${date.toLocaleDateString("lt-LT")}.log`,
         `[${date.toLocaleTimeString()}]${prefix}: ${typeof(msg) === 'object'
             ? `\n${JSON.stringify(msg, null, 2)}` 
             : msg}\n`);
