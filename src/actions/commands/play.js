@@ -4,7 +4,7 @@ const { createAudioPlayer, createAudioResource,
 const { MessageEmbed } = require("discord.js");
 const { validateURL } = require("ytdl-core");
 const ytdl = require("ytdl-core");
-const { log } = require("../../utils/logger.js");
+const { log, error } = require("../../utils/logger.js");
 const { join } = require("./join.js");
 const { timeFormatSeconds, timeFormatmSeconds } = require("../../utils/converter.js");
 const ytsr = require("ytsr");
@@ -49,7 +49,7 @@ const play = async (interaction) => {
                 await playPlaylist(interaction, p);
                 await playPlayer(interaction);
             }).catch(async e => {
-                notifyError('play.playlist', e, interaction);
+                notifyError('play', e, interaction);
                 return;
             });
         }).catch(() => {
@@ -141,7 +141,9 @@ const playPlayer = async (interaction) => {
             }
         });
         interaction.client.queue.connection.subscribe(interaction.client.queue.player);
-        interaction.client.queue.player.on('error', console.error);
+        interaction.client.queue.player.on('error', (e) => {
+            error(e);
+        });
         interaction.client.queue.player.on(AudioPlayerStatus.Idle, (a, b) => {
             let p = a.playbackDuration
             log(`[play]: [${timeFormatmSeconds(p)}/${interaction.client.queue.nowPlaying.length}] `);

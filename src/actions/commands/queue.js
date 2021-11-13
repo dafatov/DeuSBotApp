@@ -95,7 +95,7 @@ const onQueue = async (interaction) => {
         await interaction.update({embeds: [embed], components: [row]});
         log(`[queue.update] Список композиций успешно обновлен`);
     } catch (e) {
-        notifyError('queue.update', e, interaction);
+        notifyError('queue', e, interaction);
     }
 }
 

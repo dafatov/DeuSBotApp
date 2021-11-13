@@ -5,6 +5,7 @@ const listeners = require("./actions/listeners.js");
 const player = require("./actions/player.js");
 const config = require("./configs/config.js");
 const { log } = require('./utils/logger.js');
+const db = require("./repositories/db.js");
 
 const client = new Client({ intents: [
     Intents.FLAGS.GUILDS,
@@ -15,6 +16,7 @@ const client = new Client({ intents: [
 client.once('ready', async () => {
     client.user.setPresence({ activities: [{ name: `/help для помощи`}], status: 'online' });
 
+    await db.init();    
     await responses.init();
     await commands.init(client);
     await listeners.init(client);

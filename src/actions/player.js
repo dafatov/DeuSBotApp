@@ -7,5 +7,5 @@ module.exports.init = async (client) => {
         nowPlaying: null,
         songs: []
     }
-    log(`Успешно зарегестрирован плеер`)
+    log(`Успешно зарегистрирован плеер`)
 }

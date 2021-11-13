@@ -4,6 +4,7 @@ const config = require("../configs/config.js");
 const fs = require('fs');
 const { log, error } = require('../utils/logger.js');
 const Collection = require('@discordjs/collection');
+const { MessageEmbed } = require('discord.js');
 
 module.exports.init = async (client) => {
     const rest = new REST({ version: '9' }).setToken(config.token);
@@ -16,7 +17,7 @@ module.exports.init = async (client) => {
             client.commands.set(command.data.name, command);
         });
     if (!client.commands || client.commands.keyArray().length === 0) return;
-    client.guilds.cache.forEach(async guild => {
+    await client.guilds.cache.forEach(async guild => {
         await rest.put(Routes.applicationGuildCommands(client.user.id, guild.id), {
             body: client.commands.map((value) => value.data.toJSON())
         }).then(() => log(`Успешно зарегистрировал команд: ${client.commands.keyArray().length} для гильдии: ${guild.name}`))
@@ -50,6 +51,6 @@ module.exports.notifyError = async (commandName, e, interaction) => {
         .setTitle('Ошибка')
         .setTimestamp()
         .setDescription(`${e}`);
-    await notify('play', interaction, {embeds: [embed]});
+    await module.exports.notify(`${commandName}`, interaction, {embeds: [embed]});
     error(`[${commandName}]:\n${e}`);
 }

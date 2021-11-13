@@ -6,7 +6,8 @@ module.exports =
     "token" : process.env.token,
     //"cookie": configLocal.cookie,
     "cookie": process.env.cookie,
-
-    "rulesPath": "src/data/rules.json",
+    //"database": configLocal.database,
+    "database": process.env.DATABASE_URL,
+    
     "logesPath": "logs"
 }
