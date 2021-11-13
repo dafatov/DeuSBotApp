@@ -38,6 +38,7 @@ module.exports.join = async (interaction) => {
             adapterCreator: voiceChannel.guild.voiceAdapterCreator,
             debug: true
         })
+        interaction.client.queue.voiceChannel = voiceChannel;
         const embed = new MessageEmbed()
             .setColor('#00ff00')
             .setTitle('Я зашел')

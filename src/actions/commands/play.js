@@ -147,9 +147,15 @@ const playPlayer = async (interaction) => {
         interaction.client.queue.player.on(AudioPlayerStatus.Idle, (a, b) => {
             let p = a.playbackDuration
             log(`[play]: [${timeFormatmSeconds(p)}/${interaction.client.queue.nowPlaying.length}] `);
-            if (interaction.client.queue.songs.length === 0) {
-                interaction.client.queue.nowPlaying = null;
-                interaction.client.queue.player.stop();
+            if (interaction.client.queue.songs.length === 0 || interaction.client.queue.voiceChannel.members.size < 2) {
+                interaction.client.queue.connection.destroy();
+                interaction.client.queue = {
+                    connection: null,
+                    voiceChannel: null,
+                    player: null,
+                    nowPlaying: null,
+                    songs: []
+                };
                 return;
             }
             log(`[play][Event]: ${interaction.client.queue.songs[0].title}`);

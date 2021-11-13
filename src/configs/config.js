@@ -2,11 +2,12 @@
 
 module.exports =
 {
-    //"token" : configLocal.token,
+    // "token" : configLocal.token,
+    // "cookie": configLocal.cookie,
+    // "database": configLocal.database,
+
     "token" : process.env.token,
-    //"cookie": configLocal.cookie,
     "cookie": process.env.cookie,
-    //"database": configLocal.database,
     "database": process.env.DATABASE_URL,
     
     "logesPath": "logs"

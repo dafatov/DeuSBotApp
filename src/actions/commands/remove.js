@@ -18,13 +18,11 @@ module.exports = {
 }
 
 const remove = async (interaction) => {
-    if (!interaction.client.queue.songs || interaction.client.queue.songs.length <= 2) {
+    if (!interaction.client.queue.songs || interaction.client.queue.songs.length <= 1) {
         const embed = new MessageEmbed()
             .setColor('#ffff00')
             .setTitle('Ты одинок что ли? Соло-игрок?')
-            .setDescription(`${interaction.client.queue.songs.length === 0
-                ? 'Пытаться перемещать то, чего нет, показывает все твое отчаяние. **Пуст плейлист. Пуст.**'
-                : 'В одиночку, конечно, можно получить удовольствие, но двигать то все равно не куда. **Одна песня в плейлисте. Как ты...**'}`)
+            .setDescription('Пытаться удалить то, чего нет, показывает все твое отчаяние. **Пуст плейлист. Пуст.**')
             .setTimestamp();
         await notify('remove', interaction, {embeds: [embed]});
         log(`[remove] Пропустить композицию не вышло: плеер не играет`);
