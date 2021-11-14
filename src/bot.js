@@ -36,4 +36,21 @@ client.on('messageCreate', (message) => {
     responses.execute(message);
 });
 
+client.on('voiceStateUpdate', async (_oldState, newState) => {
+    if (!client.queue.voiceChannel) return;
+    if (client.users.cache.get(newState.id).bot) return;
+
+    if (client.queue.voiceChannel.members
+        .filter(m => !m.user.bot).size < 1) {
+            client.queue.connection.destroy();
+            client.queue = {
+                connection: null,
+                voiceChannel: null,
+                player: null,
+                nowPlaying: null,
+                songs: []
+            };
+    }
+});
+
 client.login(config.token);

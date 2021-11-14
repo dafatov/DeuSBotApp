@@ -181,7 +181,6 @@ const onResponse = async (interaction) => {
 
         try {
             await interaction.update({embeds: [embed], components: [row]});
-            log(`[response] Список реакций успешно обновлен`);
         } catch (e) {
             notifyError('response', e, interaction);
         }

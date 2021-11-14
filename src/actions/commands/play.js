@@ -142,23 +142,32 @@ const playPlayer = async (interaction) => {
         });
         interaction.client.queue.connection.subscribe(interaction.client.queue.player);
         interaction.client.queue.player.on('error', (e) => {
-            error(e);
+            log(e);
+            try {
+                if (e.resource.playbackDuration === 0) {
+                    log(`[play][Error]: ${interaction.client.queue.nowPlaying.title}`);
+                    interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.nowPlaying.url, {
+                        requestOptions: {
+                            headers: {
+                            cookie: config.cookie,
+                            },
+                        },
+                        filter: 'audioonly', 
+                        quality: 'highestaudio',
+                        highWaterMark: 1 << 25
+                    })));
+                }
+            } catch (e) {
+                error(e)
+            }
         });
         interaction.client.queue.player.on(AudioPlayerStatus.Idle, (a, b) => {
             let p = a.playbackDuration
             log(`[play]: [${timeFormatmSeconds(p)}/${interaction.client.queue.nowPlaying.length}] `);
-            if (interaction.client.queue.voiceChannel.members.size < 2) {
-                interaction.client.queue.connection.destroy();
-                interaction.client.queue = {
-                    connection: null,
-                    voiceChannel: null,
-                    player: null,
-                    nowPlaying: null,
-                    songs: []
-                };
-                return;
-            }
             log(`[play][Event]: ${interaction.client.queue.songs[0].title}`);
+
+            if (interaction.client.queue.songs.length === 0) return;
+
             interaction.client.queue.nowPlaying = interaction.client.queue.songs[0];
             interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.songs.shift().url, {
                 requestOptions: {

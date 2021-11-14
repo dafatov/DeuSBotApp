@@ -1,4 +1,4 @@
-//const configLocal = require('./config.local.js')
+// const configLocal = require('./config.local.js')
 
 module.exports =
 {
@@ -9,8 +9,6 @@ module.exports =
     "token" : process.env.token,
     "cookie": process.env.cookie,
     "database": process.env.DATABASE_URL,
-    
-    "logesPath": "logs",
 
     "colors": {
         "info": "#FFFF50",

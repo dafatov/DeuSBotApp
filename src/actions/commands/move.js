@@ -3,6 +3,7 @@ const { MessageEmbed } = require("discord.js");
 const { log } = require("../../utils/logger");
 const { notify } = require("../commands");
 const config = require("../../configs/config.js");
+const { escaping } = require("../../utils/string");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -70,7 +71,7 @@ const move = async (interaction) => {
         .setColor(config.colors.info)
         .setTitle('Целевая композиция передвинута')
         .setDescription(`Композиция **${targetTitle}** протолкала всех локтями на позицию **${positionIndex + 1}**.
-            Кто бы сомневался. Донатеры \*\*\*\*ые`);
+            Кто бы сомневался. Донатеры ${escaping('****')}ые`);
     await notify('move', interaction, {embeds: [embed]});
     log(`[move] Композиция была успешно пропущено`);
 }

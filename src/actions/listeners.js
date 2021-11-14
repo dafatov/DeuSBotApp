@@ -17,7 +17,6 @@ module.exports.execute = async (interaction) => {
     if (!command) return;
     try {
         await command.listener(interaction);
-        log(`Listener "${command.data.name}" is handled`);
     } catch (e) {
         error(e);
     }

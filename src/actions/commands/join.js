@@ -36,8 +36,7 @@ module.exports.join = async (interaction) => {
         interaction.client.queue.connection = joinVoiceChannel({
             channelId: voiceChannel.id,
             guildId: voiceChannel.guildId,
-            adapterCreator: voiceChannel.guild.voiceAdapterCreator,
-            debug: true
+            adapterCreator: voiceChannel.guild.voiceAdapterCreator
         })
         interaction.client.queue.voiceChannel = voiceChannel;
         const embed = new MessageEmbed()
