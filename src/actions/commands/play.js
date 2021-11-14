@@ -167,6 +167,21 @@ const playPlayer = async (interaction) => {
             let p = a.playbackDuration
             if (interaction.client.queue.nowPlaying) {
                 log(`[play]: [${timeFormatmSeconds(p)}/${interaction.client.queue.nowPlaying.length}] `);
+                if (p === 0) {
+                    setTimeout(() => {
+                        log(`[play][IdleError]: ${interaction.client.queue.nowPlaying.title}`);
+                        interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.nowPlaying.url, {
+                            requestOptions: {
+                                headers: {
+                                cookie: config.cookie,
+                                },
+                            },
+                            filter: 'audioonly', 
+                            quality: 'highestaudio',
+                            highWaterMark: 1 << 25
+                        })));
+                    }, 250);
+                }
             }
 
             if (interaction.client.queue.songs.length === 0) return;
