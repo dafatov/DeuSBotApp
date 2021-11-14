@@ -3,6 +3,7 @@ const { shuffleArray } = require("../../utils/array");
 const { MessageEmbed } = require("discord.js");
 const { log } = require("../../utils/logger");
 const { notify } = require("../commands");
+const config = require("../../configs/config.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -18,7 +19,7 @@ const shuffle = async (interaction) => {
     if (!interaction.client.queue.connection || !interaction.client.queue.player
         || interaction.client.queue.songs.length <= 2) {
         const embed = new MessageEmbed()
-            .setColor('#ffff00')
+            .setColor(config.colors.warning)
             .setTitle('Ты одинок что ли? Соло-игрок?')
             .setDescription(`${interaction.client.queue.songs.length === 0
                 ? 'Пытаться перемещать то, чего нет, показывает все твое отчаяние. **Пуст плейлист. Пуст.**'
@@ -32,7 +33,7 @@ const shuffle = async (interaction) => {
     if (interaction.client.queue.connection.joinConfig.channelId !==
         interaction.member.voice.channel.id) {
             const embed = new MessageEmbed()
-                .setColor('#ffff00')
+                .setColor(config.colors.warning)
                 .setTitle('Канал не тот')
                 .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
                 .setTimestamp();
@@ -43,7 +44,7 @@ const shuffle = async (interaction) => {
 
     shuffleArray(interaction.client.queue.songs);
     const embed = new MessageEmbed()
-        .setColor('#00ff00')
+        .setColor(config.colors.info)
         .setTitle('Плейлист ~~взболтан~~ перемешан')
         .setDescription(`Это было суровое время.. Мы мешали песни как могли, чтобы хоть как-то разнообразить свою серую жизнь..
             И  пришел он!! Генератор Псевдо Случайных Чисел или _ГПСЧ_! Он спас нас, но остался в безизвестности.. Так давайте восславим его.

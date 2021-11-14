@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require("@discordjs/builders");
 const { MessageEmbed } = require("discord.js");
 const { log } = require("../../utils/logger");
 const { notify } = require("../commands");
+const config = require("../../configs/config.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -24,7 +25,7 @@ module.exports = {
 const move = async (interaction) => {
     if (!interaction.client.queue.songs || interaction.client.queue.songs.length <= 2) {
         const embed = new MessageEmbed()
-            .setColor('#ffff00')
+            .setColor(config.colors.warning)
             .setTitle('Ты одинок что ли? Соло-игрок?')
             .setDescription(`${interaction.client.queue.songs.length === 0
                 ? 'Пытаться перемещать то, чего нет, показывает все твое отчаяние. **Пуст плейлист. Пуст.**'
@@ -38,7 +39,7 @@ const move = async (interaction) => {
     if (interaction.client.queue.connection.joinConfig.channelId !==
         interaction.member.voice.channel.id) {
             const embed = new MessageEmbed()
-                .setColor('#ffff00')
+                .setColor(config.colors.warning)
                 .setTitle('Канал не тот')
                 .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
                 .setTimestamp();
@@ -51,12 +52,13 @@ const move = async (interaction) => {
     let positionIndex = interaction.options.getInteger("position") - 1;
     let targetTitle = interaction.client.queue.songs[targetIndex].title;
 
-    if (targetIndex < 1 || targetIndex + 1 > interaction.client.queue.songs.length
-        || positionIndex < 1 || positionIndex + 1 > interaction.client.queue.songs.length) {
+    if (targetIndex < 0 || targetIndex + 1 > interaction.client.queue.songs.length
+        || positionIndex < 0 || positionIndex + 1 > interaction.client.queue.songs.length) {
             const embed = new MessageEmbed()
-                .setColor('#ffff00')
+                .setColor(config.colors.warning)
                 .setTitle('Ты это.. Вселенной ошибся, чел.')
-                .setDescription(`Типа знаешь вселенная расширяется, а твой мозг походу нет. Ну вышел ты за пределы размеров очереди.`)
+                .setDescription(`Типа знаешь вселенная расширяется, а твой мозг походу нет. Ну вышел ты за пределы размеров очереди.
+                    Диапазон значений _от 1 до ${interaction.client.queue.songs.length}_`)
                 .setTimestamp();
             await notify('move', interaction, {embeds: [embed]});
             log(`[move] Удалить композицию не вышло: выход за пределы очереди`);
@@ -65,10 +67,10 @@ const move = async (interaction) => {
 
     arrayMoveMutable(interaction.client.queue.songs, targetIndex, positionIndex);
     const embed = new MessageEmbed()
-        .setColor('#00ff00')
+        .setColor(config.colors.info)
         .setTitle('Целевая композиция передвинута')
-        .setDescription(`Композиция **${targetTitle}** протолкала всех локтями на **${positionIndex + 1}**.
-            Кто бы сомневался. Донатеры \*\*\*ые`);
+        .setDescription(`Композиция **${targetTitle}** протолкала всех локтями на позицию **${positionIndex + 1}**.
+            Кто бы сомневался. Донатеры \*\*\*\*ые`);
     await notify('move', interaction, {embeds: [embed]});
     log(`[move] Композиция была успешно пропущено`);
 }

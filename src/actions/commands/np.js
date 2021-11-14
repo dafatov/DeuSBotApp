@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require("@discordjs/builders");
 const { MessageEmbed } = require("discord.js");
 const { log } = require("../../utils/logger");
 const { notify } = require("../commands");
+const config = require("../../configs/config.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -18,7 +19,7 @@ const np = async (interaction) => {
 
     if (!interaction.client.queue.connection || !interaction.client.queue.player || !info) {
         const embed = new MessageEmbed()
-            .setColor('#ffff00')
+            .setColor(config.colors.warning)
             .setTitle('Так ничего и не играло')
             .setDescription(`Как ты жалок... Это же уже было когда ты пытался пропустить, верно?~
                 Теперь ты повторяешь это в при получении текущей композиции. Или это было в другом порядке?`)
@@ -31,7 +32,7 @@ const np = async (interaction) => {
     if (interaction.client.queue.connection.joinConfig.channelId !==
         interaction.member.voice.channel.id) {
             const embed = new MessageEmbed()
-                .setColor('#ffff00')
+                .setColor(config.colors.warning)
                 .setTitle('Канал не тот')
                 .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь...
                     Дежавю? Разве этого же не было в пропуске композиции? Или у этого времени другой порядок...`)
@@ -42,7 +43,7 @@ const np = async (interaction) => {
     }
 
     const embed = new MessageEmbed()
-        .setColor('#00ff00')
+        .setColor(config.colors.info)
         .setTitle(info.title)
         .setURL(info.url)
         .setDescription(`Длительность: ${info.isLive ? 

@@ -3,6 +3,7 @@ const { SlashCommandBuilder } = require("@discordjs/builders");
 const { joinVoiceChannel } = require("@discordjs/voice");
 const { MessageEmbed } = require("discord.js");
 const { notify, notifyError } = require("../commands.js");
+const config = require("../../configs/config.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -19,7 +20,7 @@ module.exports.join = async (interaction) => {
     
     if (!voiceChannel) {
         const embed = new MessageEmbed()
-            .setColor('#ffff00')
+            .setColor(config.colors.warning)
             .setTitle('Канал не смог меня принять')
             .setDescription(`Ты хотел, чтобы я пришел? Мог бы и сам зайти для приличия.
                 Я решил, что не стоит заходить в какой-то жалкий канал, когда никто не сможет осознать все мое величие`)
@@ -40,7 +41,7 @@ module.exports.join = async (interaction) => {
         })
         interaction.client.queue.voiceChannel = voiceChannel;
         const embed = new MessageEmbed()
-            .setColor('#00ff00')
+            .setColor(config.colors.info)
             .setTitle('Я зашел')
             .setDescription(`Зашел к тебе в войс. Теперь ты сможешь погреться во всем моем великолепии и послушать музыку для ушей.
             Канал же ${voiceChannel.name} называется? О нем теперь будут слагать легенды`);

@@ -10,5 +10,11 @@ module.exports =
     "cookie": process.env.cookie,
     "database": process.env.DATABASE_URL,
     
-    "logesPath": "logs"
+    "logesPath": "logs",
+
+    "colors": {
+        "info": "#FFFF50",
+        "warning": "#FF8800",
+        "error": "#FF0000"
+    }
 }

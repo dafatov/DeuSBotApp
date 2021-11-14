@@ -47,7 +47,7 @@ module.exports.notify = async (commandName, interaction, content) => {
 
 module.exports.notifyError = async (commandName, e, interaction) => {
     const embed = new MessageEmbed()
-        .setColor('#ff0000')
+        .setColor(config.colors.error)
         .setTitle('Ошибка')
         .setTimestamp()
         .setDescription(`${e}`);

@@ -34,7 +34,7 @@ const play = async (interaction) => {
         interaction.client.queue.connection.joinConfig.channelId !==
             interaction.member.voice.channel.id) {
         const embed = new MessageEmbed()
-            .setColor('#ffff00')
+            .setColor(config.colors.warning)
             .setTitle('Канал не тот')
             .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
             .setTimestamp();
@@ -98,7 +98,7 @@ const playPlaylist = async (interaction, p) => {
         preview: p.thumbnails[0].url
     };
     const embed = new MessageEmbed()
-        .setColor('#00ff00')
+        .setColor(config.colors.info)
         .setTitle(info.title)
         .setURL(info.url)
         .setDescription(`Количество композиций: ${info.length}`)
@@ -120,7 +120,7 @@ const playUrl = async (interaction, i) => {
     interaction.client.queue.songs.push(info);
 
     const embed = new MessageEmbed()
-        .setColor('#00ff00')
+        .setColor(config.colors.info)
         .setTitle(info.title)
         .setURL(info.url)
         .setDescription(`Длительность: ${info.isLive ? 

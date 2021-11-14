@@ -1,4 +1,3 @@
-const { writeFile } = require('fs/promises');
 const config = require('../../configs/config.js');
 const { log } = require('../../utils/logger.js');
 const db = require('../../repositories/db.js');
@@ -72,7 +71,7 @@ const set = async (interaction) => {
             "react": react
         }).then(async () => {
             const embed = new MessageEmbed()
-                .setColor('#00ff00')
+                .setColor(config.colors.info)
                 .setTitle('Я создал реакцию')
                 .setTimestamp()
                 .addField(escaping(regex), react);
@@ -93,7 +92,7 @@ const remove = async (interaction) => {
 
         db.delete(regex).then(async () => {
             const embed = new MessageEmbed()
-                .setColor('#00ff00')
+                .setColor(config.colors.info)
                 .setTitle('Я уничтожил реакцию')
                 .setTimestamp()
                 .setDescription(escaping(regex));

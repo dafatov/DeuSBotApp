@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require("@discordjs/builders");
 const { MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
 const { log } = require("../../utils/logger");
 const { notify, notifyError } = require("../commands");
+const config = require("../../configs/config.js");
 
 let {start, count} = {start: 0, count: 5};
 
@@ -21,7 +22,7 @@ const queue = async (interaction) => {
     const songs = interaction.client.queue.songs;
 
     const embed = new MessageEmbed()
-        .setColor('#00ff00')
+        .setColor(config.colors.info)
         .setTitle('Все композиции на данный момент')
         .setFooter(`${Math.min(start + 1, songs.length)} - ${Math.min(start + count, songs.length)} из ${songs.length} по ${count}`);
     

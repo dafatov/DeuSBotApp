@@ -1,8 +1,8 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const { shuffleArray } = require("../../utils/array");
 const { MessageEmbed } = require("discord.js");
 const { log } = require("../../utils/logger");
 const { notify } = require("../commands");
+const config = require("../../configs/config.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -18,7 +18,7 @@ const shuffle = async (interaction) => {
     if (!interaction.client.queue.connection || !interaction.client.queue.player
         || interaction.client.queue.songs.length == 0) {
         const embed = new MessageEmbed()
-            .setColor('#ffff00')
+            .setColor(config.colors.warning)
             .setTitle('Так ничего и не играло')
             .setDescription(`Как ты жалок... Зачем очищать, то чего нет? Или у тебя голоса в голове?`)
             .setTimestamp();
@@ -30,7 +30,7 @@ const shuffle = async (interaction) => {
     if (interaction.client.queue.connection.joinConfig.channelId !==
         interaction.member.voice.channel.id) {
             const embed = new MessageEmbed()
-                .setColor('#ffff00')
+                .setColor(config.colors.warning)
                 .setTitle('Канал не тот')
                 .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
                 .setTimestamp();
@@ -41,7 +41,7 @@ const shuffle = async (interaction) => {
 
     interaction.client.queue.songs = [];
     const embed = new MessageEmbed()
-        .setColor('#00ff00')
+        .setColor(config.colors.info)
         .setTitle('Э-эм. а где все?')
         .setDescription(`Ох.. Эти времена, эти нравы.. Кто-то созидает, а кто-то может только уничтожать.
             Поздравляю разрушитель, у тебя получилось. **Плейлист очищен**`);
