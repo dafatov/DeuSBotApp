@@ -145,17 +145,19 @@ const playPlayer = async (interaction) => {
             log(e);
             try {
                 if (e.resource.playbackDuration === 0) {
-                    log(`[play][Error]: ${interaction.client.queue.nowPlaying.title}`);
-                    interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.nowPlaying.url, {
-                        requestOptions: {
-                            headers: {
-                            cookie: config.cookie,
+                    setTimeout(() => {
+                        log(`[play][Error]: ${interaction.client.queue.nowPlaying.title}`);
+                        interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.nowPlaying.url, {
+                            requestOptions: {
+                                headers: {
+                                cookie: config.cookie,
+                                },
                             },
-                        },
-                        filter: 'audioonly', 
-                        quality: 'highestaudio',
-                        highWaterMark: 1 << 25
-                    })));
+                            filter: 'audioonly', 
+                            quality: 'highestaudio',
+                            highWaterMark: 1 << 25
+                        })));
+                    }, 250);
                 }
             } catch (e) {
                 error(e)
