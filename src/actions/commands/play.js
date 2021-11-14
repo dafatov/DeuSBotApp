@@ -163,11 +163,13 @@ const playPlayer = async (interaction) => {
         });
         interaction.client.queue.player.on(AudioPlayerStatus.Idle, (a, b) => {
             let p = a.playbackDuration
-            log(`[play]: [${timeFormatmSeconds(p)}/${interaction.client.queue.nowPlaying.length}] `);
-            log(`[play][Event]: ${interaction.client.queue.songs[0].title}`);
+            if (interaction.client.queue.nowPlaying) {
+                log(`[play]: [${timeFormatmSeconds(p)}/${interaction.client.queue.nowPlaying.length}] `);
+            }
 
             if (interaction.client.queue.songs.length === 0) return;
 
+            log(`[play][Event]: ${interaction.client.queue.songs[0].title}`);
             interaction.client.queue.nowPlaying = interaction.client.queue.songs[0];
             interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.songs.shift().url, {
                 requestOptions: {
