@@ -61,7 +61,6 @@ const createPlayer = (client) => {
             });
 
             client.queue.player.on(AudioPlayerStatus.Idle, (a, b) => {
-                console.log(a.status);
                 let p = a.playbackDuration;
                 if (client.queue.nowPlaying.song) {
                     log(`[play]: [${timeFormatmSeconds(p)}/${timeFormatSeconds(client.queue.nowPlaying.song.length)}] `);
@@ -75,7 +74,6 @@ const createPlayer = (client) => {
                 }
 
                 if (client.queue.songs.length === 0) {
-                    console.log('songs are over');
                     module.exports.clear(client);
                     return;
                 }
