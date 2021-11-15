@@ -2,6 +2,8 @@ const { Client } = require('pg');
 const config = require('../configs/config');
 const { log } = require('../utils/logger');
 
+let rules = null;
+
 const client = new Client({
     connectionString: config.database,
     ssl: {
@@ -13,21 +15,27 @@ module.exports.init = async () => {
     await client.connect().then(() => log('Успешно подключена база данных'));
 }
 
-module.exports.getAll = () => {
-    return client.query('SELECT * FROM RESPONSE')
-        .then(response => response.rows || [])
+module.exports.getAll = async () => {
+    if (!rules) {
+        const response = await client.query('SELECT * FROM RESPONSE');
+        rules = response.rows || [];
+        console.log("downloaded");
+    }
+    return rules;
 }
 
-module.exports.set = ({regex, react}) => {
-    return client.query('DELETE FROM RESPONSE WHERE regex=$1', [regex])
-        .then(() => client.query('INSERT INTO RESPONSE (regex, react) VALUES ($1, $2)', [regex, react]));
+module.exports.set = async ({regex, react}) => {
+    rules = null;
+    await client.query('DELETE FROM RESPONSE WHERE regex=$1', [regex]);
+    await client.query('INSERT INTO RESPONSE (regex, react) VALUES ($1, $2)', [regex, react]);
 }
 
-module.exports.delete = (regex) => {
-    return client.query('DELETE FROM RESPONSE WHERE regex=$1', [regex]);
+module.exports.delete = async (regex) => {
+    rules = null;
+    await client.query('DELETE FROM RESPONSE WHERE regex=$1', [regex]);
 }
 
-module.exports.count = () => {
-    return client.query('SELECT COUNT(*) FROM RESPONSE')
-        .then(response => parseInt(response.rows[0].count));
+module.exports.count = async () => {
+    const response = await client.query('SELECT COUNT(*) FROM RESPONSE');
+    return parseInt(response.rows[0].count);
 }
