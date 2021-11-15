@@ -24,6 +24,7 @@
     "ffmpeg-static": "^4.4.0",
     "libsodium-wrappers": "^0.7.9",
     "pg": "^8.7.1",
+    "string-progressbar": "^1.0.4",
     "ytdl-core": "^4.9.1",
     "ytpl": "^2.2.3",
     "ytsr": "^3.5.3"

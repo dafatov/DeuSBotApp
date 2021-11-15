@@ -2,7 +2,8 @@ const { SlashCommandBuilder } = require("@discordjs/builders");
 const { MessageEmbed } = require("discord.js");
 const { log } = require("../../utils/logger");
 const { notify } = require("../commands");
-const config = require("../../configs/config.js")
+const config = require("../../configs/config.js");
+const { escaping } = require("../../utils/string.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -43,7 +44,7 @@ const skip = async (interaction) => {
         .setColor(config.colors.info)
         .setTitle('Текущая композиция уничтожена')
         .setDescription(`Название того, что играло уже не помню. Прошлое должно остаться в прошлом.
-        ...Вроде это **${interaction.client.queue.nowPlaying.title}**, но уже какая разница?`);
+        ...Вроде это **${escaping(interaction.client.queue.nowPlaying.song.title)}**, но уже какая разница?`);
     await notify('skip', interaction, {embeds: [embed]});
     log(`[skip] Композиция была успешно пропущена`);
 }

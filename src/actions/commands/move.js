@@ -51,7 +51,7 @@ const move = async (interaction) => {
 
     let targetIndex = interaction.options.getInteger("target") - 1;
     let positionIndex = interaction.options.getInteger("position") - 1;
-    let targetTitle = interaction.client.queue.songs[targetIndex].title;
+    let targetTitle = escaping(interaction.client.queue.songs[targetIndex].title);
 
     if (targetIndex < 0 || targetIndex + 1 > interaction.client.queue.songs.length
         || positionIndex < 0 || positionIndex + 1 > interaction.client.queue.songs.length) {

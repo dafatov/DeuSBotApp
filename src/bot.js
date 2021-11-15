@@ -43,13 +43,7 @@ client.on('voiceStateUpdate', async (_oldState, newState) => {
     if (client.queue.voiceChannel.members
         .filter(m => !m.user.bot).size < 1) {
             client.queue.connection.destroy();
-            client.queue = {
-                connection: null,
-                voiceChannel: null,
-                player: null,
-                nowPlaying: null,
-                songs: []
-            };
+            player.clear(client);
     }
 });
 

@@ -1,17 +1,16 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const { createAudioPlayer, createAudioResource,
-    AudioPlayerStatus, NoSubscriberBehavior } = require("@discordjs/voice");
 const { MessageEmbed } = require("discord.js");
 const { validateURL } = require("ytdl-core");
 const ytdl = require("ytdl-core");
-const { log, error } = require("../../utils/logger.js");
-const { join } = require("./join.js");
-const { timeFormatSeconds, timeFormatmSeconds } = require("../../utils/converter.js");
+const { log } = require("../../utils/logger.js");
+const { timeFormatSeconds } = require("../../utils/converter.js");
 const ytsr = require("ytsr");
 const { getPlaylistID } = require("ytpl");
 const ytpl = require("ytpl");
 const { notify, notifyError } = require("../commands.js");
 const config = require("../../configs/config.js");
+const { playPlayer } = require("../player.js");
+const { escaping } = require("../../utils/string.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -83,7 +82,7 @@ const playPlaylist = async (interaction, p) => {
     p.items.forEach(i => {
         info = {
             title: i.title,
-            length: timeFormatSeconds(i.durationSec),
+            length: i.durationSec,
             url: i.shortUrl,
             isLive: i.isLive,
             preview: i.thumbnails[0].url
@@ -99,9 +98,9 @@ const playPlaylist = async (interaction, p) => {
     };
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
-        .setTitle(info.title)
+        .setTitle(escaping(info.title))
         .setURL(info.url)
-        .setDescription(`Количество композиций: ${info.length}`)
+        .setDescription(`Количество композиций: **${info.length}**`)
         .setThumbnail(info.preview)
         .setTimestamp()
         .setFooter(`Плейлист предложил пользователь ${interaction.user.username}`);
@@ -112,7 +111,7 @@ const playPlaylist = async (interaction, p) => {
 const playUrl = async (interaction, i) => {
     let info = {
         title: i.videoDetails.title,
-        length: timeFormatSeconds(i.videoDetails.lengthSeconds),
+        length: i.videoDetails.lengthSeconds,
         url: i.videoDetails.video_url,
         isLive: i.videoDetails.isLiveContent,
         preview: i.videoDetails.thumbnails[0].url
@@ -121,97 +120,14 @@ const playUrl = async (interaction, i) => {
 
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
-        .setTitle(info.title)
+        .setTitle(escaping(info.title))
         .setURL(info.url)
-        .setDescription(`Длительность: ${info.isLive ? 
-            '<Стрим>' : info.length}`)
+        .setDescription(`Длительность: **${info.isLive ? 
+            '<Стрим>' : timeFormatSeconds(info.length)}**
+            Место в очереди: **${interaction.client.queue.songs.length}**`)
         .setThumbnail(info.preview)
         .setTimestamp()
         .setFooter(`Композицию заказал пользователь ${interaction.user.username}`);
     await notify('play', interaction, {embeds: [embed]});
     log(`[play.add] Композиция успешно добавлена в очередь`);
-}
-
-const playPlayer = async (interaction) => {
-    if (!interaction.client.queue.connection) await join(interaction);
-    if (interaction.client.queue.connection && !interaction.client.queue.player) {
-        interaction.client.queue.player = createAudioPlayer({
-            behaviors: {
-                noSubscriber: NoSubscriberBehavior.Stop
-            }
-        });
-        interaction.client.queue.connection.subscribe(interaction.client.queue.player);
-        interaction.client.queue.player.on('error', (e) => {
-            log(e);
-            try {
-                if (e.resource.playbackDuration === 0) {
-                    setTimeout(() => {
-                        log(`[play][Error]: ${interaction.client.queue.nowPlaying.title}`);
-                        interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.nowPlaying.url, {
-                            requestOptions: {
-                                headers: {
-                                cookie: config.cookie,
-                                },
-                            },
-                            filter: 'audioonly', 
-                            quality: 'highestaudio',
-                            highWaterMark: 1 << 25
-                        })));
-                    }, 250);
-                }
-            } catch (e) {
-                error(e)
-            }
-        });
-        interaction.client.queue.player.on(AudioPlayerStatus.Idle, (a, b) => {
-            let p = a.playbackDuration
-            if (interaction.client.queue.nowPlaying) {
-                log(`[play]: [${timeFormatmSeconds(p)}/${interaction.client.queue.nowPlaying.length}] `);
-                if (p === 0) {
-                    setTimeout(() => {
-                        log(`[play][IdleError]: ${interaction.client.queue.nowPlaying.title}`);
-                        interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.nowPlaying.url, {
-                            requestOptions: {
-                                headers: {
-                                cookie: config.cookie,
-                                },
-                            },
-                            filter: 'audioonly', 
-                            quality: 'highestaudio',
-                            highWaterMark: 1 << 25
-                        })));
-                    }, 250);
-                }
-            }
-
-            if (interaction.client.queue.songs.length === 0) return;
-
-            log(`[play][Event]: ${interaction.client.queue.songs[0].title}`);
-            interaction.client.queue.nowPlaying = interaction.client.queue.songs[0];
-            interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.songs.shift().url, {
-                requestOptions: {
-                    headers: {
-                      cookie: config.cookie,
-                    },
-                },
-                filter: 'audioonly', 
-                quality: 'highestaudio',
-                highWaterMark: 1 << 25
-            })));
-        })
-    }
-    if (interaction.client.queue.player.state.status !== AudioPlayerStatus.Playing) {
-        log(`[play][Inter]: ${interaction.client.queue.songs[0].title}`);
-        interaction.client.queue.nowPlaying = interaction.client.queue.songs[0];
-        interaction.client.queue.player.play(createAudioResource(ytdl(interaction.client.queue.songs.shift().url, {
-            requestOptions: {
-                headers: {
-                  cookie: config.cookie,
-                },
-            },
-            filter: 'audioonly', 
-            quality: 'highestaudio',
-            highWaterMark: 1 << 25
-        })));
-    }
 }

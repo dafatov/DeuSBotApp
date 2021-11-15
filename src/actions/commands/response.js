@@ -121,18 +121,28 @@ const show = async (interaction) => {
     const row = new MessageActionRow()
         .addComponents(
             new MessageButton()
-                .setCustomId('previous')
-                .setLabel('Previous')
+                .setCustomId('first')
+                .setLabel('|<')
                 .setStyle('PRIMARY')
                 .setDisabled(start <= 0),
-                new MessageButton()
-                    .setCustomId('update')
-                    .setLabel('Update')
-                    .setStyle('PRIMARY')
-                    .setDisabled(rules.length === 0),
+            new MessageButton()
+                .setCustomId('previous')
+                .setLabel('<')
+                .setStyle('PRIMARY')
+                .setDisabled(start <= 0),
+            new MessageButton()
+                .setCustomId('update')
+                .setLabel('Обновить')
+                .setStyle('PRIMARY')
+                .setDisabled(rules.length === 0),
             new MessageButton()
                 .setCustomId('next')
-                .setLabel('Next')
+                .setLabel('>')
+                .setStyle('PRIMARY')
+                .setDisabled(start + count >= rules.length),
+            new MessageButton()
+                .setCustomId('last')
+                .setLabel('>|')
                 .setStyle('PRIMARY')
                 .setDisabled(start + count >= rules.length),
         );
@@ -154,6 +164,8 @@ const onResponse = async (interaction) => {
     if (interaction.customId === 'next') start += count;
     if (interaction.customId === 'previous') start -= count;
     if (interaction.customId === 'update') start = Math.min(start, rules.length - 1);
+    if (interaction.customId === 'first') start = 0;
+    if (interaction.customId === 'last') start = count * Math.floor(rules.length / count);
     
     row.components.forEach(b => {
         if (b.customId === 'next') {
@@ -164,6 +176,12 @@ const onResponse = async (interaction) => {
         }
         if (b.customId === 'update') {
             b.setDisabled(rules.length === 0);
+        }
+        if (b.customId === 'first') {
+            b.setDisabled(start <= 0);
+        }
+        if (b.customId === 'last') {
+            b.setDisabled(start + count >= rules.length);
         }
     })
 

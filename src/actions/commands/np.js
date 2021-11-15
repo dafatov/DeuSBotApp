@@ -3,6 +3,9 @@ const { MessageEmbed } = require("discord.js");
 const { log } = require("../../utils/logger");
 const { notify } = require("../commands");
 const config = require("../../configs/config.js");
+const { timeFormatSeconds, timeFormatmSeconds } = require("../../utils/converter");
+const progressBar = require('string-progressbar');
+const { escaping } = require("../../utils/string.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -42,13 +45,18 @@ const np = async (interaction) => {
             return;
     }
 
+    const barString = progressBar.filledBar(info.song.length * 1000, info.resource.playbackDuration);
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
-        .setTitle(info.title)
-        .setURL(info.url)
-        .setDescription(`Длительность: ${info.isLive ? 
-            '<Стрим>' : info.length}`)
-        .setThumbnail(info.preview)
+        .setTitle(escaping(info.song.title))
+        .setURL(info.song.url)
+        .addField(`${info.song.isLive
+                ? '<Стрим>' 
+                : `${timeFormatmSeconds(info.resource.playbackDuration)}/${timeFormatSeconds(info.song.length)}`}`,
+            `${info.song.isLive
+                ? '\u200B'
+                : `${barString[0]} [${Math.round(barString[1])}%]`}`)
+        .setThumbnail(info.song.preview)
         .setTimestamp()
         .setFooter(`Композицию заказал пользователь ${interaction.user.username}`);
     await notify('np', interaction, {embeds: [embed]});

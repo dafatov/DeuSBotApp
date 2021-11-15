@@ -19,7 +19,6 @@ module.exports.getAll = async () => {
     if (!rules) {
         const response = await client.query('SELECT * FROM RESPONSE');
         rules = response.rows || [];
-        console.log("downloaded");
     }
     return rules;
 }

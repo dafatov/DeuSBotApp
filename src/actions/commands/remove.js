@@ -3,6 +3,7 @@ const { MessageEmbed } = require("discord.js");
 const { log } = require("../../utils/logger");
 const { notify } = require("../commands");
 const config = require("../../configs/config.js");
+const { escaping } = require("../../utils/string.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -55,11 +56,13 @@ const remove = async (interaction) => {
         return;
     }
 
+    let target = interaction.client.queue.songs[targetIndex];
+
     interaction.client.queue.songs.splice(interaction.options.getInteger('target') - 1, 1);
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
         .setTitle('Целевая композиция дезинтегрирована')
-        .setDescription(`Композиция **${target}** была стерта из реальности очереди.`);
+        .setDescription(`Композиция **${escaping(target.title)}** была стерта из реальности очереди.`);
     await notify('remove', interaction, {embeds: [embed]});
     log(`[remove] Композиция была успешно удалена из очереди`);
 } 
