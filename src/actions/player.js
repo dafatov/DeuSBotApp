@@ -74,7 +74,9 @@ const createPlayer = (client) => {
                     }
                 }
 
-                if ((!timerId || timerId._destroyed) && client.queue.songs.length === 0) {
+                if (timerId || !timerId._destroyed) return;
+
+                if (client.queue.songs.length === 0) {
                     log("[play][Idle]: cleared queue");
                     module.exports.clear(client);
                     return;
