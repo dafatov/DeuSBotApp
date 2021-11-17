@@ -18,10 +18,23 @@ module.exports.init = async (client) => {
             client.commands.set(command.data.name, command);
         });
     if (!client.commands || client.commands.keyArray().length === 0) return;
+
+    let all = await db.getAll();
+    client.commands.get('shikimori').data.options
+        .filter(i => i.name === 'play')[0].options
+        .filter(i => i.name === 'nickname')[0].choices = all.map(({login, nickname}) => ({
+            name: nickname,
+            value: login
+    }));
+
     await client.guilds.cache.forEach(async guild => {
         await rest.put(Routes.applicationGuildCommands(client.user.id, guild.id), {
             body: client.commands.map((value) => value.data.toJSON())
         }).then(() => log(`Успешно зарегистрировал команд: ${client.commands.keyArray().length} для гильдии: ${guild.name}`))
+        .catch((e) => error(e));
+        await rest.put(Routes.applicationGuildCommands(client.user.id, guild.id), {
+            body: [client.commands.get('shikimori').data.toJSON()]
+        }).then(() => log(`Успешно обновлены команды для гильдии: ${guild.name}`))
         .catch((e) => error(e));
     })
 };
