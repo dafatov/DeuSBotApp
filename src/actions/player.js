@@ -37,6 +37,7 @@ module.exports.playPlayer = async (interaction) => {
 }
 
 const createPlayer = (client) => {
+    let timerId;
     try {
         if (client.queue.connection && !client.queue.player) {
             client.queue.player = createAudioPlayer({
@@ -50,7 +51,7 @@ const createPlayer = (client) => {
                 log(e);
                 try {
                     if (e.resource.playbackDuration === 0) {
-                        setTimeout(() => {
+                        timerId = setTimeout(() => {
                             log(`[play][Error]: ${client.queue.nowPlaying.song.title}`);
                             play(client.queue, true);
                         }, 250);
@@ -65,7 +66,7 @@ const createPlayer = (client) => {
                 if (client.queue.nowPlaying.song) {
                     log(`[play]: [${timeFormatmSeconds(p)}/${timeFormatSeconds(client.queue.nowPlaying.song.length)}] `);
                     if (p === 0) {
-                        setTimeout(() => {
+                        timerId = setTimeout(() => {
                             log(`[play][IdleError]: ${client.queue.nowPlaying.song.title}`);
                             play(client.queue, true);
                         }, 250);
@@ -73,7 +74,8 @@ const createPlayer = (client) => {
                     }
                 }
 
-                if (client.queue.songs.length === 0) {
+                if ((!timerId || timerId._destroyed) && client.queue.songs.length === 0) {
+                    log("[play][Idle]: cleared queue");
                     module.exports.clear(client);
                     return;
                 }
