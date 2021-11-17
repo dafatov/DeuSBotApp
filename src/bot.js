@@ -5,7 +5,7 @@ const listeners = require("./actions/listeners.js");
 const player = require("./actions/player.js");
 const config = require("./configs/config.js");
 const { log } = require('./utils/logger.js');
-const db = require("./repositories/db.js");
+const db = require("./db.js");
 
 const client = new Client({ intents: [
     Intents.FLAGS.GUILDS,

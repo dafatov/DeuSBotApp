@@ -5,6 +5,7 @@ const fs = require('fs');
 const { log, error } = require('../utils/logger.js');
 const Collection = require('@discordjs/collection');
 const { MessageEmbed } = require('discord.js');
+const db = require("../repositories/users.js");
 
 module.exports.init = async (client) => {
     const rest = new REST({ version: '9' }).setToken(config.token);
@@ -23,7 +24,27 @@ module.exports.init = async (client) => {
         }).then(() => log(`Успешно зарегистрировал команд: ${client.commands.keyArray().length} для гильдии: ${guild.name}`))
         .catch((e) => error(e));
     })
+    await this.update(client);
 };
+
+module.exports.update = async (client) => {
+    const rest = new REST({ version: '9' }).setToken(config.token);
+
+    let all = await db.getAll();
+    client.commands.get('shikimori').data.options
+        .filter(i => i.name === 'play')[0].options
+        .filter(i => i.name === 'nickname')[0].choices = all.map(({login, nickname}) => ({
+            name: nickname,
+            value: login
+    }));
+
+    await client.guilds.cache.forEach(async guild => {
+        await rest.put(Routes.applicationGuildCommands(client.user.id, guild.id), {
+            body: [client.commands.get('shikimori').data.toJSON()]
+        }).then(() => log(`Успешно обновлены команды для гильдии: ${guild.name}`))
+        .catch((e) => error(e));
+    })
+}
 
 module.exports.execute = async (interaction) => {
     let command = interaction.client.commands.get(interaction.commandName);

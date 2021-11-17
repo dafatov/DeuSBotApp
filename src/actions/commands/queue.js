@@ -93,6 +93,7 @@ const queue = async (interaction) => {
         log(`[queue] Список композиций успешно выведен`);
     } catch (e) {
         notifyError('queue', e, interaction);
+        error(e);
     }
 };
 
@@ -159,6 +160,7 @@ const onQueue = async (interaction) => {
         await interaction.update({embeds: [embed], components: [row]});
     } catch (e) {
         notifyError('queue', e, interaction);
+        error(e);
     }
 }
 

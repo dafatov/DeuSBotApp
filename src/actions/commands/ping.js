@@ -25,5 +25,6 @@ const ping = async (interaction) => {
         log(`[ping] Список реакций успешно обновлен`);
     } catch (e) {
         notifyError('ping', e, interaction);
+        error(e);
     }
 }

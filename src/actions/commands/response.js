@@ -1,6 +1,6 @@
 const config = require('../../configs/config.js');
 const { log } = require('../../utils/logger.js');
-const db = require('../../repositories/db.js');
+const db = require('../../repositories/responses.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 const { notify, notifyError } = require('../commands.js');
@@ -25,7 +25,7 @@ module.exports = {
                 .setRequired(true)))
         .addSubcommand(s => s
             .setName('remove')
-            .setDescription('Удаление существубщей реакции. Может удалять то, чего нет')
+            .setDescription('Удаление существующей реакции. Может удалять то, чего нет')
             .addStringOption(o => o
                 .setName('regex')
                 .setDescription('Шаблон, определяющий на какое сообщение реагировать')
@@ -80,6 +80,7 @@ const set = async (interaction) => {
         log(`[response] Реакция успешно добавлена`);
     } catch (e) {
         await notifyError('response', e, interaction);
+        error(e);
     }
 };
 
@@ -100,6 +101,7 @@ const remove = async (interaction) => {
         log(`[response] Реакция успешно удалена`);
     } catch (e) {
         notifyError('response', e, interaction);
+        error(e);
     }
 };
 
@@ -152,6 +154,7 @@ const show = async (interaction) => {
         log(`[response] Список реакций успешно выведен`);
     } catch (e) {
         notifyError('response', e, interaction);
+        error(e);
     }
 };
 
@@ -198,6 +201,7 @@ const onResponse = async (interaction) => {
         await interaction.update({embeds: [embed], components: [row]});
     } catch (e) {
         notifyError('response', e, interaction);
+        error(e);
     }
 }
 

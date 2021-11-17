@@ -21,14 +21,12 @@ module.exports = {
             .setDescription('Url или наименование видео записи с youtube')
             .setRequired(true)),
     async execute(interaction) {
-        await play(interaction);
+        await module.exports.play(interaction, interaction.options.getString('audio'));
     },
     async listener(interaction) {}
 }
 
-const play = async (interaction) => {
-    const audio = interaction.options.getString('audio');
-
+module.exports.play = async (interaction, audio) => {
     if (interaction.client.queue.connection &&
         interaction.client.queue.connection.joinConfig.channelId !==
             interaction.member.voice.channel.id) {
@@ -49,6 +47,7 @@ const play = async (interaction) => {
                 await playPlayer(interaction);
             }).catch(async e => {
                 notifyError('play', e, interaction);
+                error(e);
                 return;
             });
         }).catch(() => {
@@ -73,6 +72,7 @@ const play = async (interaction) => {
         });
     } catch (e) {
         notifyError('play', e, interaction);
+        error(e);
         return;
     }
 }

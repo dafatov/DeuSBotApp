@@ -1,7 +1,7 @@
 const { readFile } = require('fs/promises');
 const { log, error } = require('../utils/logger.js');
 const config = require("../configs/config.js");
-const db = require("../repositories/db.js");
+const db = require("../repositories/responses.js");
 
 module.exports.init = async () => {
     await db.count().then((count) => log(`Успешно зарегистрировано реакций: ${count}`))

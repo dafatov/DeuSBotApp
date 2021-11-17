@@ -1,4 +1,4 @@
-const { log } = require("../../utils/logger.js")
+const { log, error } = require("../../utils/logger.js")
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { joinVoiceChannel } = require("@discordjs/voice");
 const { MessageEmbed } = require("discord.js");
@@ -48,6 +48,7 @@ module.exports.join = async (interaction) => {
         log(`[Join] Бот успешно приглашен в канал ${voiceChannel.name}`);
     } catch(e) {
         notifyError('join', e, interaction);
+        error(e);
     }
 }
 
