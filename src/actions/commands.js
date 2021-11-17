@@ -24,7 +24,6 @@ module.exports.init = async (client) => {
         }).then(() => log(`Успешно зарегистрировал команд: ${client.commands.keyArray().length} для гильдии: ${guild.name}`))
         .catch((e) => error(e));
     })
-    await this.update(client);
 };
 
 module.exports.update = async (client) => {

@@ -19,6 +19,7 @@ client.once('ready', async () => {
     await db.init();    
     await responses.init();
     await commands.init(client);
+    await commands.update(client);
     await listeners.init(client);
     await player.init(client);
     
