@@ -104,7 +104,13 @@ const play = async (interaction) => {
         log(search);
         audios.push(search);
     }
-    log(`[shikimori] Профиль найден, аниме выбрано и сформирован поисковой запрос`);
+    const embed = new MessageEmbed()
+        .setColor(config.colors.info)
+        .setTitle('Плейлист формируется')
+        .setDescription(`Выбраны аниме, песни и формируется плейлист. **Слышь, подожди!**`)
+        .setTimestamp();
+    await notify('shikimori', interaction, {embeds: [embed]});
+    log(`[shikimori] Профиль найден, аниме выбрано и формируется плейлист`);
     await searchSongs(interaction, audios, login);
 }
 

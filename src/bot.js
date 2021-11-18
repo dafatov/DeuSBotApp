@@ -37,13 +37,13 @@ client.on('messageCreate', (message) => {
 });
 
 client.on('voiceStateUpdate', async (_oldState, newState) => {
-    if (client.users.cache.get(newState.id).bot) return;
     if (!client.queue || !client.queue.voiceChannel) return;
 
-    if (client.queue.voiceChannel.members
-        .filter(m => !m.user.bot).size < 1) {
-            client.queue.connection.destroy();
-            player.clear(client);
+    if (newState.id === client.user.id && !newState.channelId
+        || client.queue.voiceChannel.members
+            .filter(m => !m.user.bot).size < 1) {
+                client.queue.connection.destroy();
+                player.clear(client);
     }
 });
 

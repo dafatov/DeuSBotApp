@@ -1,6 +1,6 @@
 const { log, error } = require("../../utils/logger.js")
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const { joinVoiceChannel } = require("@discordjs/voice");
+const { joinVoiceChannel, VoiceConnectionStatus } = require("@discordjs/voice");
 const { MessageEmbed } = require("discord.js");
 const { notify, notifyError } = require("../commands.js");
 const config = require("../../configs/config.js");
@@ -16,6 +16,8 @@ module.exports = {
 }
 
 module.exports.join = async (interaction) => {
+    if (interaction.client.queue.connection && interaction.client.queue.connection._state.status !== VoiceConnectionStatus.Destroyed) return;
+    
     let voiceChannel = interaction.member.voice.channel;
     
     if (!voiceChannel) {
@@ -29,8 +31,6 @@ module.exports.join = async (interaction) => {
         log(`[join] Пригласить бота можно только в свой голосовой канал`);
         return;
     }
-
-    if (interaction.client.queue.connection) return;
 
     try {
         interaction.client.queue.connection = joinVoiceChannel({

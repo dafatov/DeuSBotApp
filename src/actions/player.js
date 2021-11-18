@@ -24,11 +24,12 @@ module.exports.clear = (client) => {
     client.queue.nowPlaying = {
         song: null,
         resource: null
-    }
+    };
+    client.queue.songs = [];
 }
 
 module.exports.playPlayer = async (interaction) => {
-    if (!interaction.client.queue.connection) await join(interaction);
+    await join(interaction);
 
     createPlayer(interaction.client);
     
@@ -48,7 +49,6 @@ const createPlayer = (client) => {
                     noSubscriber: NoSubscriberBehavior.Stop
                 }
             });
-            client.queue.connection.subscribe(client.queue.player);
 
             client.queue.player.on('error', (e) => {
                 log(e);
@@ -90,6 +90,7 @@ const createPlayer = (client) => {
                 play(client.queue, false);
             })
         }
+        client.queue.connection.subscribe(client.queue.player);
     } catch (e) {
         error(e);
     }
