@@ -21,12 +21,12 @@ module.exports = {
             .setDescription('Url или наименование видео записи с youtube')
             .setRequired(true)),
     async execute(interaction) {
-        await module.exports.play(interaction, interaction.options.getString('audio'));
+        await play(interaction, interaction.options.getString('audio'));
     },
     async listener(interaction) {}
 }
 
-module.exports.play = async (interaction, audio) => {
+const play = async (interaction, audio) => {
     if (interaction.client.queue.connection &&
         interaction.client.queue.connection.joinConfig.channelId !==
             interaction.member.voice.channel.id) {
@@ -53,7 +53,7 @@ module.exports.play = async (interaction, audio) => {
         }).catch(() => {
             if (validateURL(audio)) {
                 ytdl.getBasicInfo(audio).then(async i => {
-                    await playUrl(interaction, i);
+                    await notifySong(interaction, addQueue(interaction, i));
                     await playPlayer(interaction);
                 }).catch(err => {throw err})
             } else {
@@ -64,7 +64,7 @@ module.exports.play = async (interaction, audio) => {
                 }).then(async r => {
                     if (r.items.length === 0) throw "Ничего не найдено";
                     ytdl.getBasicInfo(r.items[0].url).then(async i => {
-                        await playUrl(interaction, i);
+                        await notifySong(interaction, addQueue(interaction, i));
                         await playPlayer(interaction);
                     }).catch(err => {throw err})
                 }).catch(err => {throw err})
@@ -96,19 +96,10 @@ const playPlaylist = async (interaction, p) => {
         url: p.url,
         preview: p.thumbnails[0].url
     };
-    const embed = new MessageEmbed()
-        .setColor(config.colors.info)
-        .setTitle(escaping(info.title))
-        .setURL(info.url)
-        .setDescription(`Количество композиций: **${info.length}**`)
-        .setThumbnail(info.preview)
-        .setTimestamp()
-        .setFooter(`Плейлист предложил пользователь ${interaction.user.username}`);
-    await notify('play', interaction, {embeds: [embed]});
-    log(`[play.add] Плейлист успешно добавлен в очередь`);
+    await notifyPlaylist(interaction, info);
 }
 
-const playUrl = async (interaction, i) => {
+const addQueue = (interaction, i) => {
     let info = {
         title: i.videoDetails.title,
         length: i.videoDetails.lengthSeconds,
@@ -117,7 +108,34 @@ const playUrl = async (interaction, i) => {
         preview: i.videoDetails.thumbnails[0].url
     };
     interaction.client.queue.songs.push(info);
+    return info;
+}
 
+module.exports.searchSongs = async (interaction, audios, login) => {
+    for (let a of audios) {
+        await ytsr(a, {
+            gl: 'RU',
+            hl: 'ru',
+            limit: 1
+        }).then(async r => {
+            if (r.items.length === 0) throw "Ничего не найдено";
+            await ytdl.getBasicInfo(r.items[0].url).then(async i => {
+                addQueue(interaction, i);
+            }).catch(err => {throw err})
+        }).catch(err => {throw err})
+    };
+
+    let info = {
+        title: `Композиции профиля ${login}`,
+        length: `${audios.length}`,
+        url: `https://shikimori.one/${login}`,
+        preview: 'https://yt3.ggpht.com/a/AGF-l78770kCZ2R6kvd35ixM3QhDCC3B7RaHiWoghw=s900-c-k-c0xffffffff-no-rj-mo'
+    };
+    await notifyPlaylist(interaction, info);
+    await playPlayer(interaction);
+}
+
+const notifySong = async (interaction, info) => {
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
         .setTitle(escaping(info.title))
@@ -130,4 +148,17 @@ const playUrl = async (interaction, i) => {
         .setFooter(`Композицию заказал пользователь ${interaction.user.username}`);
     await notify('play', interaction, {embeds: [embed]});
     log(`[play.add] Композиция успешно добавлена в очередь`);
+}
+
+const notifyPlaylist = async (interaction, info) => {
+    const embed = new MessageEmbed()
+        .setColor(config.colors.info)
+        .setTitle(escaping(info.title))
+        .setURL(info.url)
+        .setDescription(`Количество композиций: **${info.length}**`)
+        .setThumbnail(info.preview)
+        .setTimestamp()
+        .setFooter(`Плейлист предложил пользователь ${interaction.user.username}`);
+    await notify('play', interaction, {embeds: [embed]});
+    log(`[play.add] Плейлист успешно добавлен в очередь`);
 }

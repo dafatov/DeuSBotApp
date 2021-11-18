@@ -32,10 +32,6 @@ module.exports.init = async (client) => {
             body: client.commands.map((value) => value.data.toJSON())
         }).then(() => log(`Успешно зарегистрировал команд: ${client.commands.keyArray().length} для гильдии: ${guild.name}`))
         .catch((e) => error(e));
-        await rest.put(Routes.applicationGuildCommands(client.user.id, guild.id), {
-            body: [client.commands.get('shikimori').data.toJSON()]
-        }).then(() => log(`Успешно обновлены команды для гильдии: ${guild.name}`))
-        .catch((e) => error(e));
     })
 };
 
@@ -52,8 +48,8 @@ module.exports.update = async (client) => {
 
     await client.guilds.cache.forEach(async guild => {
         await rest.put(Routes.applicationGuildCommands(client.user.id, guild.id), {
-            body: [client.commands.get('shikimori').data.toJSON()]
-        }).then(() => log(`Успешно обновлены команды для гильдии: ${guild.name}`))
+            body: client.commands.map((value) => value.data.toJSON())
+        }).then(() => log(`Успешно обновлено команд: ${client.commands.keyArray().length} для гильдии: ${guild.name}`))
         .catch((e) => error(e));
     })
 }

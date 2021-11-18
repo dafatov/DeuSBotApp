@@ -7,11 +7,6 @@ const { join } = require('./commands/join.js');
 const config = require("../configs/config.js");
 
 module.exports.init = (client) => {
-    module.exports.clear(client);
-    log(`Успешно зарегистрирован плеер`)
-}
-
-module.exports.clear = (client) => {
     client.queue = {
         connection: null,
         voiceChannel: null,
@@ -21,6 +16,14 @@ module.exports.clear = (client) => {
             resource: null
         },
         songs: []
+    }
+    log(`Успешно зарегистрирован плеер`)
+}
+
+module.exports.clear = (client) => {
+    client.queue.nowPlaying = {
+        song: null,
+        resource: null
     }
 }
 
@@ -74,7 +77,7 @@ const createPlayer = (client) => {
                     }
                 }
 
-                if (timerId || !timerId._destroyed) return;
+                if (timerId && !timerId._destroyed) return;
 
                 if (client.queue.songs.length === 0) {
                     log("[play][Idle]: cleared queue");

@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const axios = require('axios').default;
-const Play = require("./play.js");
+const { searchSongs } = require("../commands/play.js");
 const { log, error } = require("../../utils/logger.js");
 const { MessageEmbed } = require("discord.js");
 const config = require("../../configs/config.js");
@@ -18,7 +18,11 @@ module.exports = {
             .addStringOption(s => s
                 .setName('nickname')
                 .setDescription('Имя пользователя в рамках системы DeuS')
-                .setRequired(true)))
+                .setRequired(true))
+            .addIntegerOption(i => i
+                .setName('count')
+                .setDescription('Количество композиций')
+                .setRequired(false)))
         .addSubcommand(s => s
             .setName('set')
             .setDescription('Добавление или изменение аккаунтов shikimori')
@@ -52,15 +56,17 @@ const shikimori = async (interaction) => {
         await play(interaction);
     } else if (interaction.options.getSubcommand() === 'set') {
         await set(interaction);
+    } else if (interaction.options.getSubcommand() === 'remove') {
+        await remove(interaction);
     }
 }
 
 const play = async (interaction) => {
-    let nickname = interaction.options.getString('nickname');
+    let login = interaction.options.getString('nickname');
     let animes;
 
     try {
-        response = await axios.get(`https://shikimori.one/${nickname}/list_export/animes.json`);
+        response = await axios.get(`https://shikimori.one/${login}/list_export/animes.json`);
         animes = response.data.filter(a => 
             (a.status === 'completed' || a.status === 'watching') 
             && a.episodes > 1
@@ -76,20 +82,29 @@ const play = async (interaction) => {
         return;
     }
 
-    let i = Math.round(Math.random() * animes.length);
-    let j = Math.ceil(Math.random() * (animes[i].episodes / 13));
-    let isOp = Math.round(Math.random());
+    let count = interaction.options.getInteger('count') || 1;
+    if (count <= 0) {
+        const embed = new MessageEmbed()
+            .setColor(config.colors.warning)
+            .setTitle('Отрицательное или нулевое количество')
+            .setDescription(`Ну ты и клоун, конечно...`)
+            .setTimestamp();
+        await notify('shikimori', interaction, {embeds: [embed]});
+        log(`[shikimori] Отрицательное количество`);
+        return;
+    }
+    
+    let audios = [];
+    while (audios.length < count) {
+        let i = Math.floor(Math.random() * animes.length);
+        let j = Math.ceil(Math.random() * (animes[i].episodes / 13));
+        let isOp = Math.round(Math.random());
 
-    let search = `${animes[i].target_title} ${isOp ? 'op' : 'ed'} ${j}`;
-
-    const embed = new MessageEmbed()
-        .setColor(config.colors.info)
-        .setTitle(`Посмотрел список аниме. Лучше б не смотрел...`)
-        .setDescription(`**${nickname}**, я тут посмотрел твой список и выбрал аниме. Пойду поищу композицию из него: **${search}**`)
-        .setTimestamp();
-    await notify('shikimori', interaction, {embeds: [embed]});
+        let search = `${animes[i].target_title} ${isOp ? 'op' : 'ed'} ${j}`;
+        audios.push(search);
+    }
     log(`[shikimori] Профиль найден, аниме выбрано и сформирован поисковой запрос`);
-    await Play.play(interaction, search);
+    await searchSongs(interaction, audios, login);
 }
 
 const set = async (interaction) => {

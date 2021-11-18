@@ -37,8 +37,8 @@ client.on('messageCreate', (message) => {
 });
 
 client.on('voiceStateUpdate', async (_oldState, newState) => {
-    if (!client.queue.voiceChannel) return;
     if (client.users.cache.get(newState.id).bot) return;
+    if (!client.queue || !client.queue.voiceChannel) return;
 
     if (client.queue.voiceChannel.members
         .filter(m => !m.user.bot).size < 1) {
