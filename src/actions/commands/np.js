@@ -20,7 +20,7 @@ module.exports = {
 const np = async (interaction) => {
     let info = interaction.client.queue.nowPlaying;
 
-    if (!interaction.client.queue.connection || !interaction.client.queue.player || !info) {
+    if (!interaction.client.queue.connection || !interaction.client.queue.player || !info.song) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
             .setTitle('Так ничего и не играло')

@@ -47,18 +47,16 @@ const queue = async (interaction) => {
             value: `${song.isLive ? '<Стрим>' : timeFormatSeconds(song.length)}`
         })));
 
-    if (interaction.client.queue.nowPlaying.song) {
-        const barString = progressBar.filledBar(interaction.client.queue.nowPlaying.song.length * 1000, interaction.client.queue.nowPlaying.resource.playbackDuration);
-        embed.setTitle(escaping(interaction.client.queue.nowPlaying.song.title))
-            .setURL(interaction.client.queue.nowPlaying.song.url)
-            .setThumbnail(interaction.client.queue.nowPlaying.song.preview)
-            .setDescription(`${interaction.client.queue.nowPlaying.song.isLive
-                    ? '<Стрим>' 
-                    : `${timeFormatmSeconds(interaction.client.queue.nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(interaction.client.queue.nowPlaying.song.length)}`}
-                ${interaction.client.queue.nowPlaying.song.isLive
-                    ? '\u200B\n'
-                    : `${barString[0]} [${Math.round(barString[1])}%]\n`}`);
-    }
+    const barString = progressBar.filledBar(interaction.client.queue.nowPlaying.song.length * 1000, interaction.client.queue.nowPlaying.resource.playbackDuration);
+    embed.setTitle(escaping(interaction.client.queue.nowPlaying.song.title))
+        .setURL(interaction.client.queue.nowPlaying.song.url)
+        .setThumbnail(interaction.client.queue.nowPlaying.song.preview)
+        .setDescription(`${interaction.client.queue.nowPlaying.song.isLive
+                ? '<Стрим>' 
+                : `${timeFormatmSeconds(interaction.client.queue.nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(interaction.client.queue.nowPlaying.song.length)}`}
+            ${interaction.client.queue.nowPlaying.song.isLive
+                ? '\u200B\n'
+                : `${barString[0]} [${Math.round(barString[1])}%]\n`}`);
 
     const row = new MessageActionRow()
     .addComponents(
