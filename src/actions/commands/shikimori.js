@@ -100,7 +100,7 @@ const play = async (interaction) => {
         let j = Math.ceil(Math.random() * (animes[i].episodes / 13));
         let isOp = Math.round(Math.random());
 
-        let search = `${animes[i].target_title} ${isOp ? 'op' : 'ed'} ${j}`;
+        let search = `${animes[i].target_title} ${isOp ? 'opening' : 'ending'} ${j} full`;
         log(search);
         audios.push(search);
     }

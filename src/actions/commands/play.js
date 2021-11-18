@@ -60,13 +60,19 @@ const play = async (interaction, audio) => {
                 ytsr(audio, {
                     gl: 'RU',
                     hl: 'ru',
-                    limit: 1
+                    limit: 20
                 }).then(async r => {
                     if (r.items.length === 0) throw "Ничего не найдено";
-                    ytdl.getBasicInfo(r.items[0].url).then(async i => {
-                        await notifySong(interaction, addQueue(interaction, i));
-                        await playPlayer(interaction);
-                    }).catch(err => {throw err})
+                    let w = 0;
+                    while (w < 20) {
+                        await ytdl.getBasicInfo(r.items[w].url).then(async i => {
+                            await notifySong(interaction, addQueue(interaction, i));
+                            await playPlayer(interaction);
+                            w = 21;
+                        }).catch((e) => {
+                            w++;
+                        })
+                    }
                 }).catch(err => {throw err})
             }
         });
@@ -116,12 +122,18 @@ module.exports.searchSongs = async (interaction, audios, login) => {
         await ytsr(a, {
             gl: 'RU',
             hl: 'ru',
-            limit: 1
+            limit: 20
         }).then(async r => {
             if (r.items.length === 0) throw "Ничего не найдено";
-            await ytdl.getBasicInfo(r.items[0].url).then(async i => {
-                addQueue(interaction, i);
-            }).catch(err => {throw err})
+            let w = 0;
+            while (w < 20) {
+                await ytdl.getBasicInfo(r.items[w].url).then(async i => {
+                    addQueue(interaction, i);
+                    w = 21;
+                }).catch((e) => {
+                    w++;
+                })
+            }
         }).catch(err => {throw err})
     };
 
