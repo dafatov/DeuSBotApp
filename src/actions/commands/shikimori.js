@@ -101,6 +101,7 @@ const play = async (interaction) => {
         let isOp = Math.round(Math.random());
 
         let search = `${animes[i].target_title} ${isOp ? 'op' : 'ed'} ${j}`;
+        log(search);
         audios.push(search);
     }
     log(`[shikimori] Профиль найден, аниме выбрано и сформирован поисковой запрос`);
