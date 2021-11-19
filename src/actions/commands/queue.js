@@ -1,11 +1,12 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const { MessageEmbed, MessageActionRow, MessageButton, MessageSelectMenu } = require("discord.js");
+const { MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
 const { log } = require("../../utils/logger");
 const { timeFormatSeconds, timeFormatmSeconds } = require("../../utils/converter.js");
 const { notify, notifyError } = require("../commands");
 const config = require("../../configs/config.js");
 const progressBar = require('string-progressbar');
 const { escaping } = require("../../utils/string.js");
+const { createStatus } = require("../../utils/attachments");
 
 let {start, count} = {start: 0, count: 5};
 
@@ -86,8 +87,9 @@ const queue = async (interaction) => {
             .setDisabled(start + count >= songs.length),
     );
 
+    const status = await createStatus(interaction.client.queue.nowPlaying);
     try {
-        await notify('queue', interaction, {embeds: [embed], components: [row]});
+        await notify('queue', interaction, {files: [status], embeds: [embed], components: [row]});
         log(`[queue] Список композиций успешно выведен`);
     } catch (e) {
         notifyError('queue', e, interaction);
@@ -153,9 +155,11 @@ const onQueue = async (interaction) => {
             })))
             //Данные количества на странице (count) беруться из footer'а. Да, костыль
         .setFooter(`${start + 1} - ${Math.min(start + count, songs.length)} из ${songs.length} по ${count}`);
-
+    
+    const status = await createStatus(interaction.client.queue.nowPlaying);
     try {
-        await interaction.update({embeds: [embed], components: [row]});
+        await interaction.message.removeAttachments();
+        await interaction.update({files: [status], embeds: [embed], components: [row]});
     } catch (e) {
         notifyError('queue', e, interaction);
         error(e);
@@ -164,5 +168,5 @@ const onQueue = async (interaction) => {
 
 function calcPages(footer) {
     let array = footer.split(' ');
-    return {start: array[0] - 1, count: parseInt(array[6])};
+    return {start: Math.max(array[0], 1) - 1, count: parseInt(array[6])};
 }

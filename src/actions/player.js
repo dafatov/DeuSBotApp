@@ -13,7 +13,9 @@ module.exports.init = (client) => {
         player: null,
         nowPlaying: {
             song: null,
-            resource: null
+            resource: null,
+            isLoop: false,
+            isPause: false
         },
         songs: []
     }
@@ -23,7 +25,9 @@ module.exports.init = (client) => {
 module.exports.clear = (client) => {
     client.queue.nowPlaying = {
         song: null,
-        resource: null
+        resource: null,
+        isLoop: false,
+        isPause: false
     };
     client.queue.songs = [];
 }
@@ -78,6 +82,11 @@ const createPlayer = (client) => {
                 }
 
                 if (timerId && !timerId._destroyed) return;
+
+                if (client.queue.nowPlaying.isLoop) {
+                    play(client.queue, true);
+                    return;
+                }
 
                 if (client.queue.songs.length === 0) {
                     log("[play][Idle]: cleared queue");

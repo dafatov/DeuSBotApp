@@ -29,3 +29,4 @@ yarn-error.log*
 src/configs/config.local.js
 todo.txt
 /logs
+/raw

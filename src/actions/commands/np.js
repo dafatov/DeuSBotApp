@@ -6,6 +6,7 @@ const config = require("../../configs/config.js");
 const { timeFormatSeconds, timeFormatmSeconds } = require("../../utils/converter");
 const progressBar = require('string-progressbar');
 const { escaping } = require("../../utils/string.js");
+const { createStatus } = require("../../utils/attachments");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -59,6 +60,7 @@ const np = async (interaction) => {
         .setThumbnail(info.song.preview)
         .setTimestamp()
         .setFooter(`Композицию заказал пользователь ${interaction.user.username}`);
-    await notify('np', interaction, {embeds: [embed]});
+    const status = await createStatus(interaction.client.queue.nowPlaying);
+    await notify('np', interaction, {files: [status], embeds: [embed]});
     log(`[np] Успешно выведана текущая композиция`);
 }
