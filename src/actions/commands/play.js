@@ -1,16 +1,23 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { MessageEmbed } = require("discord.js");
-const { validateURL } = require("ytdl-core");
 const ytdl = require("ytdl-core");
 const { log } = require("../../utils/logger.js");
 const { timeFormatSeconds } = require("../../utils/converter.js");
 const ytsr = require("ytsr");
-const { getPlaylistID } = require("ytpl");
 const ytpl = require("ytpl");
 const { notify, notifyError } = require("../commands.js");
 const config = require("../../configs/config.js");
 const { playPlayer } = require("../player.js");
 const { escaping } = require("../../utils/string.js");
+
+
+const options = {
+    requestOptions: {
+        headers: {
+            cookie: config.cookie
+        }
+    }
+};
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -41,8 +48,8 @@ const play = async (interaction, audio) => {
     }
 
     try {
-        getPlaylistID(audio).then(async a => {
-            ytpl(a).then(async p => {
+        ytpl.getPlaylistID(audio).then(async a => {
+            ytpl(a, options).then(async p => {
                 await playPlaylist(interaction, p);
                 await playPlayer(interaction);
             }).catch(async e => {
@@ -51,8 +58,8 @@ const play = async (interaction, audio) => {
                 return;
             });
         }).catch(() => {
-            if (validateURL(audio)) {
-                ytdl.getBasicInfo(audio).then(async i => {
+            if (ytdl.validateURL(audio)) {
+                ytdl.getBasicInfo(audio, options).then(async i => {
                     await notifySong(interaction, addQueue(interaction, i));
                     await playPlayer(interaction);
                 }).catch(err => {throw err})
@@ -61,11 +68,11 @@ const play = async (interaction, audio) => {
                     gl: 'RU',
                     hl: 'ru',
                     limit: 20
-                }).then(async r => {
+                }, options).then(async r => {
                     if (r.items.length === 0) throw "Ничего не найдено";
                     let w = 0;
                     while (w < 20) {
-                        await ytdl.getBasicInfo(r.items[w].url).then(async i => {
+                        await ytdl.getBasicInfo(r.items[w].url, options).then(async i => {
                             await notifySong(interaction, addQueue(interaction, i));
                             await playPlayer(interaction);
                             w = 21;
@@ -123,11 +130,11 @@ module.exports.searchSongs = async (interaction, audios, login) => {
             gl: 'RU',
             hl: 'ru',
             limit: 20
-        }).then(async r => {
+        }, options).then(async r => {
             if (r.items.length === 0) throw "Ничего не найдено";
             let w = 0;
             while (w < 20) {
-                await ytdl.getBasicInfo(r.items[w].url).then(async i => {
+                await ytdl.getBasicInfo(r.items[w].url, options).then(async i => {
                     addQueue(interaction, i);
                     w = 21;
                 }).catch((e) => {
