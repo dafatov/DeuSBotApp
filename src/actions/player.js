@@ -33,10 +33,11 @@ module.exports.skip = async (client) => {
     if (client.queue.songs.length !== 0) {
         log(`[play][Skip]: ${client.queue.songs[0].title}`);
         client.queue.nowPlaying.song = client.queue.songs[0];
-        play(client.queue, false);
+        await play(client.queue, false);
     } else {
         log("[play][Skip]: cleared queue");
     }
+    isSkip = false;
     return skipped;
 }
 
@@ -92,6 +93,7 @@ const createPlayer = (client) => {
             client.queue.player.on(AudioPlayerStatus.Idle, (a, b) => {
                 if (isSkip) {
                     isSkip = false;
+                    log('[play][Idle]: isSkip = false now');
                     return;
                 }
 
@@ -131,7 +133,7 @@ const createPlayer = (client) => {
     }
 }
 
-const play = (queue, isCurrent) => {
+const play = async (queue, isCurrent) => {
     queue.nowPlaying.resource = createAudioResource(ytdl(isCurrent
         ? queue.nowPlaying.song.url
         : queue.songs.shift().url, {
@@ -144,5 +146,5 @@ const play = (queue, isCurrent) => {
             quality: 'highestaudio',
             highWaterMark: 1 << 25
     }));
-    queue.player.play(queue.nowPlaying.resource);
+    await queue.player.play(queue.nowPlaying.resource);
 }
