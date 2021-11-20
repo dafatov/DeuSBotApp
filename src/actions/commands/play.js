@@ -68,15 +68,15 @@ const play = async (interaction, audio) => {
                 ytsr(audio, {
                     gl: 'RU',
                     hl: 'ru',
-                    limit: 20
+                    limit: 10
                 }, options).then(async r => {
                     if (r.items.length === 0) throw "Ничего не найдено";
                     let w = 0;
-                    while (w < 20) {
+                    while (w < 10) {
                         await ytdl.getBasicInfo(r.items[w].url, options).then(async i => {
                             await notifySong(interaction, addQueue(interaction, i));
                             await playPlayer(interaction);
-                            w = 21;
+                            w = 11;
                         }).catch((e) => {
                             w++;
                         })
@@ -147,14 +147,14 @@ module.exports.searchSongs = async (interaction, audios, login) => {
         await ytsr(a, {
             gl: 'RU',
             hl: 'ru',
-            limit: 20
+            limit: 10
         }, options).then(async r => {
             if (r.items.length === 0) throw "Ничего не найдено";
             let w = 0;
-            while (w < 20) {
+            while (w < 10) {
                 await ytdl.getBasicInfo(r.items[w].url, options).then(async i => {
                     addQueue(interaction, i);
-                    w = 21;
+                    w = 11;
                 }).catch((e) => {
                     w++;
                 })
