@@ -20,14 +20,14 @@ module.exports = {
 }
 
 const remove = async (interaction) => {
-    if (!interaction.client.queue.songs || interaction.client.queue.songs.length <= 1) {
+    if (!interaction.client.queue.songs || interaction.client.queue.songs.length < 1) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
             .setTitle('Ты одинок что ли? Соло-игрок?')
             .setDescription('Пытаться удалить то, чего нет, показывает все твое отчаяние. **Пуст плейлист. Пуст.**')
             .setTimestamp();
         await notify('remove', interaction, {embeds: [embed]});
-        log(`[remove] Пропустить композицию не вышло: плеер не играет`);
+        log(`[remove] Удалить композицию не вышло: плеер не играет`);
         return;
     }
 
@@ -39,7 +39,7 @@ const remove = async (interaction) => {
                 .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
                 .setTimestamp();
             await notify('remove', interaction, {embeds: [embed]});
-            log(`[remove] Пропустить композицию не вышло: не совпадают каналы`);
+            log(`[remove] Удалить композицию не вышло: не совпадают каналы`);
             return;
     }
 
