@@ -25,7 +25,7 @@ module.exports = {
 }
 
 module.exports.move = async (interaction, positionIndex) => {
-    if (!interaction.client.queue.songs || interaction.client.queue.songs.length <= 2) {
+    if (!interaction.client.queue.songs || interaction.client.queue.songs.length < 2) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
             .setTitle('Ты одинок что ли? Соло-игрок?')

@@ -22,13 +22,28 @@ module.exports.init = (client) => {
     log(`Успешно зарегистрирован плеер`)
 }
 
-module.exports.clear = (client) => {
+module.exports.skip = (client) => {
+    let skipped = client.queue.nowPlaying.song;
+    
+    module.exports.clearNowPlaying(client);
+    if (client.queue.songs.length !== 0) {
+        log(`[play][Event]: ${client.queue.songs[0].title}`);
+        client.queue.nowPlaying.song = client.queue.songs[0];
+        play(client.queue, false);
+    }
+    return skipped;
+}
+
+module.exports.clearNowPlaying = (client) => {
     client.queue.nowPlaying = {
         song: null,
         resource: null,
         isLoop: false,
         isPause: false
     };
+}
+
+module.exports.clearQueue = (client) => {
     client.queue.songs = [];
 }
 
@@ -90,7 +105,8 @@ const createPlayer = (client) => {
 
                 if (client.queue.songs.length === 0) {
                     log("[play][Idle]: cleared queue");
-                    module.exports.clear(client);
+                    module.exports.clearNowPlaying(client);
+                    module.exports.clearQueue(client);
                     return;
                 }
 

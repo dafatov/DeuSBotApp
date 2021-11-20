@@ -10,12 +10,12 @@ module.exports = {
         .setName('pause')
         .setDescription('Приостановить/возобновить проигрывание композиции'),
     async execute(interaction) {
-        await pause(interaction);
+        await module.exports.pause(interaction, true);
     },
     async listener(interaction) {}
 }
 
-const pause = async (interaction) => {
+module.exports.pause = async (interaction, isExecute) => {
     if (!interaction.client.queue.connection || !interaction.client.queue.player) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
@@ -72,6 +72,6 @@ const pause = async (interaction) => {
                 -- ...
                 -- ...
                 -- Деда, что с тобой? Все в порядке? Ты чего завис???`}`);
-    await notify('pause', interaction, {embeds: [embed]});
+    if (isExecute) await notify('pause', interaction, {embeds: [embed]});
     log(`[pause] Композиция была успешна ${isPause ? 'возобновлена' : 'приостановлена'}`);
 }

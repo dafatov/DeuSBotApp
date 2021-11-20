@@ -4,18 +4,19 @@ const { log } = require("../../utils/logger");
 const { notify } = require("../commands");
 const config = require("../../configs/config.js");
 const { escaping } = require("../../utils/string.js");
+const player = require("../player");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('skip')
         .setDescription('Пропустить текущую композицию'),
     async execute(interaction) {
-        await skip(interaction);
+        await module.exports.skip(interaction, true);
     },
     async listener(interaction) {}
 }
 
-const skip = async (interaction) => {
+module.exports.skip = async (interaction, isExecute) => {
     if (!interaction.client.queue.connection || !interaction.client.queue.player) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
@@ -39,12 +40,12 @@ const skip = async (interaction) => {
             return;
     }
     
-    interaction.client.queue.player.stop();
+    let skipped = player.skip(interaction.client);
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
         .setTitle('Текущая композиция уничтожена')
         .setDescription(`Название того, что играло уже не помню. Прошлое должно остаться в прошлом.
-        ...Вроде это **${escaping(interaction.client.queue.nowPlaying.song.title)}**, но уже какая разница?`);
-    await notify('skip', interaction, {embeds: [embed]});
+        ...Вроде это **${escaping(skipped.title)}**, но уже какая разница?`);
+    if (isExecute) await notify('skip', interaction, {embeds: [embed]});
     log(`[skip] Композиция была успешно пропущена`);
 }

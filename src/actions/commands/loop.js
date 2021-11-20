@@ -10,12 +10,12 @@ module.exports = {
         .setName('loop')
         .setDescription('Зациклить/отциклить проигрывание композиции'),
     async execute(interaction) {
-        await loop(interaction);
+        await module.exports.loop(interaction, true);
     },
     async listener(interaction) {}
 }
 
-const loop = async (interaction) => {
+module.exports.loop = async (interaction, isExecute) => {
     if (!interaction.client.queue.connection || !interaction.client.queue.player) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
@@ -47,6 +47,6 @@ const loop = async (interaction) => {
         .setDescription(`${isLoop
             ? `しーん...`
             : `オラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラ...`}`);
-    await notify('loop', interaction, {embeds: [embed]});
+    if (isExecute) await notify('loop', interaction, {embeds: [embed]});
     log(`[loop] Композиция была успешна ${isLoop ? 'отциклена' : 'зациклена'}`);
 }

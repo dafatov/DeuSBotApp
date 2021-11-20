@@ -7,6 +7,9 @@ const config = require("../../configs/config.js");
 const progressBar = require('string-progressbar');
 const { escaping } = require("../../utils/string.js");
 const { createStatus } = require("../../utils/attachments");
+const { pause } = require("./pause");
+const { skip } = require("./skip");
+const { loop } = require("./loop");
 
 let {start, count} = {start: 0, count: 5};
 
@@ -87,9 +90,25 @@ const queue = async (interaction) => {
             .setDisabled(start + count >= songs.length),
     );
 
+    const control = new MessageActionRow()
+    .addComponents(
+        new MessageButton()
+            .setCustomId('pause')
+            .setLabel(interaction.client.queue.nowPlaying?.isPause ? 'Возобновить' : 'Приостановить')
+            .setStyle(interaction.client.queue.nowPlaying?.isPause ? 'SUCCESS' : 'DANGER'),
+        new MessageButton()
+            .setCustomId('skip')
+            .setLabel('Пропустить')
+            .setStyle('PRIMARY'),
+        new MessageButton()
+            .setCustomId('loop')
+            .setLabel(interaction.client.queue.nowPlaying?.isLoop ? 'Отциклить' : 'Зациклить')
+            .setStyle(interaction.client.queue.nowPlaying?.isLoop ? 'DANGER' : 'SUCCESS'),
+    );
+
     const status = await createStatus(interaction.client.queue.nowPlaying);
     try {
-        await notify('queue', interaction, {files: [status], embeds: [embed], components: [row]});
+        await notify('queue', interaction, {files: [status], embeds: [embed], components: [row, control]});
         log(`[queue] Список композиций успешно выведен`);
     } catch (e) {
         notifyError('queue', e, interaction);
@@ -100,20 +119,9 @@ const queue = async (interaction) => {
 const onQueue = async (interaction) => {
     const songs = interaction.client.queue.songs;
 
-    if (songs.length === 0 && !interaction.client.queue.nowPlaying.song) {
-        const embed = new MessageEmbed()
-            .setColor(config.colors.warning)
-            .setTitle('Мир музыки пуст')
-            .setDescription(`Может ли существовать мир без музыки? Каким бы он был...
-                Ах да! Таким, в котором сейчас живешь ты~~`)
-            .setTimestamp();
-        await notify('queue', interaction, {embeds: [embed]});
-        log(`[queue] Вывести очередь не вышло: плеер не играет и очередь пуста`);
-        return;
-    }
-
     let embed = interaction.message.embeds[0];
     let row = interaction.message.components[0];
+    let control = interaction.message.components[1];
     let {start, count} = calcPages(embed.footer.text);
 
     if (interaction.customId === 'next') start += count;
@@ -121,6 +129,23 @@ const onQueue = async (interaction) => {
     if (interaction.customId === 'update') start = Math.min(start, songs.length - 1);
     if (interaction.customId === 'first') start = 0;
     if (interaction.customId === 'last') start = count * Math.floor(songs.length / count);
+
+    if (interaction.customId === 'pause') await pause(interaction);
+    if (interaction.customId === 'skip') await skip(interaction);
+    if (interaction.customId === 'loop') await loop(interaction);
+
+    if (songs.length === 0 && !interaction.client.queue.nowPlaying.song) {
+        const embed = new MessageEmbed()
+            .setColor(config.colors.warning)
+            .setTitle('Мир музыки пуст')
+            .setDescription(`Может ли существовать мир без музыки? Каким бы он был...
+                Ах да! Таким, в котором сейчас живешь ты~~`)
+            .setTimestamp();
+        await interaction.message.delete();
+        await notify('queue', interaction, {embeds: [embed]});
+        log(`[queue] Вывести очередь не вышло: плеер не играет и очередь пуста`);
+        return;
+    }
     
     row.components.forEach(b => {
         if (b.customId === 'next') {
@@ -135,7 +160,19 @@ const onQueue = async (interaction) => {
         if (b.customId === 'last') {
             b.setDisabled(start + count >= songs.length);
         }
-    })
+    });
+    control.components.forEach(b => {
+        if (b.customId === 'pause') {
+            b.setLabel(interaction.client.queue.nowPlaying?.isPause ? 'Возобновить' : 'Приостановить');
+            b.setStyle(interaction.client.queue.nowPlaying?.isPause ? 'SUCCESS' : 'DANGER');
+        }
+        if (b.customId === 'skip') {
+        }
+        if (b.customId === 'loop') {
+            b.setLabel(interaction.client.queue.nowPlaying?.isLoop ? 'Отциклить' : 'Зациклить');
+            b.setStyle(interaction.client.queue.nowPlaying?.isLoop ? 'DANGER' : 'SUCCESS');
+        }
+    });
 
     const barString = progressBar.filledBar(interaction.client.queue.nowPlaying.song.length * 1000, interaction.client.queue.nowPlaying.resource.playbackDuration);
     embed.setTitle(escaping(interaction.client.queue.nowPlaying.song.title))
@@ -159,7 +196,7 @@ const onQueue = async (interaction) => {
     const status = await createStatus(interaction.client.queue.nowPlaying);
     try {
         await interaction.message.removeAttachments();
-        await interaction.update({files: [status], embeds: [embed], components: [row]});
+        await interaction.update({files: [status], embeds: [embed], components: [row, control]});
     } catch (e) {
         notifyError('queue', e, interaction);
         error(e);

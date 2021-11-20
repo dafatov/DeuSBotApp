@@ -9,6 +9,7 @@ const { notify, notifyError } = require("../commands.js");
 const config = require("../../configs/config.js");
 const { playPlayer } = require("../player.js");
 const { escaping } = require("../../utils/string.js");
+const progressBar = require('string-progressbar');
 
 
 const options = {
@@ -125,6 +126,23 @@ const addQueue = (interaction, i) => {
 }
 
 module.exports.searchSongs = async (interaction, audios, login) => {
+    let i = 0;
+    let barString = progressBar.filledBar(audios.length, i);
+    const embed = new MessageEmbed()
+        .setColor(config.colors.info)
+        .setTitle('Прогресс формирования')
+        .setDescription(`${barString[0]} [${Math.round(barString[1])}%]`);
+    let intervalId = setInterval(async () => {
+        barString = progressBar.filledBar(audios.length, i);
+        embed.setDescription(`${barString[0]} [${Math.round(barString[1])}%]`);
+        try {
+            await interaction.editReply({embeds: [embed]});
+        } catch (e) {
+            clearInterval(this);
+            intervalId = null;
+        }
+    }, 1000);
+
     for (let a of audios) {
         await ytsr(a, {
             gl: 'RU',
@@ -142,7 +160,12 @@ module.exports.searchSongs = async (interaction, audios, login) => {
                 })
             }
         }).catch(err => {throw err})
+        i++;
     };
+    if (intervalId) {
+        clearInterval(intervalId);
+        await interaction.deleteReply();
+    }
 
     let info = {
         title: `Композиции профиля ${login}`,
