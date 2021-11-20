@@ -6,6 +6,8 @@ const { log, error } = require('../utils/logger.js');
 const { join } = require('./commands/join.js');
 const config = require("../configs/config.js");
 
+let isSkip = false;
+
 module.exports.init = (client) => {
     client.queue = {
         connection: null,
@@ -22,14 +24,18 @@ module.exports.init = (client) => {
     log(`Успешно зарегистрирован плеер`)
 }
 
-module.exports.skip = (client) => {
+module.exports.skip = async (client) => {
     let skipped = client.queue.nowPlaying.song;
     
     module.exports.clearNowPlaying(client);
+    isSkip = true;
+    await client.queue.player.stop();
     if (client.queue.songs.length !== 0) {
-        log(`[play][Event]: ${client.queue.songs[0].title}`);
+        log(`[play][Skip]: ${client.queue.songs[0].title}`);
         client.queue.nowPlaying.song = client.queue.songs[0];
         play(client.queue, false);
+    } else {
+        log("[play][Skip]: cleared queue");
     }
     return skipped;
 }
@@ -84,9 +90,14 @@ const createPlayer = (client) => {
             });
 
             client.queue.player.on(AudioPlayerStatus.Idle, (a, b) => {
+                if (isSkip) {
+                    isSkip = false;
+                    return;
+                }
+
                 let p = a.playbackDuration;
                 if (client.queue.nowPlaying.song) {
-                    log(`[play]: [${timeFormatmSeconds(p)}/${timeFormatSeconds(client.queue.nowPlaying.song.length)}] `);
+                    log(`[play][Idle]: [${timeFormatmSeconds(p)}/${timeFormatSeconds(client.queue.nowPlaying.song.length)}] `);
                     if (p === 0) {
                         timerId = setTimeout(() => {
                             log(`[play][IdleError]: ${client.queue.nowPlaying.song.title}`);
@@ -106,11 +117,10 @@ const createPlayer = (client) => {
                 if (client.queue.songs.length === 0) {
                     log("[play][Idle]: cleared queue");
                     module.exports.clearNowPlaying(client);
-                    module.exports.clearQueue(client);
                     return;
                 }
 
-                log(`[play][Event]: ${client.queue.songs[0].title}`);
+                log(`[play][Idle]: ${client.queue.songs[0].title}`);
                 client.queue.nowPlaying.song = client.queue.songs[0];
                 play(client.queue, false);
             })

@@ -40,7 +40,7 @@ module.exports.skip = async (interaction, isExecute) => {
             return;
     }
     
-    let skipped = player.skip(interaction.client);
+    let skipped = await player.skip(interaction.client);
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
         .setTitle('Текущая композиция уничтожена')
