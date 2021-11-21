@@ -19,14 +19,7 @@ module.exports.init = async (client) => {
         });
     if (!client.commands || client.commands.keyArray().length === 0) return;
 
-    let all = await db.getAll();
-    client.commands.get('shikimori').data.options
-        .filter(i => i.name === 'play')[0].options
-        .filter(i => i.name === 'nickname')[0].choices = all.map(({login, nickname}) => ({
-            name: nickname,
-            value: login
-    }));
-
+    await setShikimoriChoices(client.commands);
     await client.guilds.cache.forEach(async guild => {
         await rest.put(Routes.applicationGuildCommands(client.user.id, guild.id), {
             body: client.commands.map((value) => value.data.toJSON())
@@ -38,14 +31,7 @@ module.exports.init = async (client) => {
 module.exports.update = async (client) => {
     const rest = new REST({ version: '9' }).setToken(config.token);
 
-    let all = await db.getAll();
-    client.commands.get('shikimori').data.options
-        .filter(i => i.name === 'play')[0].options
-        .filter(i => i.name === 'nickname')[0].choices = all.map(({login, nickname}) => ({
-            name: nickname,
-            value: login
-    }));
-
+    await setShikimoriChoices(client.commands);
     await client.guilds.cache.forEach(async guild => {
         await rest.put(Routes.applicationGuildCommands(client.user.id, guild.id), {
             body: client.commands.map((value) => value.data.toJSON())
@@ -82,4 +68,14 @@ module.exports.notifyError = async (commandName, e, interaction) => {
         .setDescription(`${e}`);
     await module.exports.notify(`${commandName}`, interaction, {embeds: [embed]});
     error(`[${commandName}]:\n${e}`);
+}
+
+const setShikimoriChoices = async (commands) => {
+    let all = await db.getAll();
+    commands.get('shikimori').data.options
+        .filter(i => i.name === 'play')[0].options
+        .filter(i => i.name === 'nickname')[0].choices = all.map(({login, nickname}) => ({
+            name: nickname,
+            value: login
+    }));
 }

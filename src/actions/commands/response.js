@@ -66,7 +66,7 @@ const set = async (interaction) => {
             throw `Некорретное регулярное выражение: ${regex}`
         }
 
-        await db.set({
+        await db.set(interaction.guildId, {
             "regex": regex,
             "react": react
         })
@@ -90,7 +90,7 @@ const remove = async (interaction) => {
     try {
         if (!regex) throw `Regex is undefined: [regex: "${regex}"]`
 
-        await db.delete(regex)
+        await db.delete(interaction.guildId, regex)
         const embed = new MessageEmbed()
             .setColor(config.colors.info)
             .setTitle('Я уничтожил реакцию')
@@ -106,7 +106,7 @@ const remove = async (interaction) => {
 };
 
 const show = async (interaction) => {
-    const rules = await db.getAll();
+    const rules = await db.getAll(interaction.guildId);
     const embed = new MessageEmbed()
         .setColor('#000000')
         .setTitle('Все реакции на текущий момент')
@@ -159,7 +159,7 @@ const show = async (interaction) => {
 };
 
 const onResponse = async (interaction) => {
-    const rules = await db.getAll();
+    const rules = await db.getAll(interaction.guildId);
     let embed = interaction.message.embeds[0];
     let row = interaction.message.components[0];
     let {start, count} = calcPages(embed.footer.text);

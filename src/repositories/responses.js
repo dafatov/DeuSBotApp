@@ -1,27 +1,26 @@
 const { db } = require("../db.js");
 
-let rules = null;
+let rules = new Map();
 
-module.exports.getAll = async () => {
-    if (!rules) {
-        const response = await db.query('SELECT * FROM RESPONSE');
-        rules = response.rows || [];
+module.exports.getAll = async (guildId) => {
+    if (!rules.has(guildId)) {
+        const response = await db.query('SELECT regex, react FROM RESPONSE WHERE guild_id=$1', [guildId]);
+        rules.set(guildId, response.rows || []);
     }
-    return rules;
+    return rules.get(guildId);
 }
 
-module.exports.set = async ({regex, react}) => {
-    rules = null;
-    await db.query('DELETE FROM RESPONSE WHERE regex=$1', [regex]);
-    await db.query('INSERT INTO RESPONSE (regex, react) VALUES ($1, $2)', [regex, react]);
+module.exports.set = async (guildId, {regex, react}) => {
+    await this.delete(guildId, regex);
+    await db.query('INSERT INTO RESPONSE (guild_id, regex, react) VALUES ($1, $2, $3)', [guildId, regex, react]);
 }
 
-module.exports.delete = async (regex) => {
-    rules = null;
-    await db.query('DELETE FROM RESPONSE WHERE regex=$1', [regex]);
+module.exports.delete = async (guildId, regex) => {
+    rules.delete(guildId);
+    await db.query('DELETE FROM RESPONSE WHERE guild_id=$1 AND regex=$2', [guildId, regex]);
 }
 
-module.exports.count = async () => {
-    const response = await db.query('SELECT COUNT(*) FROM RESPONSE');
-    return parseInt(response.rows[0].count);
+module.exports.count = async (guildId) => {
+    const response = await this.getAll(guildId);
+    return response.length;
 }

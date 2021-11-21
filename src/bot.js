@@ -17,7 +17,7 @@ client.once('ready', async () => {
     client.user.setPresence({ activities: [{ name: `/help для помощи`}], status: 'online' });
 
     await db.init();    
-    await responses.init();
+    await responses.init(client);
     await commands.init(client);
     await listeners.init(client);
     await player.init(client);
