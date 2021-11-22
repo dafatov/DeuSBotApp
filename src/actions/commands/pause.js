@@ -3,7 +3,7 @@ const { MessageEmbed } = require("discord.js");
 const { log } = require("../../utils/logger");
 const { notify } = require("../commands");
 const config = require("../../configs/config.js");
-const { escaping } = require("../../utils/string.js");
+const { getQueue } = require("../player");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -16,7 +16,7 @@ module.exports = {
 }
 
 module.exports.pause = async (interaction, isExecute) => {
-    if (!interaction.client.queue.connection || !interaction.client.queue.player) {
+    if (!getQueue(interaction.guildId).connection || !getQueue(interaction.guildId).player) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
             .setTitle('Так ничего и не играло')
@@ -27,7 +27,7 @@ module.exports.pause = async (interaction, isExecute) => {
         return;
     }
 
-    if (interaction.client.queue.connection.joinConfig.channelId !==
+    if (getQueue(interaction.guildId).connection.joinConfig.channelId !==
         interaction.member.voice.channel.id) {
             const embed = new MessageEmbed()
                 .setColor(config.colors.warning)
@@ -39,13 +39,13 @@ module.exports.pause = async (interaction, isExecute) => {
             return;
     }
 
-    let isPause = interaction.client.queue.nowPlaying.isPause;
+    let isPause = getQueue(interaction.guildId).nowPlaying.isPause;
     if (isPause) {
-        interaction.client.queue.player.unpause();
+        getQueue(interaction.guildId).player.unpause();
     } else {
-        interaction.client.queue.player.pause();
+        getQueue(interaction.guildId).player.pause();
     }
-    interaction.client.queue.nowPlaying.isPause = !isPause;
+    getQueue(interaction.guildId).nowPlaying.isPause = !isPause;
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
         .setTitle(`Проигрывание ${isPause ? 'возобновлено' : 'приостановлено'}`)

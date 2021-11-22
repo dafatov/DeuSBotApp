@@ -7,7 +7,7 @@ const ytsr = require("ytsr");
 const ytpl = require("ytpl");
 const { notify, notifyError } = require("../commands.js");
 const config = require("../../configs/config.js");
-const { playPlayer } = require("../player.js");
+const { playPlayer, getQueue } = require("../player.js");
 const { escaping } = require("../../utils/string.js");
 const progressBar = require('string-progressbar');
 
@@ -35,8 +35,8 @@ module.exports = {
 }
 
 const play = async (interaction, audio) => {
-    if (interaction.client.queue.connection &&
-        interaction.client.queue.connection.joinConfig.channelId !==
+    if (getQueue(interaction.guildId)?.connection && 
+        getQueue(interaction.guildId)?.connection?.joinConfig?.channelId !==
             interaction.member.voice.channel.id) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
@@ -55,7 +55,6 @@ const play = async (interaction, audio) => {
                 await playPlayer(interaction);
             }).catch(async e => {
                 notifyError('play', e, interaction);
-                error(e);
                 return;
             });
         }).catch(() => {
@@ -86,7 +85,6 @@ const play = async (interaction, audio) => {
         });
     } catch (e) {
         notifyError('play', e, interaction);
-        error(e);
         return;
     }
 }
@@ -101,7 +99,7 @@ const playPlaylist = async (interaction, p) => {
             isLive: i.isLive,
             preview: i.thumbnails[0].url
         };
-        interaction.client.queue.songs.push(info);
+        getQueue(interaction.guildId).songs.push(info);
     });
 
     info = {
@@ -121,7 +119,7 @@ const addQueue = (interaction, i) => {
         isLive: i.videoDetails.isLiveContent,
         preview: i.videoDetails.thumbnails[0].url
     };
-    interaction.client.queue.songs.push(info);
+    getQueue(interaction.guildId).songs.push(info);
     return info;
 }
 
@@ -184,7 +182,7 @@ const notifySong = async (interaction, info) => {
         .setURL(info.url)
         .setDescription(`Длительность: **${info.isLive ? 
             '<Стрим>' : timeFormatSeconds(info.length)}**
-            Место в очереди: **${interaction.client.queue.songs.length}**`)
+            Место в очереди: **${getQueue(interaction.guildId).songs.length}**`)
         .setThumbnail(info.preview)
         .setTimestamp()
         .setFooter(`Композицию заказал пользователь ${interaction.user.username}`);

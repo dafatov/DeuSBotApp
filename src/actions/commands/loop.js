@@ -4,6 +4,7 @@ const { log } = require("../../utils/logger");
 const { notify } = require("../commands");
 const config = require("../../configs/config.js");
 const { escaping } = require("../../utils/string.js");
+const { getQueue } = require("../player");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -16,7 +17,7 @@ module.exports = {
 }
 
 module.exports.loop = async (interaction, isExecute) => {
-    if (!interaction.client.queue.connection || !interaction.client.queue.player) {
+    if (!getQueue(interaction.guildId).connection || !getQueue(interaction.guildId).player) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
             .setTitle('Так ничего и не играло')
@@ -27,7 +28,7 @@ module.exports.loop = async (interaction, isExecute) => {
         return;
     }
 
-    if (interaction.client.queue.connection.joinConfig.channelId !==
+    if (getQueue(interaction.guildId).connection.joinConfig.channelId !==
         interaction.member.voice.channel.id) {
             const embed = new MessageEmbed()
                 .setColor(config.colors.warning)
@@ -39,8 +40,8 @@ module.exports.loop = async (interaction, isExecute) => {
             return;
     }
 
-    let isLoop = interaction.client.queue.nowPlaying.isLoop;
-    interaction.client.queue.nowPlaying.isLoop = !isLoop;
+    let isLoop = getQueue(interaction.guildId).nowPlaying.isLoop;
+    getQueue(interaction.guildId).nowPlaying.isLoop = !isLoop;
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
         .setTitle(`Проигрывание ${isLoop ? 'отциклено' : 'зациклено'}`)

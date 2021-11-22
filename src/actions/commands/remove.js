@@ -4,6 +4,7 @@ const { log } = require("../../utils/logger");
 const { notify } = require("../commands");
 const config = require("../../configs/config.js");
 const { escaping } = require("../../utils/string.js");
+const { getQueue } = require("../player");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -20,7 +21,7 @@ module.exports = {
 }
 
 const remove = async (interaction) => {
-    if (!interaction.client.queue.songs || interaction.client.queue.songs.length < 1) {
+    if (!getQueue(interaction.guildId).songs || getQueue(interaction.guildId).songs.length < 1) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
             .setTitle('Ты одинок что ли? Соло-игрок?')
@@ -31,7 +32,7 @@ const remove = async (interaction) => {
         return;
     }
 
-    if (interaction.client.queue.connection.joinConfig.channelId !==
+    if (getQueue(interaction.guildId).connection.joinConfig.channelId !==
         interaction.member.voice.channel.id) {
             const embed = new MessageEmbed()
                 .setColor(config.colors.warning)
@@ -45,7 +46,7 @@ const remove = async (interaction) => {
 
     let targetIndex = interaction.options.getInteger("target") - 1;
 
-    if (targetIndex < 1 || targetIndex + 1 > interaction.client.queue.songs.length) {
+    if (targetIndex < 1 || targetIndex + 1 > getQueue(interaction.guildId).songs.length) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
             .setTitle('Ты это.. Вселенной ошибся, чел.')
@@ -56,9 +57,9 @@ const remove = async (interaction) => {
         return;
     }
 
-    let target = interaction.client.queue.songs[targetIndex];
+    let target = getQueue(interaction.guildId).songs[targetIndex];
 
-    interaction.client.queue.songs.splice(interaction.options.getInteger('target') - 1, 1);
+    getQueue(interaction.guildId).songs.splice(interaction.options.getInteger('target') - 1, 1);
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
         .setTitle('Целевая композиция дезинтегрирована')

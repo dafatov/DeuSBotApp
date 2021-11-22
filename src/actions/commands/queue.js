@@ -10,6 +10,7 @@ const { createStatus } = require("../../utils/attachments");
 const { pause } = require("./pause");
 const { skip } = require("./skip");
 const { loop } = require("./loop");
+const { getQueue } = require("../player");
 
 let {start, count} = {start: 0, count: 5};
 
@@ -26,9 +27,9 @@ module.exports = {
 }
 
 const queue = async (interaction) => {
-    const songs = interaction.client.queue.songs;
+    const songs = getQueue(interaction.guildId).songs;
 
-    if (songs.length === 0 && !interaction.client.queue.nowPlaying.song) {
+    if (songs.length === 0 && !getQueue(interaction.guildId).nowPlaying.song) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
             .setTitle('Мир музыки пуст')
@@ -51,14 +52,14 @@ const queue = async (interaction) => {
             value: `${song.isLive ? '<Стрим>' : timeFormatSeconds(song.length)}`
         })));
 
-    const barString = progressBar.filledBar(interaction.client.queue.nowPlaying.song.length * 1000, interaction.client.queue.nowPlaying.resource.playbackDuration);
-    embed.setTitle(escaping(interaction.client.queue.nowPlaying.song.title))
-        .setURL(interaction.client.queue.nowPlaying.song.url)
-        .setThumbnail(interaction.client.queue.nowPlaying.song.preview)
-        .setDescription(`${interaction.client.queue.nowPlaying.song.isLive
+    const barString = progressBar.filledBar(getQueue(interaction.guildId).nowPlaying.song.length * 1000, getQueue(interaction.guildId).nowPlaying.resource.playbackDuration);
+    embed.setTitle(escaping(getQueue(interaction.guildId).nowPlaying.song.title))
+        .setURL(getQueue(interaction.guildId).nowPlaying.song.url)
+        .setThumbnail(getQueue(interaction.guildId).nowPlaying.song.preview)
+        .setDescription(`${getQueue(interaction.guildId).nowPlaying.song.isLive
                 ? '<Стрим>' 
-                : `${timeFormatmSeconds(interaction.client.queue.nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(interaction.client.queue.nowPlaying.song.length)}`}
-            ${interaction.client.queue.nowPlaying.song.isLive
+                : `${timeFormatmSeconds(getQueue(interaction.guildId).nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(getQueue(interaction.guildId).nowPlaying.song.length)}`}
+            ${getQueue(interaction.guildId).nowPlaying.song.isLive
                 ? '\u200B\n'
                 : `${barString[0]} [${Math.round(barString[1])}%]\n`}`);
 
@@ -94,30 +95,29 @@ const queue = async (interaction) => {
     .addComponents(
         new MessageButton()
             .setCustomId('pause')
-            .setLabel(interaction.client.queue.nowPlaying?.isPause ? 'Возобновить' : 'Приостановить')
-            .setStyle(interaction.client.queue.nowPlaying?.isPause ? 'SUCCESS' : 'DANGER'),
+            .setLabel(getQueue(interaction.guildId).nowPlaying?.isPause ? 'Возобновить' : 'Приостановить')
+            .setStyle(getQueue(interaction.guildId).nowPlaying?.isPause ? 'SUCCESS' : 'DANGER'),
         new MessageButton()
             .setCustomId('skip')
             .setLabel('Пропустить')
             .setStyle('PRIMARY'),
         new MessageButton()
             .setCustomId('loop')
-            .setLabel(interaction.client.queue.nowPlaying?.isLoop ? 'Отциклить' : 'Зациклить')
-            .setStyle(interaction.client.queue.nowPlaying?.isLoop ? 'DANGER' : 'SUCCESS'),
+            .setLabel(getQueue(interaction.guildId).nowPlaying?.isLoop ? 'Отциклить' : 'Зациклить')
+            .setStyle(getQueue(interaction.guildId).nowPlaying?.isLoop ? 'DANGER' : 'SUCCESS'),
     );
 
-    const status = await createStatus(interaction.client.queue.nowPlaying);
+    const status = await createStatus(getQueue(interaction.guildId).nowPlaying);
     try {
         await notify('queue', interaction, {files: [status], embeds: [embed], components: [row, control]});
         log(`[queue] Список композиций успешно выведен`);
     } catch (e) {
         notifyError('queue', e, interaction);
-        error(e);
     }
 };
 
 const onQueue = async (interaction) => {
-    const songs = interaction.client.queue.songs;
+    const songs = getQueue(interaction.guildId).songs;
 
     let embed = interaction.message.embeds[0];
     let row = interaction.message.components[0];
@@ -134,7 +134,7 @@ const onQueue = async (interaction) => {
     if (interaction.customId === 'skip') await skip(interaction);
     if (interaction.customId === 'loop') await loop(interaction);
 
-    if (songs.length === 0 && !interaction.client.queue.nowPlaying.song) {
+    if (songs.length === 0 && !getQueue(interaction.guildId).nowPlaying.song) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
             .setTitle('Мир музыки пуст')
@@ -163,25 +163,25 @@ const onQueue = async (interaction) => {
     });
     control.components.forEach(b => {
         if (b.customId === 'pause') {
-            b.setLabel(interaction.client.queue.nowPlaying?.isPause ? 'Возобновить' : 'Приостановить');
-            b.setStyle(interaction.client.queue.nowPlaying?.isPause ? 'SUCCESS' : 'DANGER');
+            b.setLabel(getQueue(interaction.guildId).nowPlaying?.isPause ? 'Возобновить' : 'Приостановить');
+            b.setStyle(getQueue(interaction.guildId).nowPlaying?.isPause ? 'SUCCESS' : 'DANGER');
         }
         if (b.customId === 'skip') {
         }
         if (b.customId === 'loop') {
-            b.setLabel(interaction.client.queue.nowPlaying?.isLoop ? 'Отциклить' : 'Зациклить');
-            b.setStyle(interaction.client.queue.nowPlaying?.isLoop ? 'DANGER' : 'SUCCESS');
+            b.setLabel(getQueue(interaction.guildId).nowPlaying?.isLoop ? 'Отциклить' : 'Зациклить');
+            b.setStyle(getQueue(interaction.guildId).nowPlaying?.isLoop ? 'DANGER' : 'SUCCESS');
         }
     });
 
-    const barString = progressBar.filledBar(interaction.client.queue.nowPlaying.song.length * 1000, interaction.client.queue.nowPlaying.resource.playbackDuration);
-    embed.setTitle(escaping(interaction.client.queue.nowPlaying.song.title))
-        .setURL(interaction.client.queue.nowPlaying.song.url)
-        .setThumbnail(interaction.client.queue.nowPlaying.song.preview)
-        .setDescription(`${interaction.client.queue.nowPlaying.song.isLive
+    const barString = progressBar.filledBar(getQueue(interaction.guildId).nowPlaying.song.length * 1000, getQueue(interaction.guildId).nowPlaying.resource.playbackDuration);
+    embed.setTitle(escaping(getQueue(interaction.guildId).nowPlaying.song.title))
+        .setURL(getQueue(interaction.guildId).nowPlaying.song.url)
+        .setThumbnail(getQueue(interaction.guildId).nowPlaying.song.preview)
+        .setDescription(`${getQueue(interaction.guildId).nowPlaying.song.isLive
                 ? '<Стрим>' 
-                : `${timeFormatmSeconds(interaction.client.queue.nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(interaction.client.queue.nowPlaying.song.length)}`}
-            ${interaction.client.queue.nowPlaying.song.isLive
+                : `${timeFormatmSeconds(getQueue(interaction.guildId).nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(getQueue(interaction.guildId).nowPlaying.song.length)}`}
+            ${getQueue(interaction.guildId).nowPlaying.song.isLive
                 ? '\u200B\n'
                 : `${barString[0]} [${Math.round(barString[1])}%]\n`}`)
         .setFields(songs
@@ -193,7 +193,7 @@ const onQueue = async (interaction) => {
             //Данные количества на странице (count) беруться из footer'а. Да, костыль
         .setFooter(`${start + 1} - ${Math.min(start + count, songs.length)} из ${songs.length} по ${count}`);
     
-    const status = await createStatus(interaction.client.queue.nowPlaying);
+    const status = await createStatus(getQueue(interaction.guildId).nowPlaying);
     try {
         await interaction.message.removeAttachments();
         await interaction.update({files: [status], embeds: [embed], components: [row, control]});

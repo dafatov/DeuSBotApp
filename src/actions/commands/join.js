@@ -4,6 +4,7 @@ const { joinVoiceChannel, VoiceConnectionStatus } = require("@discordjs/voice");
 const { MessageEmbed } = require("discord.js");
 const { notify, notifyError } = require("../commands.js");
 const config = require("../../configs/config.js");
+const player = require("../player.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -16,7 +17,7 @@ module.exports = {
 }
 
 module.exports.join = async (interaction) => {
-    if (interaction.client.queue.connection && interaction.client.queue.connection._state.status !== VoiceConnectionStatus.Destroyed) return;
+    if (player.getQueue(interaction.guildId)?.connection && player.getQueue(interaction.guildId)?.connection?._state.status !== VoiceConnectionStatus.Destroyed) return;
     
     let voiceChannel = interaction.member.voice.channel;
     
@@ -33,12 +34,12 @@ module.exports.join = async (interaction) => {
     }
 
     try {
-        interaction.client.queue.connection = joinVoiceChannel({
+        player.getQueue(interaction.guildId).connection = joinVoiceChannel({
             channelId: voiceChannel.id,
             guildId: voiceChannel.guildId,
             adapterCreator: voiceChannel.guild.voiceAdapterCreator
         })
-        interaction.client.queue.voiceChannel = voiceChannel;
+        player.getQueue(interaction.guildId).voiceChannel = voiceChannel;
         const embed = new MessageEmbed()
             .setColor(config.colors.info)
             .setTitle('Я зашел')

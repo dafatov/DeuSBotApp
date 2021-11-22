@@ -7,6 +7,7 @@ const { timeFormatSeconds, timeFormatmSeconds } = require("../../utils/converter
 const progressBar = require('string-progressbar');
 const { escaping } = require("../../utils/string.js");
 const { createStatus } = require("../../utils/attachments");
+const { getQueue } = require("../player");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -19,9 +20,9 @@ module.exports = {
 }
 
 const np = async (interaction) => {
-    let info = interaction.client.queue.nowPlaying;
+    let info = getQueue(interaction.guildId).nowPlaying;
 
-    if (!interaction.client.queue.connection || !interaction.client.queue.player || !info.song) {
+    if (!getQueue(interaction.guildId).connection || !getQueue(interaction.guildId).player || !info.song) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
             .setTitle('Так ничего и не играло')
@@ -33,7 +34,7 @@ const np = async (interaction) => {
         return;
     }
 
-    if (interaction.client.queue.connection.joinConfig.channelId !==
+    if (getQueue(interaction.guildId).connection.joinConfig.channelId !==
         interaction.member.voice.channel.id) {
             const embed = new MessageEmbed()
                 .setColor(config.colors.warning)
@@ -60,7 +61,7 @@ const np = async (interaction) => {
         .setThumbnail(info.song.preview)
         .setTimestamp()
         .setFooter(`Композицию заказал пользователь ${interaction.user.username}`);
-    const status = await createStatus(interaction.client.queue.nowPlaying);
+    const status = await createStatus(getQueue(interaction.guildId).nowPlaying);
     await notify('np', interaction, {files: [status], embeds: [embed]});
     log(`[np] Успешно выведана текущая композиция`);
 }

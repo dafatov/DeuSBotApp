@@ -150,7 +150,7 @@ const set = async (interaction) => {
 }
 
 const remove = async (interaction) => {
-    let login = interaction.getString("login");
+    let login = interaction.options.getString("login");
 
     try {
         if (!login) throw `Login is undefined: [login: "${login}"]`

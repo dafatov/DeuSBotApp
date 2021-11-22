@@ -5,6 +5,7 @@ const { notify } = require("../commands");
 const config = require("../../configs/config.js");
 const { escaping } = require("../../utils/string");
 const { arrayMoveMutable } = require("../../utils/array.js");
+const { getQueue } = require("../player");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -25,11 +26,11 @@ module.exports = {
 }
 
 module.exports.move = async (interaction, positionIndex) => {
-    if (!interaction.client.queue.songs || interaction.client.queue.songs.length < 2) {
+    if (!getQueue(interaction.guildId).songs || getQueue(interaction.guildId).songs.length < 2) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
             .setTitle('Ты одинок что ли? Соло-игрок?')
-            .setDescription(`${interaction.client.queue.songs.length === 0
+            .setDescription(`${getQueue(interaction.guildId).songs.length === 0
                 ? 'Пытаться перемещать то, чего нет, показывает все твое отчаяние. **Пуст плейлист. Пуст.**'
                 : 'В одиночку, конечно, можно получить удовольствие, но двигать то все равно не куда. **Одна песня в плейлисте. Как ты...**'}`)
             .setTimestamp();
@@ -38,7 +39,7 @@ module.exports.move = async (interaction, positionIndex) => {
         return;
     }
 
-    if (interaction.client.queue.connection.joinConfig.channelId !==
+    if (getQueue(interaction.guildId).connection.joinConfig.channelId !==
         interaction.member.voice.channel.id) {
             const embed = new MessageEmbed()
                 .setColor(config.colors.warning)
@@ -51,22 +52,22 @@ module.exports.move = async (interaction, positionIndex) => {
     }
 
     let targetIndex = interaction.options.getInteger("target") - 1;
-    let targetTitle = escaping(interaction.client.queue.songs[targetIndex].title);
+    let targetTitle = escaping(getQueue(interaction.guildId).songs[targetIndex].title);
 
-    if (targetIndex < 0 || targetIndex + 1 > interaction.client.queue.songs.length
-        || positionIndex < 0 || positionIndex + 1 > interaction.client.queue.songs.length) {
+    if (targetIndex < 0 || targetIndex + 1 > getQueue(interaction.guildId).songs.length
+        || positionIndex < 0 || positionIndex + 1 > getQueue(interaction.guildId).songs.length) {
             const embed = new MessageEmbed()
                 .setColor(config.colors.warning)
                 .setTitle('Ты это.. Вселенной ошибся, чел.')
                 .setDescription(`Типа знаешь вселенная расширяется, а твой мозг походу нет. Ну вышел ты за пределы размеров очереди.
-                    Диапазон значений _от 1 до ${interaction.client.queue.songs.length}_`)
+                    Диапазон значений _от 1 до ${getQueue(interaction.guildId).songs.length}_`)
                 .setTimestamp();
             await notify('move', interaction, {embeds: [embed]});
             log(`[move] Переместить композицию не вышло: выход за пределы очереди`);
             return;
     }
 
-    arrayMoveMutable(interaction.client.queue.songs, targetIndex, positionIndex);
+    arrayMoveMutable(getQueue(interaction.guildId).songs, targetIndex, positionIndex);
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
         .setTitle('Целевая композиция передвинута')

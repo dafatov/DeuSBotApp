@@ -20,7 +20,7 @@ client.once('ready', async () => {
     await responses.init(client);
     await commands.init(client);
     await listeners.init(client);
-    await player.init(client);
+    player.init(client);
     
 	log('Бот запущен');
 });
@@ -37,14 +37,14 @@ client.on('messageCreate', (message) => {
 });
 
 client.on('voiceStateUpdate', async (_oldState, newState) => {
-    if (!client.queue || !client.queue.voiceChannel) return;
+    if (!player.getQueue(newState.guild.id)?.voiceChannel || !player.getQueue(newState.guild.id)?.connection) return;
 
     if (newState.id === client.user.id && !newState.channelId
-        || client.queue.voiceChannel.members
+        || player.getQueue(newState.guild.id).voiceChannel.members
             .filter(m => !m.user.bot).size < 1) {
-                client.queue.connection.destroy();
-                player.clearNowPlaying(client);
-                player.clearQueue(client);
+                player.getQueue(newState.guild.id).connection.destroy();
+                player.clearNowPlaying(newState.guild.id);
+                player.clearQueue(newState.guild.id);
     }
 });
 

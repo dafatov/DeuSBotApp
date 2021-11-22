@@ -3,6 +3,7 @@ const { MessageEmbed } = require("discord.js");
 const { log } = require("../../utils/logger");
 const { notify } = require("../commands");
 const config = require("../../configs/config.js");
+const { getQueue, clearQueue } = require("../player");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -15,8 +16,8 @@ module.exports = {
 }
 
 const shuffle = async (interaction) => {
-    if (!interaction.client.queue.connection || !interaction.client.queue.player
-        || interaction.client.queue.songs.length == 0) {
+    if (!getQueue(interaction.guildId).connection || !getQueue(interaction.guildId).player
+        || getQueue(interaction.guildId).songs.length == 0) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
             .setTitle('Так ничего и не играло')
@@ -27,7 +28,7 @@ const shuffle = async (interaction) => {
         return;
     }
 
-    if (interaction.client.queue.connection.joinConfig.channelId !==
+    if (getQueue(interaction.guildId).connection.joinConfig.channelId !==
         interaction.member.voice.channel.id) {
             const embed = new MessageEmbed()
                 .setColor(config.colors.warning)
@@ -39,7 +40,7 @@ const shuffle = async (interaction) => {
             return;
     }
 
-    interaction.client.queue.songs = [];
+    clearQueue(interaction.guildId);
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
         .setTitle('Э-эм. а где все?')

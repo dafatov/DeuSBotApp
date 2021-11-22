@@ -17,7 +17,7 @@ module.exports = {
 }
 
 module.exports.skip = async (interaction, isExecute) => {
-    if (!interaction.client.queue.connection || !interaction.client.queue.player) {
+    if (!player.getQueue(interaction.guildId).connection || !player.getQueue(interaction.guildId).player) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
             .setTitle('Так ничего и не играло')
@@ -28,7 +28,7 @@ module.exports.skip = async (interaction, isExecute) => {
         return;
     }
 
-    if (interaction.client.queue.connection.joinConfig.channelId !==
+    if (player.getQueue(interaction.guildId).connection.joinConfig.channelId !==
         interaction.member.voice.channel.id) {
             const embed = new MessageEmbed()
                 .setColor(config.colors.warning)
@@ -40,7 +40,7 @@ module.exports.skip = async (interaction, isExecute) => {
             return;
     }
     
-    let skipped = await player.skip(interaction.client);
+    let skipped = await player.skip(interaction.guildId);
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
         .setTitle('Текущая композиция уничтожена')
