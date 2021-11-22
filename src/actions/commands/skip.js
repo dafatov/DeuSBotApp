@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { MessageEmbed } = require("discord.js");
-const { log } = require("../../utils/logger");
+const { logGuild } = require("../../utils/logger");
 const { notify } = require("../commands");
 const config = require("../../configs/config.js");
 const { escaping } = require("../../utils/string.js");
@@ -24,7 +24,7 @@ module.exports.skip = async (interaction, isExecute) => {
             .setDescription(`Как ты жалок... Зачем пропускать, то чего нет? Или у тебя голоса в голове?`)
             .setTimestamp();
         await notify('skip', interaction, {embeds: [embed]});
-        log(`[skip] Пропустить композицию не вышло: плеер не играет`);
+        logGuild(interaction.guildId, `[skip]: Пропустить композицию не вышло: плеер не играет`);
         return;
     }
 
@@ -36,7 +36,7 @@ module.exports.skip = async (interaction, isExecute) => {
                 .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
                 .setTimestamp();
             await notify('skip', interaction, {embeds: [embed]});
-            log(`[skip] Пропустить композицию не вышло: не совпадают каналы`);
+            logGuild(interaction.guildId, `[skip]: Пропустить композицию не вышло: не совпадают каналы`);
             return;
     }
     
@@ -47,5 +47,5 @@ module.exports.skip = async (interaction, isExecute) => {
         .setDescription(`Название того, что играло уже не помню. Прошлое должно остаться в прошлом.
         ...Вроде это **${escaping(skipped.title)}**, но уже какая разница?`);
     if (isExecute) await notify('skip', interaction, {embeds: [embed]});
-    log(`[skip] Композиция была успешно пропущена`);
+    logGuild(interaction.guildId, `[skip]: Композиция была успешно пропущена`);
 }

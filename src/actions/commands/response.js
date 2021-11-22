@@ -1,5 +1,5 @@
 const config = require('../../configs/config.js');
-const { log } = require('../../utils/logger.js');
+const { logGuild } = require('../../utils/logger.js');
 const db = require('../../repositories/responses.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
@@ -77,10 +77,9 @@ const set = async (interaction) => {
             .addField(escaping(regex), react);
 
         await notify('response', interaction, {embeds: [embed]});
-        log(`[response] Реакция успешно добавлена`);
+        logGuild(interaction.guildId, `[response]: Реакция успешно добавлена`);
     } catch (e) {
         await notifyError('response', e, interaction);
-        error(e);
     }
 };
 
@@ -98,10 +97,9 @@ const remove = async (interaction) => {
             .setDescription(escaping(regex));
 
         await notify('response', interaction, {embeds: [embed]});
-        log(`[response] Реакция успешно удалена`);
+        logGuild(interaction.guildId, `[response]: Реакция успешно удалена`);
     } catch (e) {
         notifyError('response', e, interaction);
-        error(e);
     }
 };
 
@@ -151,10 +149,9 @@ const show = async (interaction) => {
 
     try {
         await notify('response', interaction, {embeds: [embed], components: [row]});
-        log(`[response] Список реакций успешно выведен`);
+        logGuild(interaction.guildId, `[response]: Список реакций успешно выведен`);
     } catch (e) {
         notifyError('response', e, interaction);
-        error(e);
     }
 };
 
@@ -201,7 +198,6 @@ const onResponse = async (interaction) => {
         await interaction.update({embeds: [embed], components: [row]});
     } catch (e) {
         notifyError('response', e, interaction);
-        error(e);
     }
 }
 

@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { MessageEmbed } = require("discord.js");
-const { log } = require("../../utils/logger");
+const { logGuild } = require("../../utils/logger");
 const { notify } = require("../commands");
 const config = require("../../configs/config.js");
 const { escaping } = require("../../utils/string");
@@ -35,20 +35,21 @@ module.exports.move = async (interaction, positionIndex) => {
                 : 'В одиночку, конечно, можно получить удовольствие, но двигать то все равно не куда. **Одна песня в плейлисте. Как ты...**'}`)
             .setTimestamp();
         await notify('move', interaction, {embeds: [embed]});
-        log(`[move] Переместить композицию не вышло: плеер не играет`);
+        logGuild(interaction.guildId, `[move]: Переместить композицию не вышло: плеер не играет`);
         return;
     }
 
-    if (getQueue(interaction.guildId).connection.joinConfig.channelId !==
-        interaction.member.voice.channel.id) {
-            const embed = new MessageEmbed()
-                .setColor(config.colors.warning)
-                .setTitle('Канал не тот')
-                .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
-                .setTimestamp();
-            await notify('move', interaction, {embeds: [embed]});
-            log(`[move] Переместить композицию не вышло: не совпадают каналы`);
-            return;
+    if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
+        && getQueue(interaction.guildId).connection.joinConfig.channelId !==
+            interaction.member.voice.channel.id) {
+        const embed = new MessageEmbed()
+            .setColor(config.colors.warning)
+            .setTitle('Канал не тот')
+            .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
+            .setTimestamp();
+        await notify('move', interaction, {embeds: [embed]});
+        logGuild(interaction.guildId, `[move]: Переместить композицию не вышло: не совпадают каналы`);
+        return;
     }
 
     let targetIndex = interaction.options.getInteger("target") - 1;
@@ -63,7 +64,7 @@ module.exports.move = async (interaction, positionIndex) => {
                     Диапазон значений _от 1 до ${getQueue(interaction.guildId).songs.length}_`)
                 .setTimestamp();
             await notify('move', interaction, {embeds: [embed]});
-            log(`[move] Переместить композицию не вышло: выход за пределы очереди`);
+            logGuild(interaction.guildId, `[move]: Переместить композицию не вышло: выход за пределы очереди`);
             return;
     }
 
@@ -74,5 +75,5 @@ module.exports.move = async (interaction, positionIndex) => {
         .setDescription(`Композиция **${targetTitle}** протолкала всех локтями на позицию **${positionIndex + 1}**.
             Кто бы сомневался. Донатеры ${escaping('****')}ые`);
     await notify('move', interaction, {embeds: [embed]});
-    log(`[move] Композиция была успешна перемещена`);
+    logGuild(interaction.guildId, `[move]: Композиция была успешна перемещена`);
 }

@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { MessageEmbed } = require("discord.js");
-const { log } = require("../../utils/logger");
+const { logGuild } = require("../../utils/logger");
 const { notify } = require("../commands");
 const config = require("../../configs/config.js");
 const { getQueue } = require("../player");
@@ -23,20 +23,21 @@ module.exports.pause = async (interaction, isExecute) => {
             .setDescription(`Как ты жалок... Зачем приостанавливать, то чего нет? Или у тебя голоса в голове?`)
             .setTimestamp();
         await notify('pause', interaction, {embeds: [embed]});
-        log(`[pause] Изменить состояние паузы не вышло: плеер не играет`);
+        logGuild(interaction.guildId, `[pause]: Изменить состояние паузы не вышло: плеер не играет`);
         return;
     }
 
-    if (getQueue(interaction.guildId).connection.joinConfig.channelId !==
-        interaction.member.voice.channel.id) {
-            const embed = new MessageEmbed()
-                .setColor(config.colors.warning)
-                .setTitle('Канал не тот')
-                .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
-                .setTimestamp();
-            await notify('pause', interaction, {embeds: [embed]});
-            log(`[pause] Изменить состояние паузы не вышло: не совпадают каналы`);
-            return;
+    if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
+        && getQueue(interaction.guildId).connection.joinConfig.channelId !==
+            interaction.member.voice.channel.id) {
+        const embed = new MessageEmbed()
+            .setColor(config.colors.warning)
+            .setTitle('Канал не тот')
+            .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
+            .setTimestamp();
+        await notify('pause', interaction, {embeds: [embed]});
+        logGuild(interaction.guildId, `[pause]: Изменить состояние паузы не вышло: не совпадают каналы`);
+        return;
     }
 
     let isPause = getQueue(interaction.guildId).nowPlaying.isPause;
@@ -73,5 +74,5 @@ module.exports.pause = async (interaction, isExecute) => {
                 -- ...
                 -- Деда, что с тобой? Все в порядке? Ты чего завис???`}`);
     if (isExecute) await notify('pause', interaction, {embeds: [embed]});
-    log(`[pause] Композиция была успешна ${isPause ? 'возобновлена' : 'приостановлена'}`);
+    logGuild(interaction.guildId, `[pause]: Композиция была успешна ${isPause ? 'возобновлена' : 'приостановлена'}`);
 }

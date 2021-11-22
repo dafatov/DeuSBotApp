@@ -1,11 +1,12 @@
-const { log, error } = require('../utils/logger.js');
+const { log, error, logGuild } = require('../utils/logger.js');
 const db = require("../repositories/responses.js");
 
 module.exports.init = async (client) => {
-    await client.guilds.cache.forEach(async guild => {
-        await db.count(guild.id).then((count) => log(`Успешно зарегистрировано реакций: ${count} для гильдии: ${guild.name}`))
-            .catch((e) => error(e));
-    })
+    await db.count().then(response => response.rows ?? [])
+        .then (response => response.map(r => 
+            `${client.guilds.cache.get(r.guild_id).name}: ${r.count}`).sort().join(', '))
+        .then(response => log(`Успешно зарегистрировано реакций для гильдий: [${response}]`))
+        .catch(e => error(e));
 };
 
 module.exports.execute = async (message) => {
@@ -15,7 +16,7 @@ module.exports.execute = async (message) => {
 
             if (message.content.match(e.regex)) {
                 message.reply(`${e.react}`);
-                log(`Message \n\t"${message.content}" triggered \n\t"${e.regex}" and was sended \n\t"${e.react}"`);
+                logGuild(interaction.guildId, `[responses]: "${message.content}" : "${e.regex}" : "${e.react}"`);
             }
         })).catch((e) => {throw e});
     } catch (e) {

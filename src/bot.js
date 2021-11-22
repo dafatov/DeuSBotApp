@@ -6,6 +6,7 @@ const player = require("./actions/player.js");
 const config = require("./configs/config.js");
 const { log } = require('./utils/logger.js');
 const db = require("./db.js");
+const { VoiceConnectionStatus } = require("@discordjs/voice");
 
 const client = new Client({ intents: [
     Intents.FLAGS.GUILDS,
@@ -37,14 +38,16 @@ client.on('messageCreate', (message) => {
 });
 
 client.on('voiceStateUpdate', async (_oldState, newState) => {
-    if (!player.getQueue(newState.guild.id)?.voiceChannel || !player.getQueue(newState.guild.id)?.connection) return;
+    if (!player.getQueue(newState.guild.id).voiceChannel
+        || !player.getQueue(newState.guild.id).connection
+        || player.getQueue(newState.guild.id).connection._state.status === VoiceConnectionStatus.Destroyed) return;
 
-    if (newState.id === client.user.id && !newState.channelId
+    if (newState.id === client.user.id && (!newState.channelId || newState.channelId !== player.getQueue(newState.guild.id).voiceChannel.id)
         || player.getQueue(newState.guild.id).voiceChannel.members
             .filter(m => !m.user.bot).size < 1) {
-                player.getQueue(newState.guild.id).connection.destroy();
-                player.clearNowPlaying(newState.guild.id);
-                player.clearQueue(newState.guild.id);
+        player.getQueue(newState.guild.id).connection.destroy();
+        player.clearNowPlaying(newState.guild.id);
+        player.clearQueue(newState.guild.id);
     }
 });
 

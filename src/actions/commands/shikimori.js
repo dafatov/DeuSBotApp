@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const axios = require('axios').default;
 const { searchSongs } = require("../commands/play.js");
-const { log, error } = require("../../utils/logger.js");
+const { logGuild } = require("../../utils/logger.js");
 const { MessageEmbed } = require("discord.js");
 const config = require("../../configs/config.js");
 const { notify, notifyError, update } = require("../commands.js");
@@ -78,7 +78,7 @@ const play = async (interaction) => {
             .setDescription(`Ну ты и клоун, конечно...`)
             .setTimestamp();
         await notify('shikimori', interaction, {embeds: [embed]});
-        log(`[shikimori] Найти профиль shikimori не удалось`);
+        logGuild(interaction.guildId, `[shikimori]: Найти профиль shikimori не удалось`);
         return;
     }
 
@@ -90,7 +90,7 @@ const play = async (interaction) => {
             .setDescription(`Ну ты и клоун, конечно...`)
             .setTimestamp();
         await notify('shikimori', interaction, {embeds: [embed]});
-        log(`[shikimori] Отрицательное количество`);
+        logGuild(interaction.guildId, `[shikimori]: Отрицательное количество`);
         return;
     }
     
@@ -101,7 +101,7 @@ const play = async (interaction) => {
         let isOp = Math.round(Math.random());
 
         let search = `${animes[i].target_title} ${isOp ? 'opening' : 'ending'} ${j} full`;
-        log(search);
+        logGuild(interaction.guildId, `[shikimori][search]: ${search}`);
         audios.push(search);
     }
     const embed = new MessageEmbed()
@@ -110,7 +110,7 @@ const play = async (interaction) => {
         .setDescription(`Выбраны аниме, песни и формируется плейлист. **Слышь, подожди!**`)
         .setTimestamp();
     await notify('shikimori', interaction, {embeds: [embed]});
-    log(`[shikimori] Профиль найден, аниме выбрано и формируется плейлист`);
+    logGuild(interaction.guildId, `[shikimori]: Профиль найден, аниме выбрано и формируется плейлист`);
     await searchSongs(interaction, audios, login);
 }
 
@@ -133,19 +133,18 @@ const set = async (interaction) => {
             "login": login,
             "nickname": nickname
         });
-        await update(interaction.client);
 
         const embed = new MessageEmbed()
             .setColor(config.colors.info)
             .setTitle('Создан новый пользователь shikimori')
             .setTimestamp()
             .addField(escaping(login), escaping(nickname));
-
-        await notify('shikimori', interaction, {embeds: [embed]});
-        log(`[shikimori] Пользователь успешно добавлен`);
+        await interaction.deferReply();
+        await update(interaction.client);
+        await interaction.editReply({embeds: [embed]});
+        logGuild(interaction.guildId, `[shikimori]: Пользователь успешно добавлен`);
     } catch (e) {
         await notifyError('shikimori', e, interaction);
-        error(e);
     }
 }
 
@@ -156,18 +155,17 @@ const remove = async (interaction) => {
         if (!login) throw `Login is undefined: [login: "${login}"]`
 
         await db.deleteByLogin(login);
-        await update(interaction.client);
 
         const embed = new MessageEmbed()
             .setColor(config.colors.info)
             .setTitle('Удален пользователь shikimori')
             .setTimestamp()
             .setDescription(escaping(login));
-
-        await notify('shikimori', interaction, {embeds: [embed]});
-        log(`[shikimori] Пользователь успешно удален`);
+        await interaction.deferReply();
+        await update(interaction.client);
+        await interaction.editReply({embeds: [embed]});
+        logGuild(interaction.guildId, `[shikimori]: Пользователь успешно удален`);
     } catch (e) {
         notifyError('shikimori', e, interaction);
-        error(e);
     }
 }

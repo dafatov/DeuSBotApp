@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { MessageEmbed } = require("discord.js");
 const ytdl = require("ytdl-core");
-const { log } = require("../../utils/logger.js");
+const { logGuild } = require("../../utils/logger.js");
 const { timeFormatSeconds } = require("../../utils/converter.js");
 const ytsr = require("ytsr");
 const ytpl = require("ytpl");
@@ -35,8 +35,8 @@ module.exports = {
 }
 
 const play = async (interaction, audio) => {
-    if (getQueue(interaction.guildId)?.connection && 
-        getQueue(interaction.guildId)?.connection?.joinConfig?.channelId !==
+    if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
+        && getQueue(interaction.guildId).connection.joinConfig.channelId !==
             interaction.member.voice.channel.id) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
@@ -44,7 +44,7 @@ const play = async (interaction, audio) => {
             .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
             .setTimestamp();
         await notify('play', interaction, {embeds: [embed]});
-        log(`[play] Добавить композицию не вышло: не совпадают каналы`);
+        logGuild(interaction.guildId, `[play]: Добавить композицию не вышло: не совпадают каналы`);
         return;
     }
 
@@ -76,7 +76,7 @@ const play = async (interaction, audio) => {
                             await notifySong(interaction, addQueue(interaction, i));
                             await playPlayer(interaction);
                             w = 11;
-                        }).catch((e) => {
+                        }).catch(() => {
                             w++;
                         })
                     }
@@ -153,25 +153,21 @@ module.exports.searchSongs = async (interaction, audios, login) => {
                 await ytdl.getBasicInfo(r.items[w].url, options).then(async i => {
                     addQueue(interaction, i);
                     w = 11;
-                }).catch((e) => {
+                }).catch(() => {
                     w++;
                 })
             }
         }).catch(err => {throw err})
         i++;
     };
-    if (intervalId) {
-        clearInterval(intervalId);
-        await interaction.deleteReply();
-    }
-
-    let info = {
-        title: `Композиции профиля ${login}`,
-        length: `${audios.length}`,
-        url: `https://shikimori.one/${login}`,
-        preview: 'https://yt3.ggpht.com/a/AGF-l78770kCZ2R6kvd35ixM3QhDCC3B7RaHiWoghw=s900-c-k-c0xffffffff-no-rj-mo'
-    };
-    await notifyPlaylist(interaction, info);
+    clearInterval(intervalId);
+    embed.setTitle(escaping(`Композиции профиля ${login}`))
+        .setURL(`https://shikimori.one/${login}/list/anime/mylist/completed,watching/order-by/ranked`)
+        .setDescription(`Количество композиций: **${audios.length}**`)
+        .setThumbnail('https://i.ibb.co/PGFbnkS/Afk-W8-Fi-E-400x400.png')
+        .setTimestamp()
+        .setFooter(`Плейлист создал ${interaction.user.username}`);
+    await interaction.editReply({embeds: [embed]});
     await playPlayer(interaction);
 }
 
@@ -187,7 +183,7 @@ const notifySong = async (interaction, info) => {
         .setTimestamp()
         .setFooter(`Композицию заказал пользователь ${interaction.user.username}`);
     await notify('play', interaction, {embeds: [embed]});
-    log(`[play.add] Композиция успешно добавлена в очередь`);
+    logGuild(interaction.guildId, `[play][add]: Композиция успешно добавлена в очередь`);
 }
 
 const notifyPlaylist = async (interaction, info) => {
@@ -200,5 +196,5 @@ const notifyPlaylist = async (interaction, info) => {
         .setTimestamp()
         .setFooter(`Плейлист предложил пользователь ${interaction.user.username}`);
     await notify('play', interaction, {embeds: [embed]});
-    log(`[play.add] Плейлист успешно добавлен в очередь`);
+    logGuild(interaction.guildId, `[play][add]: Плейлист успешно добавлен в очередь`);
 }

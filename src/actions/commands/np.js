@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { MessageEmbed } = require("discord.js");
-const { log } = require("../../utils/logger");
+const { logGuild } = require("../../utils/logger");
 const { notify } = require("../commands");
 const config = require("../../configs/config.js");
 const { timeFormatSeconds, timeFormatmSeconds } = require("../../utils/converter");
@@ -30,21 +30,22 @@ const np = async (interaction) => {
                 Теперь ты повторяешь это в при получении текущей композиции. Или это было в другом порядке?`)
             .setTimestamp();
         await notify('np', interaction, {embeds: [embed]});
-        log(`[np] Пропустить композицию не вышло: плеер не играет`);
+        logGuild(interaction.guildId, `[np]: Пропустить композицию не вышло: плеер не играет`);
         return;
     }
 
-    if (getQueue(interaction.guildId).connection.joinConfig.channelId !==
-        interaction.member.voice.channel.id) {
-            const embed = new MessageEmbed()
-                .setColor(config.colors.warning)
-                .setTitle('Канал не тот')
-                .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь...
-                    Дежавю? Разве этого же не было в пропуске композиции? Или у этого времени другой порядок...`)
-                .setTimestamp();
-            await notify('np', interaction, {embeds: [embed]});
-            log(`[np] Пропустить композицию не вышло: не совпадают каналы`);
-            return;
+    if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
+        && getQueue(interaction.guildId).connection.joinConfig.channelId !==
+            interaction.member.voice.channel.id) {
+        const embed = new MessageEmbed()
+            .setColor(config.colors.warning)
+            .setTitle('Канал не тот')
+            .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь...
+                Дежавю? Разве этого же не было в пропуске композиции? Или у этого времени другой порядок...`)
+            .setTimestamp();
+        await notify('np', interaction, {embeds: [embed]});
+        logGuild(interaction.guildId, `[np]: Пропустить композицию не вышло: не совпадают каналы`);
+        return;
     }
 
     const barString = progressBar.filledBar(info.song.length * 1000, info.resource.playbackDuration);
@@ -63,5 +64,5 @@ const np = async (interaction) => {
         .setFooter(`Композицию заказал пользователь ${interaction.user.username}`);
     const status = await createStatus(getQueue(interaction.guildId).nowPlaying);
     await notify('np', interaction, {files: [status], embeds: [embed]});
-    log(`[np] Успешно выведана текущая композиция`);
+    logGuild(interaction.guildId, `[np]: Успешно выведана текущая композиция`);
 }

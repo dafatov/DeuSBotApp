@@ -1,4 +1,4 @@
-const { log, error } = require("../../utils/logger.js")
+const { logGuild } = require("../../utils/logger.js")
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { joinVoiceChannel, VoiceConnectionStatus } = require("@discordjs/voice");
 const { MessageEmbed } = require("discord.js");
@@ -29,7 +29,7 @@ module.exports.join = async (interaction) => {
                 Я решил, что не стоит заходить в какой-то жалкий канал, когда никто не сможет осознать все мое величие`)
             .setTimestamp();
         await notify('join', interaction, {embeds: [embed]});
-        log(`[join] Пригласить бота можно только в свой голосовой канал`);
+        logGuild(interaction.guildId, `[join]: Пригласить бота можно только в свой голосовой канал`);
         return;
     }
 
@@ -46,10 +46,9 @@ module.exports.join = async (interaction) => {
             .setDescription(`Зашел к тебе в войс. Теперь ты сможешь погреться во всем моем великолепии и послушать музыку для ушей.
             Канал же ${voiceChannel.name} называется? О нем теперь будут слагать легенды`);
         await notify('join', interaction, {embeds: [embed]});
-        log(`[Join] Бот успешно приглашен в канал ${voiceChannel.name}`);
+        logGuild(interaction.guildId, `[join]: Бот успешно приглашен в канал ${voiceChannel.name}`);
     } catch(e) {
         notifyError('join', e, interaction);
-        error(e);
     }
 }
 

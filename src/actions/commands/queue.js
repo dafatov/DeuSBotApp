@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
-const { log } = require("../../utils/logger");
+const { logGuild } = require("../../utils/logger");
 const { timeFormatSeconds, timeFormatmSeconds } = require("../../utils/converter.js");
 const { notify, notifyError } = require("../commands");
 const config = require("../../configs/config.js");
@@ -37,7 +37,7 @@ const queue = async (interaction) => {
                 Ах да! Таким, в котором сейчас живешь ты~~`)
             .setTimestamp();
         await notify('queue', interaction, {embeds: [embed]});
-        log(`[queue] Вывести очередь не вышло: плеер не играет и очередь пуста`);
+        logGuild(interaction.guildId, `[queue]: Вывести очередь не вышло: плеер не играет и очередь пуста`);
         return;
     }
 
@@ -110,7 +110,7 @@ const queue = async (interaction) => {
     const status = await createStatus(getQueue(interaction.guildId).nowPlaying);
     try {
         await notify('queue', interaction, {files: [status], embeds: [embed], components: [row, control]});
-        log(`[queue] Список композиций успешно выведен`);
+        logGuild(interaction.guildId, `[queue]: Список композиций успешно выведен`);
     } catch (e) {
         notifyError('queue', e, interaction);
     }
@@ -141,9 +141,9 @@ const onQueue = async (interaction) => {
             .setDescription(`Может ли существовать мир без музыки? Каким бы он был...
                 Ах да! Таким, в котором сейчас живешь ты~~`)
             .setTimestamp();
-        await interaction.message.delete();
-        await notify('queue', interaction, {embeds: [embed]});
-        log(`[queue] Вывести очередь не вышло: плеер не играет и очередь пуста`);
+        await interaction.message.removeAttachments();
+        await interaction.update({embeds: [embed], components: []});
+        logGuild(interaction.guildId, `[queue]: Вывести очередь не вышло: плеер не играет и очередь пуста`);
         return;
     }
     
@@ -199,7 +199,6 @@ const onQueue = async (interaction) => {
         await interaction.update({files: [status], embeds: [embed], components: [row, control]});
     } catch (e) {
         notifyError('queue', e, interaction);
-        error(e);
     }
 }
 

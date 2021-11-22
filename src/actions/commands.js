@@ -2,7 +2,7 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const config = require("../configs/config.js");
 const fs = require('fs');
-const { log, error } = require('../utils/logger.js');
+const { log, error, logGuild } = require('../utils/logger.js');
 const Collection = require('@discordjs/collection');
 const { MessageEmbed } = require('discord.js');
 const db = require("../repositories/users.js");
@@ -20,24 +20,28 @@ module.exports.init = async (client) => {
     if (!client.commands || client.commands.keyArray().length === 0) return;
 
     await setShikimoriChoices(client.commands);
-    await client.guilds.cache.forEach(async guild => {
-        await rest.put(Routes.applicationGuildCommands(client.user.id, guild.id), {
-            body: client.commands.map((value) => value.data.toJSON())
-        }).then(() => log(`Успешно зарегистрировал команд: ${client.commands.keyArray().length} для гильдии: ${guild.name}`))
-        .catch((e) => error(e));
-    })
+    await Promise.all(client.guilds.cache.map(guild => 
+        rest.put(Routes.applicationGuildCommands(client.user.id, guild.id), {
+            body: client.commands.map((value) => value.data.toJSON())})))
+    .then(response => response ?? [])
+    .then(response => response.map(r =>
+        `${client.guilds.cache.get(r[0].guild_id).name}: ${r.length}`).sort().join(', '))
+    .then(response => log(`Успешно зарегистрировано команд для гильдий: [${response}]`))
+    .catch(e => error(e));
 };
 
 module.exports.update = async (client) => {
     const rest = new REST({ version: '9' }).setToken(config.token);
 
     await setShikimoriChoices(client.commands);
-    await client.guilds.cache.forEach(async guild => {
-        await rest.put(Routes.applicationGuildCommands(client.user.id, guild.id), {
-            body: client.commands.map((value) => value.data.toJSON())
-        }).then(() => log(`Успешно обновлено команд: ${client.commands.keyArray().length} для гильдии: ${guild.name}`))
-        .catch((e) => error(e));
-    })
+    await Promise.all(client.guilds.cache.map(guild => 
+        rest.put(Routes.applicationGuildCommands(client.user.id, guild.id), {
+            body: client.commands.map((value) => value.data.toJSON())})))
+    .then(response => response ?? [])
+    .then(response => response.map(r =>
+        `${client.guilds.cache.get(r[0].guild_id).name}: ${r.length}`).sort().join(', '))
+    .then(response => log(`Успешно обновлено команд для гильдий: [${response}]`))
+    .catch(e => error(e));
 }
 
 module.exports.execute = async (interaction) => {
@@ -46,7 +50,7 @@ module.exports.execute = async (interaction) => {
     if (!command) return;
     try {
         await command.execute(interaction);
-        log(`Command "${command.data.name}" is executed`);
+        logGuild(interaction.guildId, `Command "${command.data.name}" is executed`);
     } catch (e) {
         error(e);
     }
@@ -56,7 +60,7 @@ module.exports.notify = async (commandName, interaction, content) => {
     if (interaction.commandName === commandName && !interaction.replied) {
         await interaction.reply(content);
     } else {
-        interaction.channel.send(content);
+        await interaction.followUp(content);
     }
 }
 

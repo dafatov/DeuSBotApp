@@ -2,7 +2,7 @@ const { createAudioPlayer, createAudioResource,
     AudioPlayerStatus, NoSubscriberBehavior } = require("@discordjs/voice");
 const ytdl = require('ytdl-core');
 const { timeFormatSeconds, timeFormatmSeconds } = require("../utils/converter.js");
-const { log, error } = require('../utils/logger.js');
+const { log, error, logGuild } = require('../utils/logger.js');
 const { join } = require('./commands/join.js');
 const config = require("../configs/config.js");
 
@@ -14,7 +14,7 @@ module.exports.init = (c) => {
     client.guilds.cache.forEach(async guild => {
         client.queue.set(guild.id, {songs: [], nowPlaying: {}});
     });
-    log(`Успешно зарегистрирован плеер для гильдий: [${client.guilds.cache.map(g => g.name).join(', ')}]`)
+    log(`Успешно зарегистрированы плееры для гильдий: [${client.guilds.cache.map(g => g.name).sort().join(', ')}]`)
 }
 
 module.exports.getQueue = (guildId) => {
@@ -28,11 +28,9 @@ module.exports.skip = async (guildId) => {
     this.getQueue(guildId).nowPlaying.isSkip = true;
     await this.getQueue(guildId).player.stop();
     if (this.getQueue(guildId).songs.length !== 0) {
-        log(`[play][Skip]: ${this.getQueue(guildId).songs[0].title}`);
+        logGuild(guildId, `[play][Skip]: ${this.getQueue(guildId).songs[0].title}`);
         this.getQueue(guildId).nowPlaying.song = this.getQueue(guildId).songs[0];
         await play(guildId, false);
-    } else {
-        log("[play][Skip]: cleared queue");
     }
     this.getQueue(guildId).nowPlaying.isSkip = false;
     return skipped;
@@ -52,7 +50,7 @@ module.exports.playPlayer = async (interaction) => {
     createPlayer(interaction.guildId);
     
     if (this.getQueue(interaction.guildId).player.state.status !== AudioPlayerStatus.Playing) {
-        log(`[play][Inter]: ${this.getQueue(interaction.guildId).songs[0].title}`);
+        logGuild(interaction.guildId, `[play][Inter]: ${this.getQueue(interaction.guildId).songs[0].title}`);
         this.getQueue(interaction.guildId).nowPlaying.song = this.getQueue(interaction.guildId).songs[0];
         play(interaction.guildId, false);
     }
@@ -69,11 +67,11 @@ const createPlayer = (guildId) => {
             });
 
             this.getQueue(guildId).player.on('error', (e) => {
-                log(e);
+                error(e);
                 try {
                     if (e.resource.playbackDuration === 0) {
                         timerId = setTimeout(() => {
-                            log(`[play][Error]: ${this.getQueue(guildId).nowPlaying.song.title}`);
+                            logGuild(guildId, `[play][Error]: ${this.getQueue(guildId).nowPlaying.song.title}`);
                             play(guildId, true);
                         }, 250);
                     }
@@ -85,16 +83,16 @@ const createPlayer = (guildId) => {
             this.getQueue(guildId).player.on(AudioPlayerStatus.Idle, (a, b) => {
                 if (this.getQueue(guildId).nowPlaying.isSkip) {
                     this.getQueue(guildId).nowPlaying.isSkip = false;
-                    log('[play][Idle]: isSkip = false now');
+                    logGuild(guildId, '[play][Idle]: isSkip = false now');
                     return;
                 }
 
                 let p = a.playbackDuration;
                 if (this.getQueue(guildId).nowPlaying.song) {
-                    log(`[play][Idle]: [${timeFormatmSeconds(p)}/${timeFormatSeconds(this.getQueue(guildId).nowPlaying.song.length)}] `);
+                    logGuild(guildId, `[play][Idle]: [${timeFormatmSeconds(p)}/${timeFormatSeconds(this.getQueue(guildId).nowPlaying.song.length)}] `);
                     if (p === 0) {
                         timerId = setTimeout(() => {
-                            log(`[play][IdleError]: ${this.getQueue(guildId).nowPlaying.song.title}`);
+                            logGuild(guildId, `[play][IdleError]: ${this.getQueue(guildId).nowPlaying.song.title}`);
                             play(guildId, true);
                         }, 250);
                         return;
@@ -109,17 +107,17 @@ const createPlayer = (guildId) => {
                 }
 
                 if (this.getQueue(guildId).songs.length === 0) {
-                    log("[play][Idle]: cleared queue");
+                    logGuild(guildId, "[play][Idle]: cleared queue");
                     module.exports.clearNowPlaying(guildId);
                     return;
                 }
 
-                log(`[play][Idle]: ${this.getQueue(guildId).songs[0].title}`);
+                logGuild(guildId, `[play][Idle]: ${this.getQueue(guildId).songs[0].title}`);
                 this.getQueue(guildId).nowPlaying.song = this.getQueue(guildId).songs[0];
                 play(guildId, false);
             })
+            this.getQueue(guildId).connection.subscribe(this.getQueue(guildId).player);
         }
-        this.getQueue(guildId).connection.subscribe(this.getQueue(guildId).player);
     } catch (e) {
         error(e);
     }

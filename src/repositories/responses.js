@@ -20,7 +20,6 @@ module.exports.delete = async (guildId, regex) => {
     await db.query('DELETE FROM RESPONSE WHERE guild_id=$1 AND regex=$2', [guildId, regex]);
 }
 
-module.exports.count = async (guildId) => {
-    const response = await this.getAll(guildId);
-    return response.length;
+module.exports.count = async () => {
+    return await db.query('SELECT guild_id, COUNT(*) FROM RESPONSE GROUP BY guild_id')
 }

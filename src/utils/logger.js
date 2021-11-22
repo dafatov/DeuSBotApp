@@ -1,5 +1,9 @@
 const config = require("../configs/config.js")
 
+module.exports.logGuild = (guildId, msg) => {
+    this.log(`[${guildId}]: ${msg}`)
+}
+
 module.exports.log = (msg) => {
     consolePrint('[Log]', msg)
 }

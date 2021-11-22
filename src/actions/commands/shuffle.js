@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { shuffleArray } = require("../../utils/array");
 const { MessageEmbed } = require("discord.js");
-const { log } = require("../../utils/logger");
+const { logGuild } = require("../../utils/logger");
 const { notify } = require("../commands");
 const config = require("../../configs/config.js");
 const { getQueue } = require("../player");
@@ -27,20 +27,21 @@ const shuffle = async (interaction) => {
                 : 'В одиночку, конечно, можно получить удовольствие, но двигать то все равно не куда. **Одна песня в плейлисте. Как ты...**'}`)
             .setTimestamp();
         await notify('shuffle', interaction, {embeds: [embed]});
-        log(`[shuffle] Пропустить композицию не вышло: плеер не играет`);
+        logGuild(interaction.guildId, `[shuffle]: Пропустить композицию не вышло: плеер не играет`);
         return;
     }
 
-    if (getQueue(interaction.guildId).connection.joinConfig.channelId !==
-        interaction.member.voice.channel.id) {
-            const embed = new MessageEmbed()
-                .setColor(config.colors.warning)
-                .setTitle('Канал не тот')
-                .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
-                .setTimestamp();
-            await notify('shuffle', interaction, {embeds: [embed]});
-            log(`[shuffle] Пропустить композицию не вышло: не совпадают каналы`);
-            return;
+    if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
+        && getQueue(interaction.guildId).connection.joinConfig.channelId !==
+            interaction.member.voice.channel.id) {
+        const embed = new MessageEmbed()
+            .setColor(config.colors.warning)
+            .setTitle('Канал не тот')
+            .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
+            .setTimestamp();
+        await notify('shuffle', interaction, {embeds: [embed]});
+        logGuild(interaction.guildId, `[shuffle]: Пропустить композицию не вышло: не совпадают каналы`);
+        return;
     }
 
     shuffleArray(getQueue(interaction.guildId).songs);
@@ -51,6 +52,6 @@ const shuffle = async (interaction) => {
             И  пришел он!! Генератор Псевдо Случайных Чисел или _ГПСЧ_! Он спас нас, но остался в безизвестности.. Так давайте восславим его.
             Присоединяйтесь к _культу ГПСЧ_!!! Да пребудет с Вами **Бог Псевдо Рандома**`);
     await notify('shuffle', interaction, {embeds: [embed]});
-    log(`[shuffle] Плейлист успешно перемешан`);
+    logGuild(interaction.guildId, `[shuffle]: Плейлист успешно перемешан`);
 }
 
