@@ -1,12 +1,13 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const axios = require('axios').default;
 const { searchSongs } = require("../commands/play.js");
-const { logGuild } = require("../../utils/logger.js");
+const { logGuild, error } = require("../../utils/logger.js");
 const { MessageEmbed } = require("discord.js");
 const config = require("../../configs/config.js");
 const { notify, notifyError, update } = require("../commands.js");
 const db = require("../../repositories/users.js");
 const { escaping } = require("../../utils/string.js");
+const RandomOrg = require("random-org");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -94,24 +95,39 @@ const play = async (interaction) => {
         return;
     }
     
-    let audios = [];
-    while (audios.length < count) {
-        let i = Math.floor(Math.random() * animes.length);
-        let j = Math.ceil(Math.random() * (animes[i].episodes / 13));
-        let isOp = Math.round(Math.random());
 
-        let search = `${animes[i].target_title} ${isOp ? 'opening' : 'ending'} ${j} full`;
-        logGuild(interaction.guildId, `[shikimori][search]: ${search}`);
-        audios.push(search);
-    }
+
+    let audios = [];
+    animes.forEach(anime => {
+        for (let j = 0; j < anime.episodes / 12; j++) {
+            audios.push(`${anime.target_title} ${'opening'} ${j + 1} full`);
+            audios.push(`${anime.target_title} ${'ending'} ${j + 1} full`);
+        }
+    });
+    const random = new RandomOrg({apiKey: config.randomOrgToken});
+    let requestsLeft = await random.generateIntegers({
+        n: count,
+        min: 0,
+        max: audios.length - 1,
+        replacement: false})
+    .then(response => {return {requestsLeft: response.requestsLeft, data: response.random.data}})
+    .then(response => {
+        audios = audios.filter((_audio, index) => response.data.includes(index));
+        logGuild(interaction.guildId, `[shikimori][search]: ${audios.join(', ')}`);
+        return response.requestsLeft;
+    }).catch(e => error(e));
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
-        .setTitle('Плейлист формируется')
-        .setDescription(`Выбраны аниме, песни и формируется плейлист. **Слышь, подожди!**`)
+        .setTitle(requestsLeft >= 0 ? 'Плейлист формируется' : 'Рандома не осталось')
+        .setDescription(requestsLeft >= 0
+            ? `Выбраны аниме, песни и формируется плейлист. **Слышь, подожди!**`
+            : 'В связи с настойчивыми требованиями некторых сущностей рандом реализован через random.org, но в связи с этим существует ограничение на колчиество запросов в 10000 в месяц. Хз как, но лимит исчерпан, так что терпим терпилы или донатим))')
         .setTimestamp();
     await notify('shikimori', interaction, {embeds: [embed]});
-    logGuild(interaction.guildId, `[shikimori]: Профиль найден, аниме выбрано и формируется плейлист`);
-    await searchSongs(interaction, audios, login);
+    logGuild(interaction.guildId, requestsLeft >= 0 
+        ? `[shikimori]: Профиль найден, аниме выбраны и начато формирование плейлиста`
+        : '[shikimori]: Лимит на количество запросов random.org исчерпан');
+    if (requestsLeft >= 0) await searchSongs(interaction, audios, login);
 }
 
 const set = async (interaction) => {

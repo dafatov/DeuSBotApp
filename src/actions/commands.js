@@ -57,10 +57,15 @@ module.exports.execute = async (interaction) => {
 }
 
 module.exports.notify = async (commandName, interaction, content) => {
-    if (interaction.commandName === commandName && !interaction.replied) {
-        await interaction.reply(content);
-    } else {
-        await interaction.followUp(content);
+    try {
+        if (interaction.commandName === commandName && !interaction.replied) {
+            await interaction.reply(content);
+        } else {
+            await interaction.followUp(content);
+        }
+    } catch (e) {
+        error(e);
+        interaction.message.send(content);
     }
 }
 
