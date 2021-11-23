@@ -56,6 +56,7 @@ const queue = async (interaction) => {
     embed.setTitle(escaping(getQueue(interaction.guildId).nowPlaying.song.title))
         .setURL(getQueue(interaction.guildId).nowPlaying.song.url)
         .setThumbnail(getQueue(interaction.guildId).nowPlaying.song.preview)
+        .setTimestamp()
         .setDescription(`${getQueue(interaction.guildId).nowPlaying.song.isLive
                 ? '<Стрим>' 
                 : `${timeFormatmSeconds(getQueue(interaction.guildId).nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(getQueue(interaction.guildId).nowPlaying.song.length)}`}
@@ -178,6 +179,7 @@ const onQueue = async (interaction) => {
     embed.setTitle(escaping(getQueue(interaction.guildId).nowPlaying.song.title))
         .setURL(getQueue(interaction.guildId).nowPlaying.song.url)
         .setThumbnail(getQueue(interaction.guildId).nowPlaying.song.preview)
+        .setTimestamp()
         .setDescription(`${getQueue(interaction.guildId).nowPlaying.song.isLive
                 ? '<Стрим>' 
                 : `${timeFormatmSeconds(getQueue(interaction.guildId).nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(getQueue(interaction.guildId).nowPlaying.song.length)}`}
