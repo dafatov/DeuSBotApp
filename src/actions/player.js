@@ -92,8 +92,10 @@ const createPlayer = (guildId) => {
                     logGuild(guildId, `[play][Idle]: [${timeFormatmSeconds(p)}/${timeFormatSeconds(this.getQueue(guildId).nowPlaying.song.length)}] `);
                     if (p === 0) {
                         timerId = setTimeout(() => {
-                            logGuild(guildId, `[play][IdleError]: ${this.getQueue(guildId).nowPlaying.song.title}`);
-                            play(guildId, true);
+                            if (this.getQueue(guildId).nowPlaying.song) {
+                                logGuild(guildId, `[play][IdleError]: ${this.getQueue(guildId).nowPlaying.song.title}`);
+                                play(guildId, true);
+                            }
                         }, 250);
                         return;
                     }
@@ -116,8 +118,8 @@ const createPlayer = (guildId) => {
                 this.getQueue(guildId).nowPlaying.song = this.getQueue(guildId).songs[0];
                 play(guildId, false);
             })
-            this.getQueue(guildId).connection.subscribe(this.getQueue(guildId).player);
         }
+        this.getQueue(guildId).connection.subscribe(this.getQueue(guildId).player);
     } catch (e) {
         error(e);
     }
