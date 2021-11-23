@@ -15,7 +15,7 @@ module.exports = {
             .addChoice('response set', 'response set')
             .addChoice('response remove', 'response remove')
             .addChoice('shikimori set', 'shikimori set')
-            .addChoices('shikimori remove', 'shikimori remove')),
+            .addChoice('shikimori remove', 'shikimori remove')),
     async execute(interaction) {
         await help(interaction);
     },
