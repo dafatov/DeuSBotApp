@@ -32,5 +32,5 @@ const help = async (interaction) => {
         .setDescription(helps.get(command) ?? helpDefault)
         .setFooter('Copyright (c) 2021 dafatov', 'https://e7.pngegg.com/pngimages/330/725/png-clipart-computer-icons-public-key-certificate-organization-test-certificate-miscellaneous-company.png');
     await notify('help', interaction, {embeds: [embed]});
-    logGuild(interaction.guildId, `[help]: Помощь по \"${command}\" выведена успешно`);
+    logGuild(interaction.guildId, `[help]: Помощь по \"${command ?? 'боту Deus'}\" выведена успешно`);
 }

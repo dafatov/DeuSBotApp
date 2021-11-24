@@ -17,7 +17,7 @@ const client = new Client({ intents: [
 client.once('ready', async () => {
     client.user.setPresence({ activities: [{ name: `/help для помощи`}], status: 'online' });
 
-    await db.init();    
+    await db.init();
     await responses.init(client);
     await commands.init(client);
     await listeners.init(client);
@@ -38,7 +38,7 @@ client.on('messageCreate', (message) => {
 });
 
 client.on('voiceStateUpdate', async (_oldState, newState) => {
-    if (!player.getQueue(newState.guild.id).voiceChannel
+    if (!player.getQueue(newState.guild.id)?.voiceChannel
         || !player.getQueue(newState.guild.id).connection
         || player.getQueue(newState.guild.id).connection._state.status === VoiceConnectionStatus.Destroyed) return;
 
