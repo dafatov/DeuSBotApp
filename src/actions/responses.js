@@ -16,7 +16,7 @@ module.exports.execute = async (message) => {
 
             if (message.content.match(e.regex)) {
                 message.reply(`${e.react}`);
-                logGuild(interaction.guildId, `[responses]: "${message.content}" : "${e.regex}" : "${e.react}"`);
+                logGuild(message.guild.id, `[responses]: "${message.content}" : "${e.regex}" : "${e.react}"`);
             }
         })).catch((e) => {throw e});
     } catch (e) {
