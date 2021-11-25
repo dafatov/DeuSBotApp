@@ -138,5 +138,6 @@ const play = async (guildId, isCurrent) => {
             quality: 'highestaudio',
             highWaterMark: 1 << 25
     }));
+    if (!isCurrent) this.getQueue(guildId).remained -= this.getQueue(guildId).nowPlaying.song.length;
     await this.getQueue(guildId).player.play(this.getQueue(guildId).nowPlaying.resource);
 }

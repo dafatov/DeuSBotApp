@@ -108,7 +108,7 @@ const queue = async (interaction) => {
             .setStyle(getQueue(interaction.guildId).nowPlaying?.isLoop ? 'DANGER' : 'SUCCESS'),
     );
 
-    const status = await createStatus(getQueue(interaction.guildId).nowPlaying);
+    const status = await createStatus(getQueue(interaction.guildId));
     try {
         await notify('queue', interaction, {files: [status], embeds: [embed], components: [row, control]});
         logGuild(interaction.guildId, `[queue]: Список композиций успешно выведен`);
@@ -195,7 +195,7 @@ const onQueue = async (interaction) => {
             //Данные количества на странице (count) беруться из footer'а. Да, костыль
         .setFooter(`${start + 1} - ${Math.min(start + count, songs.length)} из ${songs.length} по ${count}`);
     
-    const status = await createStatus(getQueue(interaction.guildId).nowPlaying);
+    const status = await createStatus(getQueue(interaction.guildId));
     try {
         await interaction.message.removeAttachments();
         await interaction.update({files: [status], embeds: [embed], components: [row, control]});

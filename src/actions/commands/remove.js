@@ -47,7 +47,7 @@ const remove = async (interaction) => {
 
     let targetIndex = interaction.options.getInteger("target") - 1;
 
-    if (targetIndex < 1 || targetIndex + 1 > getQueue(interaction.guildId).songs.length) {
+    if (targetIndex < 0 || targetIndex + 1 > getQueue(interaction.guildId).songs.length) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
             .setTitle('Ты это.. Вселенной ошибся, чел.')
@@ -61,6 +61,7 @@ const remove = async (interaction) => {
     let target = getQueue(interaction.guildId).songs[targetIndex];
 
     getQueue(interaction.guildId).songs.splice(interaction.options.getInteger('target') - 1, 1);
+    getQueue(interaction.guildId).remained -= target.length;
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
         .setTitle('Целевая композиция дезинтегрирована')

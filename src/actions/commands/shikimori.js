@@ -100,8 +100,8 @@ const play = async (interaction) => {
     let audios = [];
     animes.forEach(anime => {
         for (let j = 0; j < anime.episodes / 12; j++) {
-            audios.push(`${anime.target_title} ${'opening'} ${j + 1} full`);
-            audios.push(`${anime.target_title} ${'ending'} ${j + 1} full`);
+            audios.push(`${anime.target_title} +opening ${j + 1} +full`);
+            audios.push(`${anime.target_title} +ending ${j + 1} +full`);
         }
     });
     const random = new RandomOrg({apiKey: config.randomOrgToken});

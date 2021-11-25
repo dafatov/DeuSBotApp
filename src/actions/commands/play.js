@@ -2,7 +2,7 @@ const { SlashCommandBuilder } = require("@discordjs/builders");
 const { MessageEmbed } = require("discord.js");
 const ytdl = require("ytdl-core");
 const { logGuild } = require("../../utils/logger.js");
-const { timeFormatSeconds } = require("../../utils/converter.js");
+const { timeFormatSeconds, timeFormatmSeconds } = require("../../utils/converter.js");
 const ytsr = require("ytsr");
 const ytpl = require("ytpl");
 const { notify, notifyError } = require("../commands.js");
@@ -10,6 +10,7 @@ const config = require("../../configs/config.js");
 const { playPlayer, getQueue } = require("../player.js");
 const { escaping } = require("../../utils/string.js");
 const progressBar = require('string-progressbar');
+const { remained } = require("../../utils/calc.js");
 
 
 const options = {
@@ -91,6 +92,7 @@ const play = async (interaction, audio) => {
 
 const playPlaylist = async (interaction, p) => {
     let info;
+    let allLength = 0;
     p.items.forEach(i => {
         info = {
             title: i.title,
@@ -100,14 +102,17 @@ const playPlaylist = async (interaction, p) => {
             preview: i.thumbnails[0].url
         };
         getQueue(interaction.guildId).songs.push(info);
+        allLength += parseInt(info.length);
     });
 
     info = {
         title: p.title,
         length: `${p.estimatedItemCount}`,
+        duration: allLength,
         url: p.url,
         preview: p.thumbnails[0].url
     };
+    getQueue(interaction.guildId).remained = (getQueue(interaction.guildId).remained ?? 0) + parseInt(info.duration);
     await notifyPlaylist(interaction, info);
 }
 
@@ -120,6 +125,7 @@ const addQueue = (interaction, i) => {
         preview: i.videoDetails.thumbnails[0].url
     };
     getQueue(interaction.guildId).songs.push(info);
+    getQueue(interaction.guildId).remained = (getQueue(interaction.guildId).remained ?? 0) + parseInt(info.length);
     return info;
 }
 
@@ -141,6 +147,7 @@ module.exports.searchSongs = async (interaction, audios, login) => {
         }
     }, 1000);
 
+    let allLength = 0
     for (let a of audios) {
         await ytsr(a, {
             gl: 'RU',
@@ -151,7 +158,7 @@ module.exports.searchSongs = async (interaction, audios, login) => {
             let w = 0;
             while (w < 10) {
                 await ytdl.getBasicInfo(r.items[w].url, options).then(async i => {
-                    addQueue(interaction, i);
+                    allLength += parseInt(addQueue(interaction, i).length);
                     w = 11;
                 }).catch(() => {
                     w++;
@@ -161,9 +168,12 @@ module.exports.searchSongs = async (interaction, audios, login) => {
         i++;
     };
     clearInterval(intervalId);
+    const remainedValue = remained(getQueue(interaction.guildId)) - 1000 * allLength;
     embed.setTitle(escaping(`Композиции профиля ${login}`))
         .setURL(`https://shikimori.one/${login}/list/anime/mylist/completed,watching/order-by/ranked`)
-        .setDescription(`Количество композиций: **${audios.length}**`)
+        .setDescription(`Количество композиций: **${audios.length}**
+            Общая длительность: **${timeFormatSeconds(allLength)}**
+            Начнется через: **${remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
         .setThumbnail('https://i.ibb.co/PGFbnkS/Afk-W8-Fi-E-400x400.png')
         .setTimestamp()
         .setFooter(`Плейлист создал ${interaction.user.username}`);
@@ -172,13 +182,15 @@ module.exports.searchSongs = async (interaction, audios, login) => {
 }
 
 const notifySong = async (interaction, info) => {
+    const remainedValue = remained(getQueue(interaction.guildId)) - 1000 * parseInt(info.length);
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
         .setTitle(escaping(info.title))
         .setURL(info.url)
         .setDescription(`Длительность: **${info.isLive ? 
             '<Стрим>' : timeFormatSeconds(info.length)}**
-            Место в очереди: **${getQueue(interaction.guildId).songs.length}**`)
+            Место в очереди: **${getQueue(interaction.guildId).songs.length}**
+            Начнется через: **${remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
         .setThumbnail(info.preview)
         .setTimestamp()
         .setFooter(`Композицию заказал пользователь ${interaction.user.username}`);
@@ -187,11 +199,14 @@ const notifySong = async (interaction, info) => {
 }
 
 const notifyPlaylist = async (interaction, info) => {
+    const remainedValue = remained(getQueue(interaction.guildId)) - 1000 * info.duration;
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
         .setTitle(escaping(info.title))
         .setURL(info.url)
-        .setDescription(`Количество композиций: **${info.length}**`)
+        .setDescription(`Количество композиций: **${info.length}**
+            Общая длительность: **${timeFormatSeconds(info.duration)}**
+            Начнется через: **${remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
         .setThumbnail(info.preview)
         .setTimestamp()
         .setFooter(`Плейлист предложил пользователь ${interaction.user.username}`);

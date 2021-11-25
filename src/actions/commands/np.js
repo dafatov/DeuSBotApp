@@ -62,7 +62,7 @@ const np = async (interaction) => {
         .setThumbnail(info.song.preview)
         .setTimestamp()
         .setFooter(`Композицию заказал пользователь ${interaction.user.username}`);
-    const status = await createStatus(getQueue(interaction.guildId).nowPlaying);
+    const status = await createStatus(getQueue(interaction.guildId));
     await notify('np', interaction, {files: [status], embeds: [embed]});
     logGuild(interaction.guildId, `[np]: Успешно выведана текущая композиция`);
 }
