@@ -9,6 +9,8 @@ const db = require("../../repositories/users.js");
 const { escaping } = require("../../utils/string.js");
 const RandomOrg = require("random-org");
 
+const MAX_COUNT = 100;
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('shikimori')
@@ -84,14 +86,15 @@ const play = async (interaction) => {
     }
 
     let count = interaction.options.getInteger('count') || 1;
-    if (count <= 0) {
+    if (count < 1 || count > MAX_COUNT) {
         const embed = new MessageEmbed()
             .setColor(config.colors.warning)
-            .setTitle('Отрицательное или нулевое количество')
-            .setDescription(`Ну ты и клоун, конечно...`)
+            .setTitle('Некорректное значения количества композиций')
+            .setDescription(`Ну ты и клоун, конечно...
+                _В связи с ограничением серверов youtube максимальное количество меньше ${MAX_COUNT}_`)
             .setTimestamp();
         await notify('shikimori', interaction, {embeds: [embed]});
-        logGuild(interaction.guildId, `[shikimori]: Отрицательное количество`);
+        logGuild(interaction.guildId, `[shikimori]: Некорректное количество`);
         return;
     }
     

@@ -41,6 +41,17 @@ const queue = async (interaction) => {
         return;
     }
 
+    if (songs.length !== 0 && !getQueue(interaction.guildId).nowPlaying.song) {
+        const embed = new MessageEmbed()
+            .setColor(config.colors.warning)
+            .setTitle('Да, кто ты такой, чтобы вмешиваться в мою работу!!!')
+            .setDescription(`Бот в процессе формирования плейлиста и может не отвечать на сообщения`)
+            .setTimestamp();
+        await notify('queue', interaction, {embeds: [embed]});
+        logGuild(interaction.guildId, `[queue]: Вывести очередь не вышло: плеер не играет, а очередь не пуста`);
+        return;
+    }
+
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
         .setFooter(`${Math.min(start + 1, songs.length)} - ${Math.min(start + count, songs.length)} из ${songs.length} по ${count}`);

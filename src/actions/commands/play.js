@@ -148,37 +148,38 @@ module.exports.searchSongs = async (interaction, audios, login) => {
     }, 1000);
 
     let allLength = 0
-    for (let a of audios) {
-        await ytsr(a, {
-            gl: 'RU',
-            hl: 'ru',
-            limit: 10
-        }, options).then(async r => {
-            if (r.items.length === 0) throw "Ничего не найдено";
-            let w = 0;
-            while (w < 10) {
-                await ytdl.getBasicInfo(r.items[w].url, options).then(async i => {
-                    allLength += parseInt(addQueue(interaction, i).length);
-                    w = 11;
-                }).catch(() => {
-                    w++;
-                })
-            }
-        }).catch(err => {throw err})
+    Promise.all(audios.map((a) => ytsr(a, {
+        gl: 'RU',
+        hl: 'ru',
+        limit: 10
+    }, options).then(async r => {
+        if (r.items.length === 0) throw "Ничего не найдено";
+
+        let w = 0;
+        while (w < 10) {
+            await ytdl.getBasicInfo(r.items[w].url, options).then(async i => {
+                allLength += parseInt(addQueue(interaction, i).length);
+                w = 11;
+            }).catch(() => {
+                w++;
+            })
+        }
         i++;
-    };
-    clearInterval(intervalId);
-    const remainedValue = remained(getQueue(interaction.guildId)) - 1000 * allLength;
-    embed.setTitle(escaping(`Композиции профиля ${login}`))
-        .setURL(`https://shikimori.one/${login}/list/anime/mylist/completed,watching/order-by/ranked`)
-        .setDescription(`Количество композиций: **${audios.length}**
-            Общая длительность: **${timeFormatSeconds(allLength)}**
-            Начнется через: **${remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
-        .setThumbnail('https://i.ibb.co/PGFbnkS/Afk-W8-Fi-E-400x400.png')
-        .setTimestamp()
-        .setFooter(`Плейлист создал ${interaction.user.username}`);
-    await interaction.editReply({embeds: [embed]});
-    await playPlayer(interaction);
+    }))).then(async () => {
+        clearInterval(intervalId);
+        
+        const remainedValue = remained(getQueue(interaction.guildId)) - 1000 * allLength;
+        embed.setTitle(escaping(`Композиции профиля ${login}`))
+            .setURL(`https://shikimori.one/${login}/list/anime/mylist/completed,watching/order-by/ranked`)
+            .setDescription(`Количество композиций: **${audios.length}**
+                Общая длительность: **${timeFormatSeconds(allLength)}**
+                Начнется через: **${remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
+            .setThumbnail('https://i.ibb.co/PGFbnkS/Afk-W8-Fi-E-400x400.png')
+            .setTimestamp()
+            .setFooter(`Плейлист создал ${interaction.user.username}`);
+        await interaction.editReply({embeds: [embed]});
+        await playPlayer(interaction);
+    })
 }
 
 const notifySong = async (interaction, info) => {
