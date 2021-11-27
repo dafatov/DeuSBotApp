@@ -48,6 +48,7 @@ client.on('voiceStateUpdate', async (_oldState, newState) => {
         player.getQueue(newState.guild.id).connection.destroy();
         player.clearNowPlaying(newState.guild.id);
         player.clearQueue(newState.guild.id);
+        player.clearConnection(newState.guild.id);
     }
 });
 

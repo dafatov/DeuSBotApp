@@ -44,6 +44,11 @@ module.exports.clearQueue = (guildId) => {
     this.getQueue(guildId).songs = [];
 }
 
+module.exports.clearConnection = (guildId) => {
+    delete this.getQueue(guildId).connection;
+    delete this.getQueue(guildId).voiceChannel;
+}
+
 module.exports.playPlayer = async (interaction) => {
     await join(interaction);
 
