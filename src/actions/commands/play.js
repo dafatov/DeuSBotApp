@@ -99,7 +99,8 @@ const playPlaylist = async (interaction, p) => {
             length: i.durationSec,
             url: i.shortUrl,
             isLive: i.isLive,
-            preview: i.thumbnails[0].url
+            preview: i.thumbnails[0].url,
+            author: interaction.user
         };
         getQueue(interaction.guildId).songs.push(info);
         allLength += parseInt(info.length);
@@ -122,7 +123,8 @@ const addQueue = (interaction, i) => {
         length: i.videoDetails.lengthSeconds,
         url: i.videoDetails.video_url,
         isLive: i.videoDetails.isLiveContent,
-        preview: i.videoDetails.thumbnails[0].url
+        preview: i.videoDetails.thumbnails[0].url,
+        author: interaction.user
     };
     getQueue(interaction.guildId).songs.push(info);
     getQueue(interaction.guildId).remained = (getQueue(interaction.guildId).remained ?? 0) + parseInt(info.length);
@@ -176,7 +178,7 @@ module.exports.searchSongs = async (interaction, audios, login) => {
                 Начнется через: **${remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
             .setThumbnail('https://i.ibb.co/PGFbnkS/Afk-W8-Fi-E-400x400.png')
             .setTimestamp()
-            .setFooter(`Плейлист создал ${interaction.user.username}`);
+            .setFooter(`Плейлист создал ${interaction.user.username}`, interaction.user.displayAvatarURL());
         await interaction.editReply({embeds: [embed]});
         await playPlayer(interaction);
     })
@@ -194,7 +196,7 @@ const notifySong = async (interaction, info) => {
             Начнется через: **${remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
         .setThumbnail(info.preview)
         .setTimestamp()
-        .setFooter(`Композицию заказал пользователь ${interaction.user.username}`);
+        .setFooter(`Композицию заказал пользователь ${interaction.user.username}`, interaction.user.displayAvatarURL());
     await notify('play', interaction, {embeds: [embed]});
     logGuild(interaction.guildId, `[play][add]: Композиция успешно добавлена в очередь`);
 }
@@ -210,7 +212,7 @@ const notifyPlaylist = async (interaction, info) => {
             Начнется через: **${remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
         .setThumbnail(info.preview)
         .setTimestamp()
-        .setFooter(`Плейлист предложил пользователь ${interaction.user.username}`);
+        .setFooter(`Плейлист предложил пользователь ${interaction.user.username}`, interaction.user.displayAvatarURL());
     await notify('play', interaction, {embeds: [embed]});
     logGuild(interaction.guildId, `[play][add]: Плейлист успешно добавлен в очередь`);
 }

@@ -60,7 +60,7 @@ const queue = async (interaction) => {
         .slice(start, count)
         .map((song, i) => ({
             name: `${String(start + i + 1).padStart(String(songs.length).length, '0')}). ${escaping(song.title)}`,
-            value: `${song.isLive ? '<Стрим>' : timeFormatSeconds(song.length)}`
+            value: `\`${song.isLive ? '<Стрим>' : timeFormatSeconds(song.length)}\`—_\`${song.author.username}\`_`
         })));
 
     const barString = progressBar.filledBar(getQueue(interaction.guildId).nowPlaying.song.length * 1000, getQueue(interaction.guildId).nowPlaying.resource.playbackDuration);
@@ -68,9 +68,9 @@ const queue = async (interaction) => {
         .setURL(getQueue(interaction.guildId).nowPlaying.song.url)
         .setThumbnail(getQueue(interaction.guildId).nowPlaying.song.preview)
         .setTimestamp()
-        .setDescription(`${getQueue(interaction.guildId).nowPlaying.song.isLive
+        .setDescription(`\`${getQueue(interaction.guildId).nowPlaying.song.isLive
                 ? '<Стрим>' 
-                : `${timeFormatmSeconds(getQueue(interaction.guildId).nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(getQueue(interaction.guildId).nowPlaying.song.length)}`}
+                : `${timeFormatmSeconds(getQueue(interaction.guildId).nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(getQueue(interaction.guildId).nowPlaying.song.length)}`}\`—_\`${getQueue(interaction.guildId).nowPlaying.song.author.username}\`_
             ${getQueue(interaction.guildId).nowPlaying.song.isLive
                 ? '\u200B\n'
                 : `${barString[0]} [${Math.round(barString[1])}%]\n`}`);
@@ -191,9 +191,9 @@ const onQueue = async (interaction) => {
         .setURL(getQueue(interaction.guildId).nowPlaying.song.url)
         .setThumbnail(getQueue(interaction.guildId).nowPlaying.song.preview)
         .setTimestamp()
-        .setDescription(`${getQueue(interaction.guildId).nowPlaying.song.isLive
+        .setDescription(`\`${getQueue(interaction.guildId).nowPlaying.song.isLive
                 ? '<Стрим>' 
-                : `${timeFormatmSeconds(getQueue(interaction.guildId).nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(getQueue(interaction.guildId).nowPlaying.song.length)}`}
+                : `${timeFormatmSeconds(getQueue(interaction.guildId).nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(getQueue(interaction.guildId).nowPlaying.song.length)}`}\`—_\`${getQueue(interaction.guildId).nowPlaying.song.author.username}\`_
             ${getQueue(interaction.guildId).nowPlaying.song.isLive
                 ? '\u200B\n'
                 : `${barString[0]} [${Math.round(barString[1])}%]\n`}`)
@@ -201,7 +201,7 @@ const onQueue = async (interaction) => {
             .slice(start, start + count)
             .map((song, i) => ({
                 name: `${String(start + i + 1).padStart(String(songs.length).length, '0')}). ${escaping(song.title)}`,
-                value: `${song.isLive ? '<Стрим>' : timeFormatSeconds(song.length)}`
+                value: `\`${song.isLive ? '<Стрим>' : timeFormatSeconds(song.length)}\`—_\`${song.author.username}\`_`
             })))
             //Данные количества на странице (count) беруться из footer'а. Да, костыль
         .setFooter(`${start + 1} - ${Math.min(start + count, songs.length)} из ${songs.length} по ${count}`);
