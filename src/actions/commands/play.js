@@ -51,7 +51,7 @@ const play = async (interaction, audio) => {
 
     try {
         ytpl.getPlaylistID(audio).then(async a => {
-            ytpl(a, options).then(async p => {
+            ytpl(a, {limit: Infinity, ...options}).then(async p => {
                 await playPlaylist(interaction, p);
                 await playPlayer(interaction);
             }).catch(async e => {
