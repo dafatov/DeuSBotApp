@@ -49,6 +49,10 @@ module.exports.clearConnection = (guildId) => {
     delete this.getQueue(guildId).voiceChannel;
 }
 
+module.exports.hasLive = (guildId) => {
+    return (this.getQueue(guildId).nowPlaying?.song?.isLive ?? false) || (this.getQueue(guildId).songs?.filter(s => s.isLive).size ?? 0) > 0;
+}
+
 module.exports.playPlayer = async (interaction) => {
     await join(interaction);
 
@@ -95,7 +99,7 @@ const createPlayer = (guildId) => {
                 let p = a.playbackDuration;
                 if (this.getQueue(guildId).nowPlaying.song) {
                     logGuild(guildId, `[play][Idle]: [${timeFormatmSeconds(p)}/${timeFormatSeconds(this.getQueue(guildId).nowPlaying.song.length)}] `);
-                    if (p === 0) {
+                    if (p === 0 || this.getQueue(guildId).nowPlaying.song.isLive) {
                         timerId = setTimeout(() => {
                             if (this.getQueue(guildId).nowPlaying.song) {
                                 logGuild(guildId, `[play][IdleError]: ${this.getQueue(guildId).nowPlaying.song.title}`);
@@ -130,19 +134,27 @@ const createPlayer = (guildId) => {
     }
 }
 
-const play = async (guildId, isCurrent) => {
-    this.getQueue(guildId).nowPlaying.resource = createAudioResource(ytdl(isCurrent
-        ? this.getQueue(guildId).nowPlaying.song.url
-        : this.getQueue(guildId).songs.shift().url, {
-            requestOptions: {
-                headers: {
-                cookie: config.cookie,
+const createAudioStream = (song) => {
+    if (song.type === 'youtube') {
+        return ytdl(song.url, {
+                requestOptions: {
+                    headers: {
+                    cookie: config.cookie,
+                    },
                 },
-            },
-            filter: 'audioonly', 
-            quality: 'highestaudio',
-            highWaterMark: 1 << 25
-    }));
+                filter: 'audioonly', 
+                quality: 'highestaudio',
+                highWaterMark: 1 << 25
+        })
+    } else if (song.type === 'radio') {
+        return song.url;
+    }
+}
+
+const play = async (guildId, isCurrent) => {
+    this.getQueue(guildId).nowPlaying.resource = createAudioResource(createAudioStream(isCurrent
+        ? this.getQueue(guildId).nowPlaying.song
+        : this.getQueue(guildId).songs.shift()));
     if (!isCurrent) this.getQueue(guildId).remained -= this.getQueue(guildId).nowPlaying.song.length;
     await this.getQueue(guildId).player.play(this.getQueue(guildId).nowPlaying.resource);
 }

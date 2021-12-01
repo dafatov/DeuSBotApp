@@ -4,7 +4,7 @@ const commands = require("./actions/commands.js");
 const listeners = require("./actions/listeners.js");
 const player = require("./actions/player.js");
 const config = require("./configs/config.js");
-const { log } = require('./utils/logger.js');
+const { log, logGuild } = require('./utils/logger.js');
 const db = require("./db.js");
 const { VoiceConnectionStatus } = require("@discordjs/voice");
 
@@ -49,6 +49,7 @@ client.on('voiceStateUpdate', async (_oldState, newState) => {
         player.clearNowPlaying(newState.guild.id);
         player.clearQueue(newState.guild.id);
         player.clearConnection(newState.guild.id);
+        logGuild(newState.guild.id, '[bot][stateUpdate] Leaved cause moved, disconnected or solo');
     }
 });
 

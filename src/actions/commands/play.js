@@ -7,7 +7,7 @@ const ytsr = require("ytsr");
 const ytpl = require("ytpl");
 const { notify, notifyError } = require("../commands.js");
 const config = require("../../configs/config.js");
-const { playPlayer, getQueue } = require("../player.js");
+const { playPlayer, getQueue, hasLive } = require("../player.js");
 const { escaping } = require("../../utils/string.js");
 const progressBar = require('string-progressbar');
 const { remained } = require("../../utils/calc.js");
@@ -95,6 +95,7 @@ const playPlaylist = async (interaction, p) => {
     let allLength = 0;
     p.items.forEach(i => {
         info = {
+            type: 'youtube',
             title: i.title,
             length: i.durationSec,
             url: i.shortUrl,
@@ -113,12 +114,12 @@ const playPlaylist = async (interaction, p) => {
         url: p.url,
         preview: p.thumbnails[0].url
     };
-    getQueue(interaction.guildId).remained = (getQueue(interaction.guildId).remained ?? 0) + parseInt(info.duration);
     await notifyPlaylist(interaction, info);
 }
 
 const addQueue = (interaction, i) => {
     let info = {
+        type: 'youtube',
         title: i.videoDetails.title,
         length: i.videoDetails.lengthSeconds,
         url: i.videoDetails.video_url,
@@ -127,7 +128,6 @@ const addQueue = (interaction, i) => {
         author: interaction.user
     };
     getQueue(interaction.guildId).songs.push(info);
-    getQueue(interaction.guildId).remained = (getQueue(interaction.guildId).remained ?? 0) + parseInt(info.length);
     return info;
 }
 
@@ -170,12 +170,13 @@ module.exports.searchSongs = async (interaction, audios, login) => {
     }))).then(async () => {
         clearInterval(intervalId);
         
-        const remainedValue = remained(getQueue(interaction.guildId)) - 1000 * allLength;
+        const remainedValue = remained(getQueue(interaction.guildId));
+        getQueue(interaction.guildId).remained = (getQueue(interaction.guildId).remained ?? 0) + allLength;
         embed.setTitle(escaping(`Композиции профиля ${login}`))
             .setURL(`https://shikimori.one/${login}/list/anime/mylist/completed,watching/order-by/ranked`)
             .setDescription(`Количество композиций: **${audios.length}**
                 Общая длительность: **${timeFormatSeconds(allLength)}**
-                Начнется через: **${remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
+                Начнется через: **${hasLive(interaction.guildId) ? '<Никогда>' : remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
             .setThumbnail('https://i.ibb.co/PGFbnkS/Afk-W8-Fi-E-400x400.png')
             .setTimestamp()
             .setFooter(`Плейлист создал ${interaction.user.username}`, interaction.user.displayAvatarURL());
@@ -185,7 +186,8 @@ module.exports.searchSongs = async (interaction, audios, login) => {
 }
 
 const notifySong = async (interaction, info) => {
-    const remainedValue = remained(getQueue(interaction.guildId)) - 1000 * parseInt(info.length);
+    const remainedValue = remained(getQueue(interaction.guildId));
+    getQueue(interaction.guildId).remained = (getQueue(interaction.guildId).remained ?? 0) + parseInt(info.length);
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
         .setTitle(escaping(info.title))
@@ -193,7 +195,7 @@ const notifySong = async (interaction, info) => {
         .setDescription(`Длительность: **${info.isLive ? 
             '<Стрим>' : timeFormatSeconds(info.length)}**
             Место в очереди: **${getQueue(interaction.guildId).songs.length}**
-            Начнется через: **${remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
+            Начнется через: **${hasLive(interaction.guildId) ? '<Никогда>' : remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
         .setThumbnail(info.preview)
         .setTimestamp()
         .setFooter(`Композицию заказал пользователь ${interaction.user.username}`, interaction.user.displayAvatarURL());
@@ -202,14 +204,15 @@ const notifySong = async (interaction, info) => {
 }
 
 const notifyPlaylist = async (interaction, info) => {
-    const remainedValue = remained(getQueue(interaction.guildId)) - 1000 * info.duration;
+    const remainedValue = remained(getQueue(interaction.guildId));
+    getQueue(interaction.guildId).remained = (getQueue(interaction.guildId).remained ?? 0) + parseInt(info.duration);
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
         .setTitle(escaping(info.title))
         .setURL(info.url)
         .setDescription(`Количество композиций: **${info.length}**
             Общая длительность: **${timeFormatSeconds(info.duration)}**
-            Начнется через: **${remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
+            Начнется через: **${hasLive(interaction.guildId) ? '<Никогда>' : remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
         .setThumbnail(info.preview)
         .setTimestamp()
         .setFooter(`Плейлист предложил пользователь ${interaction.user.username}`, interaction.user.displayAvatarURL());

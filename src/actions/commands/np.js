@@ -5,9 +5,10 @@ const { notify } = require("../commands");
 const config = require("../../configs/config.js");
 const { timeFormatSeconds, timeFormatmSeconds } = require("../../utils/converter");
 const progressBar = require('string-progressbar');
-const { escaping } = require("../../utils/string.js");
+const { escaping, parseAnisonResponseOnAir } = require("../../utils/string.js");
 const { createStatus } = require("../../utils/attachments");
 const { getQueue } = require("../player");
+const axios = require('axios').default;
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -48,20 +49,28 @@ const np = async (interaction) => {
         return;
     }
 
-    const barString = progressBar.filledBar(info.song.length * 1000, info.resource.playbackDuration);
     const embed = new MessageEmbed()
         .setColor(config.colors.info)
         .setTitle(escaping(info.song.title))
         .setURL(info.song.url)
-        .addField(`${info.song.isLive
-                ? '<Стрим>' 
-                : `${timeFormatmSeconds(info.resource.playbackDuration)}/${timeFormatSeconds(info.song.length)}`}`,
-            `${info.song.isLive
-                ? '\u200B'
-                : `${barString[0]} [${Math.round(barString[1])}%]`}`)
         .setThumbnail(info.song.preview)
         .setTimestamp()
         .setFooter(`Играет композиция от ${info.song.author.username}`, info.song.author.displayAvatarURL());
+        if (getQueue(interaction.guildId).nowPlaying.song.isLive) {
+            embed.setDescription(`<Стрим>
+                \u200B\n`);
+            if (getQueue(interaction.guildId).nowPlaying.song.type === 'radio') {
+                let response = await axios.get('http://anison.fm/status.php?widget=true');
+                let onAir = parseAnisonResponseOnAir(response.data.on_air);
+                embed.setDescription(`Источник: **${escaping(onAir.source)}**
+                    Композиция: **${escaping(onAir.title)}**
+                    Осталось: **${timeFormatSeconds(response.data.duration)}**`)
+            }
+        } else {
+            const barString = progressBar.filledBar(getQueue(interaction.guildId).nowPlaying.song.length * 1000, getQueue(interaction.guildId).nowPlaying.resource.playbackDuration);
+            embed.setDescription(`\`${timeFormatmSeconds(getQueue(interaction.guildId).nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(getQueue(interaction.guildId).nowPlaying.song.length)}\`—_\`${getQueue(interaction.guildId).nowPlaying.song.author.username}\`_
+                ${barString[0]} [${Math.round(barString[1])}%]\n`);
+        }
     const status = await createStatus(getQueue(interaction.guildId));
     await notify('np', interaction, {files: [status], embeds: [embed]});
     logGuild(interaction.guildId, `[np]: Успешно выведана текущая композиция`);
