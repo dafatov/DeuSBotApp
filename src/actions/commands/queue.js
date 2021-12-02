@@ -117,7 +117,8 @@ const queue = async (interaction) => {
         new MessageButton()
             .setCustomId('pause')
             .setLabel(getQueue(interaction.guildId).nowPlaying?.isPause ? 'Возобновить' : 'Приостановить')
-            .setStyle(getQueue(interaction.guildId).nowPlaying?.isPause ? 'SUCCESS' : 'DANGER'),
+            .setStyle(getQueue(interaction.guildId).nowPlaying?.isPause ? 'SUCCESS' : 'DANGER')
+            .setDisabled(getQueue(interaction.guildId).nowPlaying?.song.isLive),
         new MessageButton()
             .setCustomId('skip')
             .setLabel('Пропустить')
@@ -125,7 +126,8 @@ const queue = async (interaction) => {
         new MessageButton()
             .setCustomId('loop')
             .setLabel(getQueue(interaction.guildId).nowPlaying?.isLoop ? 'Отциклить' : 'Зациклить')
-            .setStyle(getQueue(interaction.guildId).nowPlaying?.isLoop ? 'DANGER' : 'SUCCESS'),
+            .setStyle(getQueue(interaction.guildId).nowPlaying?.isLoop ? 'DANGER' : 'SUCCESS')
+            .setDisabled(getQueue(interaction.guildId).nowPlaying?.song.isLive),
     );
 
     const status = await createStatus(getQueue(interaction.guildId));
@@ -186,12 +188,14 @@ const onQueue = async (interaction) => {
         if (b.customId === 'pause') {
             b.setLabel(getQueue(interaction.guildId).nowPlaying?.isPause ? 'Возобновить' : 'Приостановить');
             b.setStyle(getQueue(interaction.guildId).nowPlaying?.isPause ? 'SUCCESS' : 'DANGER');
+            b.setDisabled(getQueue(interaction.guildId).nowPlaying?.song.isLive);
         }
         if (b.customId === 'skip') {
         }
         if (b.customId === 'loop') {
             b.setLabel(getQueue(interaction.guildId).nowPlaying?.isLoop ? 'Отциклить' : 'Зациклить');
             b.setStyle(getQueue(interaction.guildId).nowPlaying?.isLoop ? 'DANGER' : 'SUCCESS');
+            b.setDisabled(getQueue(interaction.guildId).nowPlaying?.song.isLive);
         }
     });
 

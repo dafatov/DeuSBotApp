@@ -65,7 +65,7 @@ module.exports.notify = async (commandName, interaction, content) => {
         }
     } catch (e) {
         error(e);
-        interaction.message.send(content);
+        interaction.message?.send(content);
     }
 }
 

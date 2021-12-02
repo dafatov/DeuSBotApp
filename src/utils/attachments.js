@@ -4,12 +4,13 @@ const { getStatusIcon } = require("./resources");
 const { timeFormatmSeconds } = require("./converter.js");
 const config = require("../configs/config.js");
 const { remained } = require("./calc");
+const { hasLive } = require("../actions/player");
 
 module.exports.createStatus = async (queue) => {
     const canvas = createCanvas(510, 40);
     const context = canvas.getContext("2d");
 
-    let remainedTmp = `-${timeFormatmSeconds(remained(queue))}`;
+    let remainedTmp = `-${hasLive(queue) ? '<Никогда>' : timeFormatmSeconds(remained(queue))}`;
     context.font = '24px sans-serif';
 
     context.fillStyle = '#2F3136';

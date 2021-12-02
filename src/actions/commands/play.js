@@ -176,7 +176,7 @@ module.exports.searchSongs = async (interaction, audios, login) => {
             .setURL(`https://shikimori.one/${login}/list/anime/mylist/completed,watching/order-by/ranked`)
             .setDescription(`Количество композиций: **${audios.length}**
                 Общая длительность: **${timeFormatSeconds(allLength)}**
-                Начнется через: **${hasLive(interaction.guildId) ? '<Никогда>' : remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
+                Начнется через: **${hasLive(getQueue(interaction.guildId)) ? '<Никогда>' : remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
             .setThumbnail('https://i.ibb.co/PGFbnkS/Afk-W8-Fi-E-400x400.png')
             .setTimestamp()
             .setFooter(`Плейлист создал ${interaction.user.username}`, interaction.user.displayAvatarURL());
@@ -195,7 +195,7 @@ const notifySong = async (interaction, info) => {
         .setDescription(`Длительность: **${info.isLive ? 
             '<Стрим>' : timeFormatSeconds(info.length)}**
             Место в очереди: **${getQueue(interaction.guildId).songs.length}**
-            Начнется через: **${hasLive(interaction.guildId) ? '<Никогда>' : remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
+            Начнется через: **${hasLive(getQueue(interaction.guildId)) ? '<Никогда>' : remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
         .setThumbnail(info.preview)
         .setTimestamp()
         .setFooter(`Композицию заказал пользователь ${interaction.user.username}`, interaction.user.displayAvatarURL());
@@ -212,7 +212,7 @@ const notifyPlaylist = async (interaction, info) => {
         .setURL(info.url)
         .setDescription(`Количество композиций: **${info.length}**
             Общая длительность: **${timeFormatSeconds(info.duration)}**
-            Начнется через: **${hasLive(interaction.guildId) ? '<Никогда>' : remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
+            Начнется через: **${hasLive(getQueue(interaction.guildId)) ? '<Никогда>' : remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
         .setThumbnail(info.preview)
         .setTimestamp()
         .setFooter(`Плейлист предложил пользователь ${interaction.user.username}`, interaction.user.displayAvatarURL());

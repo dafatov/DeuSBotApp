@@ -49,8 +49,8 @@ module.exports.clearConnection = (guildId) => {
     delete this.getQueue(guildId).voiceChannel;
 }
 
-module.exports.hasLive = (guildId) => {
-    return (this.getQueue(guildId).nowPlaying?.song?.isLive ?? false) || (this.getQueue(guildId).songs?.filter(s => s.isLive).size ?? 0) > 0;
+module.exports.hasLive = (queue) => {
+    return (queue.nowPlaying?.song?.isLive ?? false) || (queue.songs?.filter(s => s.isLive).size ?? 0) > 0;
 }
 
 module.exports.playPlayer = async (interaction) => {
@@ -126,7 +126,7 @@ const createPlayer = (guildId) => {
                 logGuild(guildId, `[play][Idle]: ${this.getQueue(guildId).songs[0].title}`);
                 this.getQueue(guildId).nowPlaying.song = this.getQueue(guildId).songs[0];
                 play(guildId, false);
-            })
+            });
         }
         this.getQueue(guildId).connection.subscribe(this.getQueue(guildId).player);
     } catch (e) {

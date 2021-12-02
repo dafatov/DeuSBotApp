@@ -22,7 +22,7 @@ module.exports.pause = async (interaction, isExecute) => {
             .setTitle('Так ничего и не играло')
             .setDescription(`Как ты жалок... Зачем приостанавливать, то чего нет? Или у тебя голоса в голове?`)
             .setTimestamp();
-        await notify('pause', interaction, {embeds: [embed]});
+        if (isExecute) await notify('pause', interaction, {embeds: [embed]});
         logGuild(interaction.guildId, `[pause]: Изменить состояние паузы не вышло: плеер не играет`);
         return;
     }
@@ -35,8 +35,19 @@ module.exports.pause = async (interaction, isExecute) => {
             .setTitle('Канал не тот')
             .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
             .setTimestamp();
-        await notify('pause', interaction, {embeds: [embed]});
+        if (isExecute) await notify('pause', interaction, {embeds: [embed]});
         logGuild(interaction.guildId, `[pause]: Изменить состояние паузы не вышло: не совпадают каналы`);
+        return;
+    }
+
+    if (getQueue(interaction.guildId).nowPlaying.song.isLive) {
+        const embed = new MessageEmbed()
+            .setColor(config.colors.warning)
+            .setTitle('Живая музыка')
+            .setDescription(`Ты чо, пес, на горную речку попер? на живой звук с первого?.. Не, чел, это не возможно.. Такое не приостановить...`)
+            .setTimestamp();
+        if (isExecute) await notify('pause', interaction, {embeds: [embed]});
+        logGuild(interaction.guildId, `[pause]: Изменить состояние паузы не вышло: играет стрим`);
         return;
     }
 

@@ -23,7 +23,7 @@ module.exports.loop = async (interaction, isExecute) => {
             .setTitle('Так ничего и не играло')
             .setDescription(`Как ты жалок... Зачем зацикливать, то чего нет? Или у тебя голоса в голове?`)
             .setTimestamp();
-        await notify('loop', interaction, {embeds: [embed]});
+        if (isExecute) await notify('loop', interaction, {embeds: [embed]});
         logGuild(interaction.guildId, `[loop]: Изменить состояние зацикленности не вышло: плеер не играет`);
         return;
     }
@@ -36,8 +36,19 @@ module.exports.loop = async (interaction, isExecute) => {
             .setTitle('Канал не тот')
             .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
             .setTimestamp();
-        await notify('loop', interaction, {embeds: [embed]});
+        if (isExecute) await notify('loop', interaction, {embeds: [embed]});
         logGuild(interaction.guildId, `[loop]: Изменить состояние зацикленности не вышло: не совпадают каналы`);
+        return;
+    }
+
+    if (getQueue(interaction.guildId).nowPlaying.song.isLive) {
+        const embed = new MessageEmbed()
+            .setColor(config.colors.warning)
+            .setTitle('Живая музыка')
+            .setDescription(`Зациклить то, что и так играет 24/7. Ты мой работодатель? Сорян, но не выйдет, а выйдет - уволюсь`)
+            .setTimestamp();
+        if (isExecute) await notify('loop', interaction, {embeds: [embed]});
+        logGuild(interaction.guildId, `[loop]: Изменить состояние зацикленности не вышло: играет стрим`);
         return;
     }
 

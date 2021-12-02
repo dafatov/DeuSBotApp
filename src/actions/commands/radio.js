@@ -60,7 +60,7 @@ const radio = async (interaction) => {
         .setDescription(`Длительность: **${info.isLive ? 
             '<Стрим>' : timeFormatSeconds(info.length)}**
             Место в очереди: **${getQueue(interaction.guildId).songs.length}**
-            Начнется через: **${hasLive(interaction.guildId) ? '<Никогда>' : remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
+            Начнется через: **${hasLive(getQueue(interaction.guildId)) ? '<Никогда>' : remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
         .setThumbnail(info.preview)
         .setTimestamp()
         .setFooter(`Радиостанцию добавил пользователь ${interaction.user.username}`, interaction.user.displayAvatarURL());
