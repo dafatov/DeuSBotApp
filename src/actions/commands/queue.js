@@ -149,9 +149,9 @@ const onQueue = async (interaction) => {
 
     if (interaction.customId === 'next') start += count;
     if (interaction.customId === 'previous') start -= count;
-    if (interaction.customId === 'update') start = Math.min(start, songs.length - 1);
+    if (interaction.customId === 'update') start = Math.min(start, count * Math.floor((songs.length - 1) / count));
     if (interaction.customId === 'first') start = 0;
-    if (interaction.customId === 'last') start = count * Math.floor(songs.length / count);
+    if (interaction.customId === 'last') start = count * Math.floor((songs.length - 1) / count);
 
     if (interaction.customId === 'pause') await pause(interaction);
     if (interaction.customId === 'skip') await skip(interaction);
