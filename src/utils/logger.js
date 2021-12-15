@@ -1,22 +1,20 @@
-const config = require("../configs/config.js")
-
 module.exports.logGuild = (guildId, msg) => {
-    this.log(`[${guildId}]: ${msg}`)
+  this.log(`[${guildId}]: ${msg}`)
 }
 
 module.exports.log = (msg) => {
-    consolePrint('[Log]', msg)
+  consolePrint('[Log]', msg)
 }
 
 module.exports.error = (msg) => {
-    consolePrint('[Err]', msg)
+  consolePrint('[Err]', msg)
 }
 
 const consolePrint = (prefix, msg) => {
-    if (typeof(msg) === 'object') {
-        console.log(`${prefix}:`);
-        console.log(msg);
-    } else {
-        console.log(`${prefix}: ${msg}`);
-    }
+  if (typeof (msg) === 'object') {
+    console.log(`${prefix}:`);
+    console.log(msg);
+  } else {
+    console.log(`${prefix}: ${msg}`);
+  }
 }

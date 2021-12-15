@@ -1,17 +1,16 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
-const { MessageEmbed } = require("discord.js");
+const {SlashCommandBuilder} = require("@discordjs/builders");
+const {MessageEmbed} = require("discord.js");
 const ytdl = require("ytdl-core");
-const { logGuild } = require("../../utils/logger.js");
-const { timeFormatSeconds, timeFormatmSeconds } = require("../../utils/converter.js");
+const {logGuild} = require("../../utils/logger.js");
+const {timeFormatSeconds, timeFormatmSeconds} = require("../../utils/converter.js");
 const ytsr = require("ytsr");
 const ytpl = require("ytpl");
-const { notify, notifyError } = require("../commands.js");
+const {notify, notifyError} = require("../commands.js");
 const config = require("../../configs/config.js");
-const { playPlayer, getQueue, hasLive } = require("../player.js");
-const { escaping } = require("../../utils/string.js");
+const {playPlayer, getQueue, hasLive} = require("../player.js");
+const {escaping} = require("../../utils/string.js");
 const progressBar = require('string-progressbar');
-const { remained } = require("../../utils/calc.js");
-
+const {remained} = require("../../utils/calc.js");
 
 const options = {
     requestOptions: {
@@ -23,12 +22,12 @@ const options = {
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('play')
-        .setDescription('Воспроизвести в боте аудио')
-        .addStringOption(o => o
-            .setName('audio')
-            .setDescription('Url или наименование видео записи с youtube')
-            .setRequired(true)),
+      .setName('play')
+      .setDescription('Воспроизвести в боте аудио')
+      .addStringOption(o => o
+        .setName('audio')
+        .setDescription('Url или наименование видео записи с youtube')
+        .setRequired(true)),
     async execute(interaction) {
         await play(interaction, interaction.options.getString('audio'));
     },
@@ -37,13 +36,13 @@ module.exports = {
 
 const play = async (interaction, audio) => {
     if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
-        && getQueue(interaction.guildId).connection.joinConfig.channelId !==
-            interaction.member.voice.channel.id) {
+      && getQueue(interaction.guildId).connection.joinConfig.channelId !==
+      interaction.member.voice.channel.id) {
         const embed = new MessageEmbed()
-            .setColor(config.colors.warning)
-            .setTitle('Канал не тот')
-            .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
-            .setTimestamp();
+          .setColor(config.colors.warning)
+          .setTitle('Канал не тот')
+          .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
+          .setTimestamp();
         await notify('play', interaction, {embeds: [embed]});
         logGuild(interaction.guildId, `[play]: Добавить композицию не вышло: не совпадают каналы`);
         return;
@@ -55,22 +54,26 @@ const play = async (interaction, audio) => {
                 await playPlaylist(interaction, p);
                 await playPlayer(interaction);
             }).catch(async e => {
-                notifyError('play', e, interaction);
-                return;
+                await notifyError('play', e, interaction);
+
             });
         }).catch(() => {
             if (ytdl.validateURL(audio)) {
                 ytdl.getBasicInfo(audio, options).then(async i => {
                     await notifySong(interaction, addQueue(interaction, i));
                     await playPlayer(interaction);
-                }).catch(err => {throw err})
+                }).catch(err => {
+                    throw err
+                })
             } else {
                 ytsr(audio, {
                     gl: 'RU',
                     hl: 'ru',
                     limit: 10
                 }, options).then(async r => {
-                    if (r.items.length === 0) throw "Ничего не найдено";
+                    if (r.items.length === 0) {
+                        throw "Ничего не найдено";
+                    }
                     let w = 0;
                     while (w < 10) {
                         await ytdl.getBasicInfo(r.items[w].url, options).then(async i => {
@@ -81,12 +84,14 @@ const play = async (interaction, audio) => {
                             w++;
                         })
                     }
-                }).catch(err => {throw err})
+                }).catch(err => {
+                    throw err
+                })
             }
         });
     } catch (e) {
-        notifyError('play', e, interaction);
-        return;
+        await notifyError('play', e, interaction);
+
     }
 }
 
@@ -135,9 +140,9 @@ module.exports.searchSongs = async (interaction, audios, login) => {
     let i = 0;
     let barString = progressBar.filledBar(audios.length, i);
     const embed = new MessageEmbed()
-        .setColor(config.colors.info)
-        .setTitle('Прогресс формирования')
-        .setDescription(`${barString[0]} [${Math.round(barString[1])}%]`);
+      .setColor(config.colors.info)
+      .setTitle('Прогресс формирования')
+      .setDescription(`${barString[0]} [${Math.round(barString[1])}%]`);
     let intervalId = setInterval(async () => {
         barString = progressBar.filledBar(audios.length, i);
         embed.setDescription(`${barString[0]} [${Math.round(barString[1])}%]`);
@@ -155,7 +160,9 @@ module.exports.searchSongs = async (interaction, audios, login) => {
         hl: 'ru',
         limit: 10
     }, options).then(async r => {
-        if (r.items.length === 0) throw "Ничего не найдено";
+        if (r.items.length === 0) {
+            throw "Ничего не найдено";
+        }
 
         let w = 0;
         while (w < 10) {
@@ -169,17 +176,18 @@ module.exports.searchSongs = async (interaction, audios, login) => {
         i++;
     }))).then(async () => {
         clearInterval(intervalId);
-        
+
         const remainedValue = remained(getQueue(interaction.guildId));
         getQueue(interaction.guildId).remained = (getQueue(interaction.guildId).remained ?? 0) + allLength;
         embed.setTitle(escaping(`Композиции профиля ${login}`))
-            .setURL(`https://shikimori.one/${login}/list/anime/mylist/completed,watching/order-by/ranked`)
-            .setDescription(`Количество композиций: **${audios.length}**
+          .setURL(`https://shikimori.one/${login}/list/anime/mylist/completed,watching/order-by/ranked`)
+          .setDescription(`Количество композиций: **${audios.length}**
                 Общая длительность: **${timeFormatSeconds(allLength)}**
-                Начнется через: **${hasLive(getQueue(interaction.guildId)) ? '<Никогда>' : remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
-            .setThumbnail('https://i.ibb.co/PGFbnkS/Afk-W8-Fi-E-400x400.png')
-            .setTimestamp()
-            .setFooter(`Плейлист создал ${interaction.user.username}`, interaction.user.displayAvatarURL());
+                Начнется через: **${hasLive(getQueue(interaction.guildId)) ? '<Никогда>' :
+            remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
+          .setThumbnail('https://i.ibb.co/PGFbnkS/Afk-W8-Fi-E-400x400.png')
+          .setTimestamp()
+          .setFooter(`Плейлист создал ${interaction.user.username}`, interaction.user.displayAvatarURL());
         await interaction.editReply({embeds: [embed]});
         await playPlayer(interaction);
     })
@@ -189,16 +197,16 @@ const notifySong = async (interaction, info) => {
     const remainedValue = remained(getQueue(interaction.guildId));
     getQueue(interaction.guildId).remained = (getQueue(interaction.guildId).remained ?? 0) + parseInt(info.length);
     const embed = new MessageEmbed()
-        .setColor(config.colors.info)
-        .setTitle(escaping(info.title))
-        .setURL(info.url)
-        .setDescription(`Длительность: **${info.isLive ? 
-            '<Стрим>' : timeFormatSeconds(info.length)}**
+      .setColor(config.colors.info)
+      .setTitle(escaping(info.title))
+      .setURL(info.url)
+      .setDescription(`Длительность: **${info.isLive ?
+        '<Стрим>' : timeFormatSeconds(info.length)}**
             Место в очереди: **${getQueue(interaction.guildId).songs.length}**
             Начнется через: **${hasLive(getQueue(interaction.guildId)) ? '<Никогда>' : remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
-        .setThumbnail(info.preview)
-        .setTimestamp()
-        .setFooter(`Композицию заказал пользователь ${interaction.user.username}`, interaction.user.displayAvatarURL());
+      .setThumbnail(info.preview)
+      .setTimestamp()
+      .setFooter(`Композицию заказал пользователь ${interaction.user.username}`, interaction.user.displayAvatarURL());
     await notify('play', interaction, {embeds: [embed]});
     logGuild(interaction.guildId, `[play][add]: Композиция успешно добавлена в очередь`);
 }
@@ -207,15 +215,15 @@ const notifyPlaylist = async (interaction, info) => {
     const remainedValue = remained(getQueue(interaction.guildId));
     getQueue(interaction.guildId).remained = (getQueue(interaction.guildId).remained ?? 0) + parseInt(info.duration);
     const embed = new MessageEmbed()
-        .setColor(config.colors.info)
-        .setTitle(escaping(info.title))
-        .setURL(info.url)
-        .setDescription(`Количество композиций: **${info.length}**
+      .setColor(config.colors.info)
+      .setTitle(escaping(info.title))
+      .setURL(info.url)
+      .setDescription(`Количество композиций: **${info.length}**
             Общая длительность: **${timeFormatSeconds(info.duration)}**
             Начнется через: **${hasLive(getQueue(interaction.guildId)) ? '<Никогда>' : remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
-        .setThumbnail(info.preview)
-        .setTimestamp()
-        .setFooter(`Плейлист предложил пользователь ${interaction.user.username}`, interaction.user.displayAvatarURL());
+      .setThumbnail(info.preview)
+      .setTimestamp()
+      .setFooter(`Плейлист предложил пользователь ${interaction.user.username}`, interaction.user.displayAvatarURL());
     await notify('play', interaction, {embeds: [embed]});
     logGuild(interaction.guildId, `[play][add]: Плейлист успешно добавлен в очередь`);
 }
