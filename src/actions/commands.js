@@ -8,7 +8,7 @@ const { MessageEmbed } = require('discord.js');
 const db = require("../repositories/users.js");
 
 module.exports.init = async (client) => {
-    const rest = new REST({ version: '9' }).setToken(config.token);
+    const rest = new REST({ version: '9' }).setToken(config.discordToken);
     client.commands = new Collection();
 
     fs.readdirSync('./src/actions/commands')
@@ -72,7 +72,7 @@ module.exports.notify = async (commandName, interaction, content) => {
 module.exports.notifyError = async (commandName, e, interaction) => {
     const embed = new MessageEmbed()
         .setColor(config.colors.error)
-        .setTitle('Ошибка')
+        .setTitle('Ошибка. Используйте команду /issue, чтобы сообщить о ней')
         .setTimestamp()
         .setDescription(`${e}`);
     await module.exports.notify(`${commandName}`, interaction, {embeds: [embed]});

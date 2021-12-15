@@ -1,18 +1,23 @@
-// const configLocal = require('./config.local.js')
+//const configLocal = require('./config.local.js')
 
-module.exports =
-{
-    // "token" : configLocal.token,
+module.exports = {
+    // "discordToken": configLocal.discordToken,
     // "cookie": configLocal.cookie,
     // "database": configLocal.database,
     // "randomOrgToken": configLocal.randomOrgToken,
-    // "version" : "<debug>",
+    // "githubToken": configLocal.githubToken,
+    // "githubLogin": configLocal.githubLogin,
+    // "githubRepository": configLocal.githubRepository,
+    // "version": "<debug>",
 
-    "token" : process.env.token,
+    "token": process.env.token,
     "cookie": process.env.cookie,
     "database": process.env.DATABASE_URL,
     "randomOrgToken": process.env.randomOrgToken,
-    "version" : process.env.HEROKU_RELEASE_VERSION,
+    "githubToken": process.env.githubToken,
+    "githubLogin": process.env.githubLogin,
+    "githubRepository": process.env.githubRepository,
+    "version": process.env.HEROKU_RELEASE_VERSION,
 
     "colors": {
         "info": "#FFFF50",

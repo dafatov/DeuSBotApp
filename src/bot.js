@@ -22,7 +22,7 @@ client.once('ready', async () => {
     await commands.init(client);
     await listeners.init(client);
     player.init(client);
-    
+
 	log('Бот запущен');
 });
 
@@ -53,4 +53,4 @@ client.on('voiceStateUpdate', async (_oldState, newState) => {
     }
 });
 
-client.login(config.token);
+client.login(config.discordToken);
