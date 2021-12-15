@@ -10,7 +10,7 @@ module.exports = {
     // "githubRepository": configLocal.githubRepository,
     // "version": "<debug>",
 
-    "token": process.env.token,
+    "discordToken": process.env.discordToken,
     "cookie": process.env.cookie,
     "database": process.env.DATABASE_URL,
     "randomOrgToken": process.env.randomOrgToken,
