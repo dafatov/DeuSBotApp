@@ -8,7 +8,7 @@ module.exports = {
   // "githubToken": configLocal.githubToken,
   // "githubLogin": configLocal.githubLogin,
   // "githubRepository": configLocal.githubRepository,
-  // "version": "<debug>",
+  // "version": 0,
 
   "discordToken": process.env.discordToken,
   "cookie": process.env.cookie,

@@ -3,7 +3,7 @@ const {
   AudioPlayerStatus, NoSubscriberBehavior
 } = require("@discordjs/voice");
 const ytdl = require('ytdl-core');
-const {timeFormatSeconds, timeFormatmSeconds} = require("../utils/converter.js");
+const {timeFormatSeconds, timeFormatmSeconds} = require("../utils/dateTime.js");
 const {log, error, logGuild} = require('../utils/logger.js');
 const {join} = require('./commands/join.js');
 const config = require("../configs/config.js");

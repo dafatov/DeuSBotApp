@@ -6,7 +6,7 @@ const config = require("../../configs/config.js");
 const radios = require("../../configs/radios.js");
 const {getQueue, playPlayer, hasLive} = require("../player");
 const {escaping} = require("../../utils/string");
-const {timeFormatSeconds, timeFormatmSeconds} = require("../../utils/converter");
+const {timeFormatSeconds, timeFormatmSeconds} = require("../../utils/dateTime");
 const {remained} = require("../../utils/calc");
 
 module.exports = {

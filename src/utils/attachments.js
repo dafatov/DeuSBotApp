@@ -1,7 +1,7 @@
 const {createCanvas, loadImage} = require("canvas");
 const {MessageAttachment} = require("discord.js");
 const {getStatusIcon} = require("./resources");
-const {timeFormatmSeconds} = require("./converter.js");
+const {timeFormatmSeconds} = require("./dateTime.js");
 const config = require("../configs/config.js");
 const {remained} = require("./calc");
 const {hasLive} = require("../actions/player");

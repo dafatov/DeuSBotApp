@@ -1,7 +1,7 @@
 const {SlashCommandBuilder} = require("@discordjs/builders");
 const {MessageEmbed, MessageActionRow, MessageButton} = require("discord.js");
 const {logGuild} = require("../../utils/logger");
-const {timeFormatSeconds, timeFormatmSeconds} = require("../../utils/converter.js");
+const {timeFormatSeconds, timeFormatmSeconds} = require("../../utils/dateTime.js");
 const {notify, notifyError} = require("../commands");
 const config = require("../../configs/config.js");
 const progressBar = require('string-progressbar');

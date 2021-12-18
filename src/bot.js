@@ -3,6 +3,8 @@ const responses = require("./actions/responses.js");
 const commands = require("./actions/commands.js");
 const listeners = require("./actions/listeners.js");
 const player = require("./actions/player.js");
+const changelog = require("./actions/changelog.js");
+const publicist = require("./actions/publicist.js");
 const config = require("./configs/config.js");
 const {log, logGuild} = require('./utils/logger.js');
 const db = require("./db.js");
@@ -12,7 +14,8 @@ const client = new Client({
   intents: [
     Intents.FLAGS.GUILDS,
     Intents.FLAGS.GUILD_MESSAGES,
-    Intents.FLAGS.GUILD_VOICE_STATES
+    Intents.FLAGS.GUILD_VOICE_STATES,
+    Intents.FLAGS.GUILD_MEMBERS
   ]
 });
 
@@ -24,6 +27,8 @@ client.once('ready', async () => {
   await commands.init(client);
   await listeners.init(client);
   player.init(client);
+  await changelog.init();
+  await publicist.init(client);
 
   log('Бот запущен');
 });
