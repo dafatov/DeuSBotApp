@@ -59,6 +59,7 @@ const set = async (interaction) => {
 
   const tmpDate = new Date(year, month - 1, day);
   const tmpDateStr = `${`${day}`.padStart(2, '0')}.${`${month}`.padStart(2, '0')}.${year}`;
+  logGuild(interaction.guildId, `[birthday.set]: tmpDate=${tmpDate}, tmpDateStr=${tmpDateStr}`);
   if (year < 1900 || tmpDate >= new Date() || tmpDate.toLocaleDateString() !== tmpDateStr) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)

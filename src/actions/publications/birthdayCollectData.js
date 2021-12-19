@@ -16,7 +16,7 @@ module.exports = {
         //Без await не работает, так как функция в которой все происходит async
         ...(await object),
         [(await guild.fetch()).id]: {
-          content: users.map(user => `<@${user.id}>`).join(', '),
+          content: users.map(user => `<@${user.id}>`).join(''),
           embeds: [
             new MessageEmbed()
               .setColor(config.colors.info)
@@ -34,7 +34,7 @@ module.exports = {
     }, {})))
   },
   async condition(now) {
-    return now.getHours() % 2 === 0 && now.getMinutes() === 0;
+    return now.getHours() % 6 === 0 && now.getMinutes() === 0;
   },
   async onPublished() {}
 }
