@@ -60,7 +60,7 @@ const set = async (interaction) => {
   const tmpDate = new Date(year, month - 1, day);
   const tmpDateStr = `${`${day}`.padStart(2, '0')}.${`${month}`.padStart(2, '0')}.${year}`;
   logGuild(interaction.guildId, `[birthday.set]: tmpDate=${tmpDate}, tmpDateStr=${tmpDateStr}`);
-  if (year < 1900 || tmpDate >= new Date() || tmpDate.toLocaleDateString() !== tmpDateStr) {
+  if (year < 1900 || tmpDate >= new Date() || tmpDate.toLocaleDateString('ru-RU') !== tmpDateStr) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
       .setTitle('Некорректная дата рождения. Попробуй еще разочек~')
@@ -79,7 +79,7 @@ const set = async (interaction) => {
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
       .setTitle('Жди поздравлений...')
-      .setDescription(`К качестве даты дня рождения устновлен: **${tmpDate.toLocaleDateString()}**`)
+      .setDescription(`К качестве даты дня рождения устновлен: **${tmpDate.toLocaleDateString('ru-RU')}**`)
       .setTimestamp()
     await notify('birthday', interaction, {embeds: [embed]});
     logGuild(interaction.guildId, `[birthday]: Дата дня рождения успешно установлена`);
