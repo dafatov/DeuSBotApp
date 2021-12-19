@@ -1,7 +1,4 @@
 // const configLocal = require('./config.local.js')
-const {parseStr} = require("../utils/dateTime");
-
-// const {parseStr} = require("../utils/dateTime");
 
 module.exports = {
   // "discordToken": configLocal.discordToken,
@@ -11,7 +8,7 @@ module.exports = {
   // "githubToken": configLocal.githubToken,
   // "githubLogin": configLocal.githubLogin,
   // "githubRepository": configLocal.githubRepository,
-  // "version": parseStr('v1'.substring(1)),
+  // "version": parseInt('v0'.substring(1)),
 
   "discordToken": process.env.discordToken,
   "cookie": process.env.cookie,
@@ -20,7 +17,7 @@ module.exports = {
   "githubToken": process.env.githubToken,
   "githubLogin": process.env.githubLogin,
   "githubRepository": process.env.githubRepository,
-  "version": parseStr(process.env.HEROKU_RELEASE_VERSION.substring(1)),
+  "version": parseInt(process.env.HEROKU_RELEASE_VERSION.substring(1)),
 
   "colors": {
     "info": "#FFFF50",
