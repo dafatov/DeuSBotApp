@@ -35,8 +35,16 @@ const publish = async (name, content) => {
   const news_channels = await getAll();
 
   news_channels.forEach(pair => {
-    client.guilds.cache.get(pair.guildId).channels.cache.get(pair.channelId).send(content[pair.guildId] ?? content.default);
+    const sendingContent = content[pair.guildId] ?? content.default;
+
+    if (sendingContent) {
+      client.guilds.cache.get(pair.guildId).channels.cache.get(pair.channelId).send(sendingContent);
+    }
   });
-  log(`Успешно опубликована новость \"${name}\" для для гильдий: [${news_channels.map(g =>
-    client.guilds.cache.get(g.guildId).name).sort().join(', ')}]`)
+  const guilds = news_channels.map(g => client.guilds.cache.get(g.guildId).name)
+    .filter(g => content[g.id] ?? content.default)
+    .sort();
+  if (guilds.length > 0) {
+    log(`Успешно опубликована новость \"${name}\" для для гильдий: [${guilds.join(', ')}]`)
+  }
 }

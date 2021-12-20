@@ -13,7 +13,7 @@ module.exports = {
         .filter(u => !u.bot);
 
       if (users.length <= 0) {
-        return;
+        return {...(await object)};
       }
 
       return {
