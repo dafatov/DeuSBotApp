@@ -27,7 +27,7 @@ module.exports = {
   async condition(_now) {
     return !((await db.getLast())?.shown ?? true);
   },
-  async onPublished() {
+  async onPublished(_variables) {
     await db.shown((await db.getLast()).version);
   }
 }

@@ -12,6 +12,10 @@ module.exports = {
         .filter(u => !allUserIds.includes(u.id))
         .filter(u => !u.bot);
 
+      if (users.length <= 0) {
+        return;
+      }
+
       return {
         //Без await не работает, так как функция в которой все происходит async
         ...(await object),
@@ -36,5 +40,5 @@ module.exports = {
   async condition(now) {
     return now.getHours() % 6 === 0 && now.getMinutes() === 0;
   },
-  async onPublished() {}
+  async onPublished(_variables) {}
 }
