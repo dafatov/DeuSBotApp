@@ -38,7 +38,7 @@ module.exports = {
   async condition(_now) {
     return true;
   },
-  async onPublished(variables) {
+  async onPublished(_messages, variables) {
     if (variables?.lastFreebie) {
       await variablesDb.set('lastFreebie', variables.lastFreebie);
     }

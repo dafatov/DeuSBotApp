@@ -1,6 +1,7 @@
 const {getAll} = require("../repositories/publicist");
 const {log} = require("../utils/logger.js");
 const fs = require('fs');
+const {error} = require("../utils/logger");
 
 let client;
 
@@ -17,34 +18,36 @@ module.exports.init = async (c) => {
           if (await publication.condition(new Date())) {
             const content = await publication.content(client);
 
-            await publish(f.split('.')[0], content)
-              .then(() => publication.onPublished(content?.variables));
+            if (content) {
+              await publish(content).then(messages => {
+                publication.onPublished(messages, content?.variables);
+                return messages;
+              }).then(async messages => {
+                log(`Успешно опубликована новость \"${f.split('.')[0]}\" для для гильдий: [${
+                  await Promise.all(messages.map(m => client.guilds.fetch()
+                    .then(guilds => guilds.get(m.guildId).fetch())
+                  )).then(gs => gs.map(g => g.name).sort().join(', '))
+                }]`);
+              });
+            }
           }
           setTimeout(loop, 60000 - (new Date() % 60000));
         })();
       })
-  )
-  log('Успешно зарегестрирован публицист');
+  ).then(() => log('Успешно зарегестрирован публицист'))
 }
 
-const publish = async (name, content) => {
-  if (!content) {
-    return;
-  }
-  // const news_channels = [{guildId: '905052154027475004', channelId: '921119789286576188'}]
-  const news_channels = await getAll();
+const publish = async (content) => {
+  // const newsChannels = [{guildId: '905052154027475004', channelId: '911212955905966120'}];
+  const newsChannels = await getAll();
 
-  news_channels.forEach(pair => {
-    const sendingContent = content[pair.guildId] ?? content.default;
-
-    if (sendingContent) {
-      client.guilds.cache.get(pair.guildId).channels.cache.get(pair.channelId).send(sendingContent);
-    }
-  });
-  const guilds = news_channels.map(g => client.guilds.cache.get(g.guildId).name)
-    .filter(g => content[g.id] ?? content.default)
-    .sort();
-  if (guilds.length > 0) {
-    log(`Успешно опубликована новость \"${name}\" для для гильдий: [${guilds.join(', ')}]`)
-  }
+  return Promise.all(newsChannels
+    .filter(pair => content[pair.guildId] ?? content.default)
+    .map(async pair => client.guilds.fetch()
+      .then(guilds => guilds.get(pair.guildId).fetch())
+      .then(guild => guild.channels.fetch())
+      .then(channels => channels.get(pair.channelId))
+      .then(channel => channel.send(content[pair.guildId] ?? content.default))
+      .catch(e => error(e))
+    ));
 }

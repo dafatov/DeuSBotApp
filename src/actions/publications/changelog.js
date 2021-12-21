@@ -27,7 +27,10 @@ module.exports = {
   async condition(_now) {
     return !((await db.getLast())?.shown ?? true);
   },
-  async onPublished(_variables) {
+  async onPublished(messages, _variables) {
+    await Promise.all(messages.map(m =>
+      m.react('👍').then(() => m.react('👎'))
+    ));
     await db.shown((await db.getLast()).version);
   }
 }

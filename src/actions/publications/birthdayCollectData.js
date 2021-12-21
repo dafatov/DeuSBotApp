@@ -1,6 +1,7 @@
 const db = require("../../repositories/birthday");
 const {MessageEmbed} = require("discord.js");
 const config = require("../../configs/config");
+const {log, error} = require("../../utils/logger");
 
 module.exports = {
   async content(client) {
@@ -40,5 +41,14 @@ module.exports = {
   async condition(now) {
     return now.getHours() % 6 === 0 && now.getMinutes() === 0;
   },
-  async onPublished(_variables) {}
+  async onPublished(messages, _variables) {
+    try {
+      setTimeout(async () => {
+        await Promise.all(messages.map(m => m.delete()))
+          .then(() => log('Успешно удалены публикации уведомления о днях рождений'));
+      }, 900000);
+    } catch (e) {
+      error(e);
+    }
+  }
 }

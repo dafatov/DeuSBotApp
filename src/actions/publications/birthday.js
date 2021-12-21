@@ -44,5 +44,5 @@ module.exports = {
   async condition(now) {
     return dateTime(now, 0, 0).getTime() === now.getTime();
   },
-  async onPublished(_variables) {}
+  async onPublished(_messages, _variables) {}
 }
