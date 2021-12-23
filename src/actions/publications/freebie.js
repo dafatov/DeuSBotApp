@@ -2,6 +2,7 @@ const {MessageEmbed} = require("discord.js");
 const config = require("../../configs/config");
 const Parser = require("rss-parser");
 const variablesDb = require("../../repositories/variables");
+const {log, error} = require("../../utils/logger");
 
 const RSS_URL = 'https://freesteam.ru/feed/';
 
@@ -12,7 +13,7 @@ module.exports = {
     const freebies = rss.items
       .filter(f => new Date(f.isoDate).getTime() > (new Date(lastFreebie ?? 0)))
       .sort((a, b) => new Date(a.isoDate).getTime() < new Date(b.isoDate).getTime() ? -1 : 1)
-      .slice(-5);
+      .slice(0, 10);
 
     if (freebies.length <= 0) {
       return;
@@ -35,13 +36,19 @@ module.exports = {
       }
     }
   },
-  async condition(_now) {
-    return true;
+  async condition(now) {
+    return now.getMinutes() % 5 === 0;
   },
-  async onPublished(_messages, variables) {
+  async onPublished(messages, variables) {
     if (variables?.lastFreebie) {
       await variablesDb.set('lastFreebie', variables.lastFreebie);
     }
+    Promise.all(messages.map(message => {
+      if (message.channel.type === 'GUILD_NEWS') {
+        return message.crosspost()
+      }
+    })).then(() => log("Успешно разослана публикация \"freebie\" на подписанные каналы"))
+      .catch((e) => error(e))
   }
 }
 

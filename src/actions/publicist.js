@@ -23,11 +23,12 @@ module.exports.init = async (c) => {
                 publication.onPublished(messages, content?.variables);
                 return messages;
               }).then(async messages => {
-                log(`Успешно опубликована новость \"${f.split('.')[0]}\" для для гильдий: [${
-                  await Promise.all(messages.map(m => client.guilds.fetch()
-                    .then(guilds => guilds.get(m.guildId).fetch())
-                  )).then(gs => gs.map(g => g.name).sort().join(', '))
-                }]`);
+                const guilds = await Promise.all(messages.map(m => m.guild))
+                if (guilds.length > 0) {
+                  log(`Успешно опубликована новость \"${f.split('.')[0]}\" для для гильдий: [${
+                    guilds.map(g => g.name).sort().join(', ')
+                  }]`);
+                }
               });
             }
           }
@@ -38,7 +39,7 @@ module.exports.init = async (c) => {
 }
 
 const publish = async (content) => {
-  // const newsChannels = [{guildId: '905052154027475004', channelId: '911212955905966120'}];
+  // const newsChannels = [{guildId: '905052154027475004', channelId: '923515576234696755'}];
   const newsChannels = await getAll();
 
   return Promise.all(newsChannels

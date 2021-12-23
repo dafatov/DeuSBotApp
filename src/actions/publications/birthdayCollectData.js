@@ -7,19 +7,19 @@ module.exports = {
   async content(client) {
     const allUserIds = await db.getAllUserIds();
 
-    return (await ((await client.guilds.fetch()).reduce(async (object, guild) => {
+    return (await ((await client.guilds.fetch()).reduce(async (accumulator, guild) => {
       const users = (await (await guild.fetch()).members.fetch())
         .map(m => m.user)
         .filter(u => !allUserIds.includes(u.id))
         .filter(u => !u.bot);
 
       if (users.length <= 0) {
-        return {...(await object)};
+        return accumulator;
       }
 
       return {
         //Без await не работает, так как функция в которой все происходит async
-        ...(await object),
+        ...(await accumulator),
         [(await guild.fetch()).id]: {
           content: users.map(user => `<@${user.id}>`).join(''),
           embeds: [
