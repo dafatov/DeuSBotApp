@@ -4,7 +4,7 @@ const {MessageEmbed} = require("discord.js");
 const config = require("../../configs/config");
 const {notify, notifyError} = require("../commands");
 const {logGuild} = require("../../utils/logger");
-const {parseStr} = require("../../utils/dateTime");
+const {createCalendar} = require("../../utils/attachments");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -30,7 +30,25 @@ module.exports = {
       .setDescription('Удаление даты рождения'))
     .addSubcommand(s => s
       .setName('show')
-      .setDescription('Отображение текущей даты рождения'))
+      .setDescription('Отображение текущей даты рождения')
+      .addStringOption(s => s
+        .setName('month')
+        .setDescription('Месяц')
+        .setRequired(false)
+        .addChoices([
+          ['Январь', '0'],
+          ['Февраль', '1'],
+          ['Март', '2'],
+          ['Апрель', '3'],
+          ['Май', '4'],
+          ['Июнь', '5'],
+          ['Июль', '6'],
+          ['Август', '7'],
+          ['Сентябрь', '8'],
+          ['Октябрь', '9'],
+          ['Ноябрь', '10'],
+          ['Декабрь', '11'],
+        ])))
     .addSubcommand(s => s
       .setName('ignore')
       .setDescription('Переключить выводв уведомлений напоминающих о регистрации')),
@@ -104,15 +122,24 @@ const remove = async (interaction) => {
 }
 
 const show = async (interaction) => {
+  const monthDate = new Date();
+  const month = parseInt(interaction.options.getString('month') ?? monthDate.getMonth());
+  const year = month < monthDate.getMonth() ? monthDate.getFullYear() + 1 : monthDate.getFullYear();
+
+  monthDate.setDate(1);
+  monthDate.setFullYear(year);
+  monthDate.setMonth(month);
+
+  const birthdays = (await db.getAll())
+    .filter(b => !b.ignored)
+    .filter(b => new Date(b.date).getMonth() === monthDate.getMonth());
+
+  monthDate.setDate(monthDate.getDate() - (monthDate.getDay() === 0 ? 7 : monthDate.getDay()) + 1);
+  await interaction.deferReply();
+  const calendar = await createCalendar(interaction.guild, birthdays, monthDate, {month, year});
   try {
-    const current = (await db.get(interaction.user.id))[0];
-    const embed = new MessageEmbed()
-      .setColor(config.colors.info)
-      .setTitle(`Для пользователя ${interaction.user.username}...`)
-      .setDescription(`...установлена дата дня рождения на **${parseStr(current?.date) ?? '...ничего. Не установлена короче'}**`)
-      .setTimestamp()
-    await notify('birthday', interaction, {embeds: [embed]});
-    logGuild(interaction.guildId, `[birthday]: Дата дня рождения успешно выведена`);
+    await interaction.editReply({files: [calendar]});
+    logGuild(interaction.guildId, `[birthday]: Календарь дней рождений успешно выведен`);
   } catch (e) {
     await notifyError('birthday', e, interaction)
   }

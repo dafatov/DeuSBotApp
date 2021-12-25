@@ -1,6 +1,6 @@
 const {db} = require("../db");
 let todayBirthdays;
-let allUserIds
+let birthdays;
 
 module.exports.getTodayBirthdays = async () => {
   if (!todayBirthdays) {
@@ -13,14 +13,13 @@ module.exports.getTodayBirthdays = async () => {
   return todayBirthdays;
 }
 
-module.exports.getAllUserIds = async () => {
-  if (!allUserIds) {
-    const response = await db.query(`SELECT user_id
-                                     FROM BIRTHDAY
-                                     WHERE date IS NOT NULL OR ignored = true`);
-    allUserIds = response.rows.map(r => r.user_id) || [];
+module.exports.getAll = async () => {
+  if (!birthdays) {
+    const response = await db.query(`SELECT *
+                                     FROM BIRTHDAY`);
+    birthdays = response.rows || [];
   }
-  return allUserIds;
+  return birthdays;
 }
 
 module.exports.get = async (userId) => {
@@ -39,6 +38,6 @@ module.exports.set = async (userId, date, ignored = false) => {
 
 module.exports.delete = async (userId) => {
   todayBirthdays = null;
-  allUserIds = null;
+  birthdays = null;
   await db.query('DELETE FROM BIRTHDAY WHERE user_id=$1', [userId]);
 }

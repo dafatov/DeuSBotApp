@@ -5,7 +5,9 @@ const {log, error} = require("../../utils/logger");
 
 module.exports = {
   async content(client) {
-    const allUserIds = await db.getAllUserIds();
+    const allUserIds = (await db.getAll())
+      .filter(b => b.date || b.ignored)
+      .map(b => b.user_id);
 
     return (await ((await client.guilds.fetch()).reduce(async (accumulator, guild) => {
       const users = (await (await guild.fetch()).members.fetch())
