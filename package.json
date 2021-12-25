@@ -1,6 +1,6 @@
 {
   "name": "ru.demetrious.discord-bot.deus",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A bot for discord by DemetriouS",
   "main": "src/bot.js",
   "type": "commonjs",
@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@discordjs/builders": "^0.8.2",
-    "@discordjs/rest": "0.1.0-canary.0",
+    "@discordjs/rest": "^0.1.0-canary.0",
     "@discordjs/voice": "^0.7.2",
     "@octokit/core": "^3.5.1",
     "axios": "^0.24.0",
