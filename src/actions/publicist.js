@@ -14,8 +14,8 @@ module.exports.init = async (c) => {
       .filter(f => f.endsWith('js'))
       .map(f => {
         const publication = require(`./publications/${f}`);
-        return (async function loop() {
-          if (await publication.condition(new Date())) {
+        return (async function loop(dateTime) {
+          if (await publication.condition(dateTime)) {
             const content = await publication.content(client);
 
             if (content) {
@@ -32,8 +32,9 @@ module.exports.init = async (c) => {
               });
             }
           }
-          setTimeout(loop, 60000 - (new Date() % 60000));
-        })();
+          dateTime.setMinutes(dateTime.getMinutes() + 1);
+          setTimeout(loop, 60000 - (new Date() % 60000), dateTime);
+        })(new Date());
       })
   ).then(() => log('Успешно зарегестрирован публицист'))
 }
