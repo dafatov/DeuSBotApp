@@ -3,21 +3,36 @@ const {MessageEmbed} = require("discord.js");
 const {logGuild} = require("../../utils/logger");
 const {notify} = require("../commands");
 const config = require("../../configs/config.js");
-const radios = require("../../configs/radios.js");
 const {getQueue, playPlayer, hasLive} = require("../player");
 const {escaping} = require("../../utils/string");
 const {timeFormatSeconds, timeFormatmSeconds} = require("../../utils/dateTime");
 const {remained} = require("../../utils/calc");
+const {getRadios} = require("../radios");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('radio')
     .setDescription('Запустить проигрывание радио')
-    .addStringOption(s => s
-      .setName('station')
-      .setDescription('Радиостанция')
-      .setRequired(true)
-      .addChoices([...radios.keys()].map(k => [k, k]))),
+    .addSubcommandGroup(g => {
+      const radios = getRadios();
+      let localG = g;
+
+      for (let i = 0; i < Math.ceil(radios.size / 25); i++) {
+        const choices = [...radios.keys()].sort().map(k => [k.toString(), k.toString()]).splice(25 * i, 25);
+
+        localG = localG.addSubcommand(s => s
+          .setName((i + 1).toString())
+          .setDescription(`Страница ${choices[0][0][0]}-${choices[choices.length - 1][0][0]}`)
+          .addStringOption(s => s
+            .setName('station')
+            .setDescription('Радиостанция')
+            .setRequired(true)
+            .addChoices(choices)))
+      }
+      g.setName('page');
+      g.setDescription('Номер страницы');
+      return localG;
+    }),
   async execute(interaction) {
     await radio(interaction);
   },
@@ -39,14 +54,14 @@ const radio = async (interaction) => {
   }
 
   const stationKey = interaction.options.getString('station');
-  const station = radios.get(stationKey);
+  const station = getRadios().get(stationKey);
   let info = {
     type: 'radio',
     title: stationKey,
     length: 0,
-    url: station.url,
+    url: station.channel.url,
     isLive: true,
-    preview: station.preview,
+    preview: station.channel.preview,
     author: interaction.user
   };
   getQueue(interaction.guildId).songs.push(info);

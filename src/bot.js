@@ -5,6 +5,7 @@ const listeners = require("./actions/listeners.js");
 const player = require("./actions/player.js");
 const changelog = require("./actions/changelog.js");
 const publicist = require("./actions/publicist.js");
+const radios = require("./actions/radios.js");
 const config = require("./configs/config.js");
 const {log, logGuild} = require('./utils/logger.js');
 const db = require("./db.js");
@@ -24,6 +25,7 @@ client.once('ready', async () => {
 
   await db.init();
   await responses.init(client);
+  await radios.init();
   await commands.init(client);
   await listeners.init(client);
   player.init(client);

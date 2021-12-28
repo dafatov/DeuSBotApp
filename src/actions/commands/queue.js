@@ -5,13 +5,13 @@ const {timeFormatSeconds, timeFormatmSeconds} = require("../../utils/dateTime.js
 const {notify, notifyError} = require("../commands");
 const config = require("../../configs/config.js");
 const progressBar = require('string-progressbar');
-const {escaping, parseAnisonResponseOnAir} = require("../../utils/string.js");
+const {escaping} = require("../../utils/string.js");
 const {createStatus} = require("../../utils/attachments");
 const {pause} = require("./pause");
 const {skip} = require("./skip");
 const {loop} = require("./loop");
 const {getQueue} = require("../player");
-const axios = require('axios').default;
+const {getRadios} = require("../radios");
 
 let {start, count} = {start: 0, count: 5};
 
@@ -72,11 +72,7 @@ const queue = async (interaction) => {
         embed.setDescription(`<Стрим>
             \u200B\n`);
         if (getQueue(interaction.guildId).nowPlaying.song.type === 'radio') {
-            let response = await axios.get('https://anison.fm/status.php?widget=true');
-            let onAir = parseAnisonResponseOnAir(response.data.on_air);
-            embed.setDescription(`Источник: **${escaping(onAir.source)}**
-                Композиция: **${escaping(onAir.title)}**
-                Осталось: **${timeFormatSeconds(response.data.duration)}**`)
+            embed.setDescription(await getRadios().get(getQueue(interaction.guildId).nowPlaying.song.title).getInfo());
         }
     } else {
         const barString = progressBar.filledBar(getQueue(interaction.guildId).nowPlaying.song.length * 1000,
@@ -156,7 +152,7 @@ const onQueue = async (interaction) => {
         start -= count;
     }
     if (interaction.customId === 'update') {
-        start = Math.min(start, count * Math.floor((songs.length - 1) / count));
+        start = Math.min(start, count * Math.floor(Math.max(0, songs.length - 1) / count));
     }
     if (interaction.customId === 'first') {
         start = 0;
@@ -228,16 +224,12 @@ const onQueue = async (interaction) => {
             value: `\`${song.isLive ? '<Стрим>' : timeFormatSeconds(song.length)}\`—_\`${song.author.username}\`_`
         })))
       //Данные количества на странице (count) беруться из footer'а. Да, костыль
-      .setFooter(`${start + 1} - ${Math.min(start + count, songs.length)} из ${songs.length} по ${count}`);
+      .setFooter(`${Math.min(start + 1, songs.length)} - ${Math.min(start + count, songs.length)} из ${songs.length} по ${count}`);
     if (getQueue(interaction.guildId).nowPlaying.song.isLive) {
         embed.setDescription(`<Стрим>
                 \u200B\n`);
         if (getQueue(interaction.guildId).nowPlaying.song.type === 'radio') {
-            let response = await axios.get('https://anison.fm/status.php?widget=true');
-            let onAir = parseAnisonResponseOnAir(response.data.on_air);
-            embed.setDescription(`Источник: **${escaping(onAir.source)}**
-                    Композиция: **${escaping(onAir.title)}**
-                    Осталось: **${timeFormatSeconds(response.data.duration)}**`)
+            embed.setDescription(await getRadios().get(getQueue(interaction.guildId).nowPlaying.song.title).getInfo());
         }
     } else {
         const barString = progressBar.filledBar(getQueue(interaction.guildId).nowPlaying.song.length * 1000,

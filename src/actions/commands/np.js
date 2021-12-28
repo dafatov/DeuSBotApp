@@ -5,10 +5,10 @@ const {notify} = require("../commands");
 const config = require("../../configs/config.js");
 const {timeFormatSeconds, timeFormatmSeconds} = require("../../utils/dateTime");
 const progressBar = require('string-progressbar');
-const {escaping, parseAnisonResponseOnAir} = require("../../utils/string.js");
+const {escaping} = require("../../utils/string.js");
 const {createStatus} = require("../../utils/attachments");
 const {getQueue} = require("../player");
-const axios = require('axios').default;
+const {getRadios} = require("../radios");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -60,11 +60,7 @@ const np = async (interaction) => {
         embed.setDescription(`<Стрим>
                 \u200B\n`);
         if (getQueue(interaction.guildId).nowPlaying.song.type === 'radio') {
-            let response = await axios.get('https://anison.fm/status.php?widget=true');
-            let onAir = parseAnisonResponseOnAir(response.data.on_air);
-            embed.setDescription(`Источник: **${escaping(onAir.source)}**
-                    Композиция: **${escaping(onAir.title)}**
-                    Осталось: **${timeFormatSeconds(response.data.duration)}**`)
+            embed.setDescription(await getRadios().get(info.song.title).getInfo());
         }
     } else {
         const barString = progressBar.filledBar(getQueue(interaction.guildId).nowPlaying.song.length * 1000,
