@@ -6,9 +6,10 @@ const player = require("./actions/player.js");
 const changelog = require("./actions/changelog.js");
 const publicist = require("./actions/publicist.js");
 const radios = require("./actions/radios.js");
+const db = require("./actions/db.js");
+const api = require("./api");
 const config = require("./configs/config.js");
 const {log, logGuild} = require('./utils/logger.js');
-const db = require("./db.js");
 const {VoiceConnectionStatus} = require("@discordjs/voice");
 
 const client = new Client({
@@ -31,6 +32,7 @@ client.once('ready', async () => {
   player.init(client);
   await changelog.init();
   await publicist.init(client);
+  await api.init();
 
   log('Бот запущен');
 });

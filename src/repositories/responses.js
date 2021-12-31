@@ -1,4 +1,4 @@
-const {db} = require("../db.js");
+const {db} = require("../actions/db.js");
 
 let rules = new Map();
 

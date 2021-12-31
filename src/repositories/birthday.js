@@ -1,4 +1,4 @@
-const {db} = require("../db");
+const {db} = require("../actions/db");
 let todayBirthdays;
 let birthdays;
 

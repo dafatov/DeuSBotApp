@@ -1,6 +1,6 @@
 const {Client} = require('pg');
-const config = require('./configs/config.js');
-const {log, error} = require('./utils/logger.js');
+const config = require('../configs/config.js');
+const {log, error} = require('../utils/logger.js');
 
 const getNewClient = () => {
   return new Client({
