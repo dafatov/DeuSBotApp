@@ -7,7 +7,7 @@ module.exports.init = () => {
   const app = express();
 
   app.listen(port, () => {
-    log(`Успешно запущен сервер по адресу ${process.env.PORT ? 'https://discord-bot-deus.herokuapp.com' : 'http://localhost'}:${port}/`);
+    log(`Успешно запущен сервер по адресу ${process.env.PORT ? 'https://discord-bot-deus.herokuapp.com' : `http://localhost:${port}`}/`);
   });
   app.get('/', (req, res) => {
     res.send("У бота DeuS теперь есть API.\nВсе права принадлежат dafatov (aka DemetriouS)");
