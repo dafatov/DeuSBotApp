@@ -4,11 +4,11 @@ const config = require("../configs/config");
 const {log} = require("../utils/logger");
 
 module.exports.init = async () => {
-  if (((await getLast())?.version ?? 0) >= config.version) {
+  if (!changelogDoc.isPublic || ((await getLast())?.version ?? 0) >= config.version) {
     return;
   }
-  if ((await getLast())?.description !== changelogDoc) {
-    await add(config.version, changelogDoc)
+  if ((await getLast())?.description !== changelogDoc.text) {
+    await add(config.version, changelogDoc.text)
     log('Успешно зарегистрирована история изменений');
   } else {
     throw 'История изменений не обновлена!!!'
