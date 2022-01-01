@@ -3,11 +3,11 @@ const {log} = require("./utils/logger");
 const fs = require("fs");
 
 module.exports.init = () => {
-  const port = 3000;
+  const port = process.env.PORT || 3000;
   const app = express();
 
   app.listen(port, () => {
-    log(`Успешно запущен сервер по адресу http://localhost:${port}/`);
+    log(`Успешно запущен сервер по адресу ${process.env.PORT ? 'https://discord-bot-deus.herokuapp.com' : 'http://localhost'}:${port}/`);
   });
   app.get('/', (req, res) => {
     res.send("У бота DeuS теперь есть API.\nВсе права принадлежат dafatov (aka DemetriouS)");
