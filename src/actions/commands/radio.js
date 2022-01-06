@@ -34,12 +34,12 @@ module.exports = {
       return localG;
     }),
   async execute(interaction) {
-    await radio(interaction);
+    await module.exports.radio(interaction, true);
   },
   async listener(interaction) {}
 }
 
-const radio = async (interaction) => {
+module.exports.radio = async (interaction, isExecute, stationKey = interaction.options.getString('station')) => {
   if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
     && getQueue(interaction.guildId).connection.joinConfig.channelId !==
     interaction.member.voice.channel.id) {
@@ -48,14 +48,16 @@ const radio = async (interaction) => {
       .setTitle('Канал не тот')
       .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
       .setTimestamp();
-    await notify('radio', interaction, {embeds: [embed]});
+    if (isExecute) {
+      await notify('radio', interaction, {embeds: [embed]});
+    }
     logGuild(interaction.guildId, `[radio]: Запустить радио не вышло: не совпадают каналы`);
-    return;
+    return {result: "Не совпадают каналы"};
   }
 
-  const stationKey = interaction.options.getString('station');
   const station = getRadios().get(stationKey);
   let info = {
+    id: `${new Date().getTime()}`,
     type: 'radio',
     title: stationKey,
     length: 0,
@@ -79,8 +81,11 @@ const radio = async (interaction) => {
     .setThumbnail(info.preview)
     .setTimestamp()
     .setFooter(`Радиостанцию добавил пользователь ${interaction.user.username}`, interaction.user.displayAvatarURL());
-  await notify('radio', interaction, {embeds: [embed]});
+  if (isExecute) {
+    await notify('radio', interaction, {embeds: [embed]});
+  }
   logGuild(interaction.guildId, `[radio]: Радиостанция успешно добавлена в очередь`);
 
   await playPlayer(interaction);
+  return {info};
 }

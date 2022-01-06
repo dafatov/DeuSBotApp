@@ -55,8 +55,8 @@ module.exports.hasLive = (queue) => {
   return (queue.nowPlaying?.song?.isLive ?? false) || (queue.songs?.filter(s => s.isLive).size ?? 0) > 0;
 }
 
-module.exports.playPlayer = async (interaction) => {
-  await join(interaction);
+module.exports.playPlayer = async (interaction, isExecute) => {
+  await join(interaction, isExecute);
 
   createPlayer(interaction.guildId);
 

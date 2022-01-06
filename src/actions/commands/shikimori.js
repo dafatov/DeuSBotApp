@@ -53,9 +53,11 @@ module.exports = {
   }
 }
 
+module.exports.shikimoriPlay = async (interaction, login, count) => await play(interaction, false, login, count);
+
 const shikimori = async (interaction) => {
   if (interaction.options.getSubcommand() === 'play') {
-    await play(interaction);
+    await play(interaction, true);
   } else if (interaction.options.getSubcommand() === 'set') {
     await set(interaction);
   } else if (interaction.options.getSubcommand() === 'remove') {
@@ -63,8 +65,7 @@ const shikimori = async (interaction) => {
   }
 }
 
-const play = async (interaction) => {
-  let login = interaction.options.getString('nickname');
+const play = async (interaction, isExecute, login = interaction.options.getString('nickname'), count = interaction.options.getInteger('count') || 1) => {
   let animes, response;
 
   try {
@@ -79,12 +80,13 @@ const play = async (interaction) => {
       .setTitle('Такого профиля не существует')
       .setDescription(`Ну ты и клоун, конечно...`)
       .setTimestamp();
-    await notify('shikimori', interaction, {embeds: [embed]});
+    if (isExecute) {
+      await notify('shikimori', interaction, {embeds: [embed]});
+    }
     logGuild(interaction.guildId, `[shikimori]: Найти профиль shikimori не удалось`);
-    return;
+    return {result: "Найти профиль не удалось"};
   }
 
-  let count = interaction.options.getInteger('count') || 1;
   if (count < 1 || count > MAX_COUNT) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
@@ -92,9 +94,11 @@ const play = async (interaction) => {
       .setDescription(`Ну ты и клоун, конечно...
                 _В связи с ограничением серверов youtube максимальное количество меньше ${MAX_COUNT}_`)
       .setTimestamp();
-    await notify('shikimori', interaction, {embeds: [embed]});
+    if (isExecute) {
+      await notify('shikimori', interaction, {embeds: [embed]});
+    }
     logGuild(interaction.guildId, `[shikimori]: Некорректное количество`);
-    return;
+    return {result: "Некорректное количество выбранных композиций"};
   }
 
   let audios = [];
@@ -127,13 +131,16 @@ const play = async (interaction) => {
       :
       'В связи с настойчивыми требованиями некторых сущностей рандом реализован через random.org, но в связи с этим существует ограничение на колчиество запросов в 10000 в месяц. Хз как, но лимит исчерпан, так что терпим терпилы или донатим))')
     .setTimestamp();
-  await notify('shikimori', interaction, {embeds: [embed]});
+  if (isExecute) {
+    await notify('shikimori', interaction, {embeds: [embed]});
+  }
   logGuild(interaction.guildId, requestsLeft >= 0
     ? `[shikimori]: Профиль найден, аниме выбраны и начато формирование плейлиста`
     : '[shikimori]: Лимит на количество запросов random.org исчерпан');
   if (requestsLeft >= 0) {
-    await searchSongs(interaction, audios, login);
+    await searchSongs(interaction, isExecute, audios, login);
   }
+  return {login, count: audios.length};
 }
 
 const set = async (interaction) => {

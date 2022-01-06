@@ -16,7 +16,7 @@ module.exports = {
 }
 
 module.exports.loop = async (interaction, isExecute) => {
-  if (!getQueue(interaction.guildId).connection || !getQueue(interaction.guildId).player) {
+  if (!getQueue(interaction.guildId).nowPlaying.song || !getQueue(interaction.guildId).connection || !getQueue(interaction.guildId).player) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
       .setTitle('Так ничего и не играло')
@@ -26,11 +26,10 @@ module.exports.loop = async (interaction, isExecute) => {
       await notify('loop', interaction, {embeds: [embed]});
     }
     logGuild(interaction.guildId, `[loop]: Изменить состояние зацикленности не вышло: плеер не играет`);
-    return;
+    return {result: "Плеер не играет"};
   }
 
-  if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
-    && getQueue(interaction.guildId).connection.joinConfig.channelId !==
+  if (getQueue(interaction.guildId)?.connection?.joinConfig?.channelId !==
     interaction.member.voice.channel.id) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
@@ -41,7 +40,7 @@ module.exports.loop = async (interaction, isExecute) => {
       await notify('loop', interaction, {embeds: [embed]});
     }
     logGuild(interaction.guildId, `[loop]: Изменить состояние зацикленности не вышло: не совпадают каналы`);
-    return;
+    return {result: "Не совпадают каналы"};
   }
 
   if (getQueue(interaction.guildId).nowPlaying.song.isLive) {
@@ -54,7 +53,7 @@ module.exports.loop = async (interaction, isExecute) => {
       await notify('loop', interaction, {embeds: [embed]});
     }
     logGuild(interaction.guildId, `[loop]: Изменить состояние зацикленности не вышло: играет стрим`);
-    return;
+    return "Не совпадают каналы";
   }
 
   let isLoop = getQueue(interaction.guildId).nowPlaying.isLoop;
@@ -69,4 +68,5 @@ module.exports.loop = async (interaction, isExecute) => {
     await notify('loop', interaction, {embeds: [embed]});
   }
   logGuild(interaction.guildId, `[loop]: Композиция была успешна ${isLoop ? 'отциклена' : 'зациклена'}`);
+  return {isLoop: getQueue(interaction.guildId).nowPlaying.isLoop}
 }

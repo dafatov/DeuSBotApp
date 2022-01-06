@@ -16,28 +16,33 @@ module.exports = {
   async listener(interaction) {}
 }
 
-module.exports.skip = async (interaction, isExecute) => {
-  if (!player.getQueue(interaction.guildId).connection || !player.getQueue(interaction.guildId).player) {
+module.exports.skip = async (interaction, isExecute) => { //TODO добавить аналогичные изменения везде где требуется
+  if (!player.getQueue(interaction.guildId).nowPlaying.song || !player.getQueue(interaction.guildId).connection ||
+    !player.getQueue(interaction.guildId).player) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
       .setTitle('Так ничего и не играло')
       .setDescription(`Как ты жалок... Зачем пропускать, то чего нет? Или у тебя голоса в голове?`)
       .setTimestamp();
-    await notify('skip', interaction, {embeds: [embed]});
+    if (isExecute) {
+      await notify('skip', interaction, {embeds: [embed]});
+    }
     logGuild(interaction.guildId, `[skip]: Пропустить композицию не вышло: плеер не играет`);
-    return;
+    return {result: "Плеер не играет"};
   }
 
-  if (player.getQueue(interaction.guildId).connection.joinConfig.channelId !==
+  if (player.getQueue(interaction.guildId)?.connection?.joinConfig?.channelId !==
     interaction.member.voice.channel.id) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
       .setTitle('Канал не тот')
       .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
       .setTimestamp();
-    await notify('skip', interaction, {embeds: [embed]});
+    if (isExecute) {
+      await notify('skip', interaction, {embeds: [embed]});
+    }
     logGuild(interaction.guildId, `[skip]: Пропустить композицию не вышло: не совпадают каналы`);
-    return;
+    return {result: "Не совпадают каналы"};
   }
 
   let skipped = await player.skip(interaction.guildId);
@@ -50,4 +55,5 @@ module.exports.skip = async (interaction, isExecute) => {
     await notify('skip', interaction, {embeds: [embed]});
   }
   logGuild(interaction.guildId, `[skip]: Композиция была успешно пропущена`);
+  return {};
 }

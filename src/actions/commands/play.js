@@ -29,12 +29,12 @@ module.exports = {
         .setDescription('Url или наименование видео записи с youtube')
         .setRequired(true)),
     async execute(interaction) {
-        await play(interaction, interaction.options.getString('audio'));
+        await module.exports.play(interaction, true);
     },
     async listener(interaction) {}
 }
 
-const play = async (interaction, audio) => {
+module.exports.play = async (interaction, isExecute, audio = interaction.options.getString('audio')) => {
     if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
       && getQueue(interaction.guildId).connection.joinConfig.channelId !==
       interaction.member.voice.channel.id) {
@@ -43,30 +43,36 @@ const play = async (interaction, audio) => {
           .setTitle('Канал не тот')
           .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
           .setTimestamp();
-        await notify('play', interaction, {embeds: [embed]});
+        if (isExecute) {
+            await notify('play', interaction, {embeds: [embed]});
+        }
         logGuild(interaction.guildId, `[play]: Добавить композицию не вышло: не совпадают каналы`);
-        return;
+        return {result: "Не совпадают каналы"};
     }
 
-    try {
-        ytpl.getPlaylistID(audio).then(async a => {
-            ytpl(a, {limit: Infinity, ...options}).then(async p => {
-                await playPlaylist(interaction, p);
-                await playPlayer(interaction);
-            }).catch(async e => {
-                await notifyError('play', e, interaction);
+    let added;
 
+    try {
+        await ytpl.getPlaylistID(audio).then(async a => {
+            await ytpl(a, {limit: Infinity, ...options}).then(async p => {
+                added = await playPlaylist(interaction, p, isExecute);
+                await playPlayer(interaction, isExecute);
+            }).catch(async e => {
+                if (isExecute) {
+                    await notifyError('play', e, interaction);
+                }
+                return {result: e};
             });
-        }).catch(() => {
+        }).catch(async () => {
             if (ytdl.validateURL(audio)) {
-                ytdl.getBasicInfo(audio, options).then(async i => {
-                    await notifySong(interaction, addQueue(interaction, i));
-                    await playPlayer(interaction);
+                await ytdl.getBasicInfo(audio, options).then(async i => {
+                    added = await notifySong(interaction, addQueue(interaction, i), isExecute);
+                    await playPlayer(interaction, isExecute);
                 }).catch(err => {
                     throw err
                 })
             } else {
-                ytsr(audio, {
+                await ytsr(audio, {
                     gl: 'RU',
                     hl: 'ru',
                     limit: 10
@@ -77,8 +83,8 @@ const play = async (interaction, audio) => {
                     let w = 0;
                     while (w < 10) {
                         await ytdl.getBasicInfo(r.items[w].url, options).then(async i => {
-                            await notifySong(interaction, addQueue(interaction, i));
-                            await playPlayer(interaction);
+                            added = await notifySong(interaction, addQueue(interaction, i), isExecute);
+                            await playPlayer(interaction, isExecute);
                             w = 11;
                         }).catch(() => {
                             w++;
@@ -90,16 +96,20 @@ const play = async (interaction, audio) => {
             }
         });
     } catch (e) {
-        await notifyError('play', e, interaction);
-
+        if (isExecute) {
+            await notifyError('play', e, interaction);
+        }
+        return {result: e};
     }
+    return {Added: added};
 }
 
-const playPlaylist = async (interaction, p) => {
+const playPlaylist = async (interaction, p, isExecute) => {
     let info;
     let allLength = 0;
-    p.items.forEach(i => {
+    p.items.forEach((i, index) => {
         info = {
+            id: `${new Date().getTime()}-${index}`,
             type: 'youtube',
             title: i.title,
             length: i.durationSec,
@@ -119,11 +129,13 @@ const playPlaylist = async (interaction, p) => {
         url: p.url,
         preview: p.thumbnails[0].url
     };
-    await notifyPlaylist(interaction, info);
+    await notifyPlaylist(interaction, info, isExecute);
+    return info;
 }
 
 const addQueue = (interaction, i) => {
     let info = {
+        id: `${new Date().getTime()}`,
         type: 'youtube',
         title: i.videoDetails.title,
         length: i.videoDetails.lengthSeconds,
@@ -136,23 +148,25 @@ const addQueue = (interaction, i) => {
     return info;
 }
 
-module.exports.searchSongs = async (interaction, audios, login) => {
-    let i = 0;
+module.exports.searchSongs = async (interaction, isExecute, audios, login) => {
+    let i = 0, intervalId = -1;
     let barString = progressBar.filledBar(audios.length, i);
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
       .setTitle('Прогресс формирования')
       .setDescription(`${barString[0]} [${Math.round(barString[1])}%]`);
-    let intervalId = setInterval(async () => {
-        barString = progressBar.filledBar(audios.length, i);
-        embed.setDescription(`${barString[0]} [${Math.round(barString[1])}%]`);
-        try {
-            await interaction.editReply({embeds: [embed]});
-        } catch (e) {
-            clearInterval(this);
-            intervalId = null;
-        }
-    }, 1000);
+    if (isExecute) {
+        intervalId = setInterval(async () => {
+            barString = progressBar.filledBar(audios.length, i);
+            embed.setDescription(`${barString[0]} [${Math.round(barString[1])}%]`);
+            try {
+                await interaction.editReply({embeds: [embed]});
+            } catch (e) {
+                clearInterval(this);
+                intervalId = null;
+            }
+        }, 1000);
+    }
 
     let allLength = 0
     Promise.all(audios.map((a) => ytsr(a, {
@@ -179,21 +193,23 @@ module.exports.searchSongs = async (interaction, audios, login) => {
 
         const remainedValue = remained(getQueue(interaction.guildId));
         getQueue(interaction.guildId).remained = (getQueue(interaction.guildId).remained ?? 0) + allLength;
-        embed.setTitle(escaping(`Композиции профиля ${login}`))
-          .setURL(`https://shikimori.one/${login}/list/anime/mylist/completed,watching/order-by/ranked`)
-          .setDescription(`Количество композиций: **${audios.length}**
-                Общая длительность: **${timeFormatSeconds(allLength)}**
-                Начнется через: **${hasLive(getQueue(interaction.guildId)) ? '<Никогда>' :
-            remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
-          .setThumbnail('https://i.ibb.co/PGFbnkS/Afk-W8-Fi-E-400x400.png')
-          .setTimestamp()
-          .setFooter(`Плейлист создал ${interaction.user.username}`, interaction.user.displayAvatarURL());
-        await interaction.editReply({embeds: [embed]});
-        await playPlayer(interaction);
+        if (isExecute) {
+            embed.setTitle(escaping(`Композиции профиля ${login}`))
+              .setURL(`https://shikimori.one/${login}/list/anime/mylist/completed,watching/order-by/ranked`)
+              .setDescription(`Количество композиций: **${audios.length}**
+                  Общая длительность: **${timeFormatSeconds(allLength)}**
+                  Начнется через: **${hasLive(getQueue(interaction.guildId)) ? '<Никогда>' :
+                remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
+              .setThumbnail('https://i.ibb.co/PGFbnkS/Afk-W8-Fi-E-400x400.png')
+              .setTimestamp()
+              .setFooter(`Плейлист создал ${interaction.user.username}`, interaction.user.displayAvatarURL());
+            await interaction.editReply({embeds: [embed]});
+        }
+        await playPlayer(interaction, isExecute);
     })
 }
 
-const notifySong = async (interaction, info) => {
+const notifySong = async (interaction, info, isExecute) => {
     const remainedValue = remained(getQueue(interaction.guildId));
     getQueue(interaction.guildId).remained = (getQueue(interaction.guildId).remained ?? 0) + parseInt(info.length);
     const embed = new MessageEmbed()
@@ -207,11 +223,14 @@ const notifySong = async (interaction, info) => {
       .setThumbnail(info.preview)
       .setTimestamp()
       .setFooter(`Композицию заказал пользователь ${interaction.user.username}`, interaction.user.displayAvatarURL());
-    await notify('play', interaction, {embeds: [embed]});
+    if (isExecute) {
+        await notify('play', interaction, {embeds: [embed]});
+    }
     logGuild(interaction.guildId, `[play][add]: Композиция успешно добавлена в очередь`);
+    return info;
 }
 
-const notifyPlaylist = async (interaction, info) => {
+const notifyPlaylist = async (interaction, info, isExecute) => {
     const remainedValue = remained(getQueue(interaction.guildId));
     getQueue(interaction.guildId).remained = (getQueue(interaction.guildId).remained ?? 0) + parseInt(info.duration);
     const embed = new MessageEmbed()
@@ -224,6 +243,8 @@ const notifyPlaylist = async (interaction, info) => {
       .setThumbnail(info.preview)
       .setTimestamp()
       .setFooter(`Плейлист предложил пользователь ${interaction.user.username}`, interaction.user.displayAvatarURL());
-    await notify('play', interaction, {embeds: [embed]});
+    if (isExecute) {
+        await notify('play', interaction, {embeds: [embed]});
+    }
     logGuild(interaction.guildId, `[play][add]: Плейлист успешно добавлен в очередь`);
 }

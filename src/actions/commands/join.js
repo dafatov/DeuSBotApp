@@ -11,14 +11,14 @@ module.exports = {
       .setName('join')
       .setDescription('Пригласить бота к текущему голосовому каналу'),
     async execute(interaction) {
-        await module.exports.join(interaction);
+        await module.exports.join(interaction, true);
     },
     async listener(interaction) {}
 }
 
-module.exports.join = async (interaction) => {
+module.exports.join = async (interaction, isExecute) => {
     if (player.getQueue(interaction.guildId)?.connection && player.getQueue(interaction.guildId)?.connection?._state.status !==
-      VoiceConnectionStatus.Destroyed) {
+      VoiceConnectionStatus.Destroyed) {//TODO добавить возможность перетягивать бота с канала на канал, возможно, этой командой
         return;
     }
 
@@ -48,10 +48,11 @@ module.exports.join = async (interaction) => {
           .setTitle('Я зашел')
           .setDescription(`Зашел к тебе в войс. Теперь ты сможешь погреться во всем моем великолепии и послушать музыку для ушей.
             Канал же ${voiceChannel.name} называется? О нем теперь будут слагать легенды`);
-        await notify('join', interaction, {embeds: [embed]});
+        if (isExecute) {
+            await notify('join', interaction, {embeds: [embed]});
+        }
         logGuild(interaction.guildId, `[join]: Бот успешно приглашен в канал ${voiceChannel.name}`);
     } catch (e) {
         await notifyError('join', e, interaction);
     }
 }
-

@@ -15,21 +15,23 @@ module.exports = {
       .setDescription('Номер в очереди целевой композиции')
       .setRequired(true)),
   async execute(interaction) {
-    await remove(interaction);
+    await module.exports.remove(interaction, true);
   },
   async listener(interaction) {}
 }
 
-const remove = async (interaction) => {
+module.exports.remove = async (interaction, isExecute, targetIndex = interaction.options.getInteger("target") - 1) => {
   if (!getQueue(interaction.guildId).songs || getQueue(interaction.guildId).songs.length < 1) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
       .setTitle('Ты одинок что ли? Соло-игрок?')
       .setDescription('Пытаться удалить то, чего нет, показывает все твое отчаяние. **Пуст плейлист. Пуст.**')
       .setTimestamp();
-    await notify('remove', interaction, {embeds: [embed]});
+    if (isExecute) {
+      await notify('remove', interaction, {embeds: [embed]});
+    }
     logGuild(interaction.guildId, `[remove]: Удалить композицию не вышло: плеер не играет`);
-    return;
+    return {result: "Плеер не играет"};
   }
 
   if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
@@ -40,12 +42,12 @@ const remove = async (interaction) => {
       .setTitle('Канал не тот')
       .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
       .setTimestamp();
-    await notify('remove', interaction, {embeds: [embed]});
+    if (isExecute) {
+      await notify('remove', interaction, {embeds: [embed]});
+    }
     logGuild(interaction.guildId, `[remove]: Удалить композицию не вышло: не совпадают каналы`);
-    return;
+    return {result: "Не совпадают каналы"};
   }
-
-  let targetIndex = interaction.options.getInteger("target") - 1;
 
   if (targetIndex < 0 || targetIndex + 1 > getQueue(interaction.guildId).songs.length) {
     const embed = new MessageEmbed()
@@ -53,19 +55,24 @@ const remove = async (interaction) => {
       .setTitle('Ты это.. Вселенной ошибся, чел.')
       .setDescription(`Типа знаешь вселенная расширяется, а твой мозг походу нет. Ну вышел ты за пределы размеров очереди.`)
       .setTimestamp();
-    await notify('remove', interaction, {embeds: [embed]});
+    if (isExecute) {
+      await notify('remove', interaction, {embeds: [embed]});
+    }
     logGuild(interaction.guildId, `[remove]: Удалить композицию не вышло: выход за пределы очереди`);
-    return;
+    return {result: "Выход за пределы очереди"};
   }
 
-  let target = getQueue(interaction.guildId).songs[targetIndex];
+  const target = getQueue(interaction.guildId).songs[targetIndex];
 
-  getQueue(interaction.guildId).songs.splice(interaction.options.getInteger('target') - 1, 1);
+  getQueue(interaction.guildId).songs.splice(targetIndex, 1);
   getQueue(interaction.guildId).remained -= target.length;
   const embed = new MessageEmbed()
     .setColor(config.colors.info)
     .setTitle('Целевая композиция дезинтегрирована')
     .setDescription(`Композиция **${escaping(target.title)}** была стерта из реальности очереди.`);
-  await notify('remove', interaction, {embeds: [embed]});
+  if (isExecute) {
+    await notify('remove', interaction, {embeds: [embed]});
+  }
   logGuild(interaction.guildId, `[remove]: Композиция была успешно удалена из очереди`);
+  return {isRemoved: target};
 } 
