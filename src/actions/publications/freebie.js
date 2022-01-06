@@ -8,32 +8,36 @@ const RSS_URL = 'https://freesteam.ru/feed/';
 
 module.exports = {
   async content(_client) {
-    const rss = await new Parser({customFields: {}}).parseURL(RSS_URL);
-    const lastFreebie = (await variablesDb.getAll())?.lastFreebie;
-    const freebies = rss.items
-      .filter(f => new Date(f.isoDate).getTime() > (new Date(lastFreebie ?? 0)))
-      .sort((a, b) => new Date(a.isoDate).getTime() < new Date(b.isoDate).getTime() ? -1 : 1)
-      .slice(0, 10);
+    try {
+      const rss = await new Parser({customFields: {}}).parseURL(RSS_URL);
+      const lastFreebie = (await variablesDb.getAll())?.lastFreebie;
+      const freebies = rss.items
+        .filter(f => new Date(f.isoDate).getTime() > (new Date(lastFreebie ?? 0)))
+        .sort((a, b) => new Date(a.isoDate).getTime() < new Date(b.isoDate).getTime() ? -1 : 1)
+        .slice(0, 10);
 
-    if (freebies.length <= 0) {
-      return;
-    }
-
-    return {
-      default: {
-        content: null,
-        embeds: freebies.map(f =>
-          new MessageEmbed()
-            .setColor(config.colors.info)
-            .setTitle(f.title)
-            .setThumbnail(getThumbnail(f.categories))
-            .setDescription(f.content)
-            .setTimestamp(new Date(f.isoDate))
-        )
-      },
-      variables: {
-        lastFreebie: freebies[freebies.length - 1]?.isoDate
+      if (freebies.length <= 0) {
+        return;
       }
+
+      return {
+        default: {
+          content: null,
+          embeds: freebies.map(f =>
+            new MessageEmbed()
+              .setColor(config.colors.info)
+              .setTitle(f.title)
+              .setThumbnail(getThumbnail(f.categories))
+              .setDescription(f.content)
+              .setTimestamp(new Date(f.isoDate))
+          )
+        },
+        variables: {
+          lastFreebie: freebies[freebies.length - 1]?.isoDate
+        }
+      }
+    } catch (e) {
+      error(e);
     }
   },
   async condition(now) {
