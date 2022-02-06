@@ -39,8 +39,8 @@ module.exports.init = async (c) => {
 }
 
 const publish = async (content) => {
-  // const newsChannels = [{guildId: '905052154027475004', channelId: '923515576234696755'}];
-  const newsChannels = await getAll();
+  const newsChannels = [{guildId: '905052154027475004', channelId: '923515576234696755'}];
+  //const newsChannels = await getAll();
 
   return Promise.all(newsChannels
     .filter(pair => content[pair.guildId] ?? content.default)
