@@ -1,7 +1,6 @@
 const db = require("../../repositories/birthday");
 const {MessageEmbed} = require("discord.js");
 const config = require("../../configs/config");
-const {dateTime} = require("../../utils/dateTime");
 
 module.exports = {
   async content(client) {
@@ -42,8 +41,8 @@ module.exports = {
     }, {})));
   },
   async condition(now) {
-    console.log(now, dateTime(now, 57, 16).getTime() === now.getTime())
-    return dateTime(now, 57, 16).getTime() === now.getTime();
+    console.log("birthdayCondition: ", now.getHours() === 18 && now.getMinutes() === 0);
+    return now.getHours() === 18 && now.getMinutes() === 0;
   },
   async onPublished(_messages, _variables) {}
 }

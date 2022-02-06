@@ -44,6 +44,7 @@ module.exports.clearNowPlaying = (guildId) => {
 
 module.exports.clearQueue = (guildId) => {
   this.getQueue(guildId).songs = [];
+  this.getQueue(guildId).remained = 0;
 }
 
 module.exports.clearConnection = (guildId) => {
