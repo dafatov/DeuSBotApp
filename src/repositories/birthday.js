@@ -3,14 +3,14 @@ let todayBirthdays;
 let birthdays;
 
 module.exports.getTodayBirthdays = async () => {
-  if (!todayBirthdays) {
+  if (!todayBirthdays?.birthdays || todayBirthdays?.today.getDay() !== new Date().getDay()) {
     const response = await db.query(`SELECT *
                                      FROM BIRTHDAY
                                      WHERE DATE_PART('month', DATE) = DATE_PART('month', current_date)
                                        AND DATE_PART('day', DATE) = DATE_PART('day', current_date)`);
-    todayBirthdays = response.rows.map(r => ({userId: r.user_id, date: r.date, ignored: r.ignored})) || [];
+    todayBirthdays = {today: new Date(), birthdays: response.rows.map(r => ({userId: r.user_id, date: r.date, ignored: r.ignored})) || []};
   }
-  return todayBirthdays;
+  return todayBirthdays.birthdays;
 }
 
 module.exports.getAll = async () => {
