@@ -41,7 +41,6 @@ module.exports = {
     }, {})));
   },
   async condition(now) {
-    console.log("birthdayCondition: ", now.getHours() === 18 && now.getMinutes() === 0);
     return now.getHours() === 18 && now.getMinutes() === 0;
   },
   async onPublished(_messages, _variables) {}
