@@ -7,6 +7,8 @@ const {timeFormatSeconds, timeFormatmSeconds} = require("../utils/dateTime.js");
 const {log, error, logGuild} = require('../utils/logger.js');
 const {join} = require('./commands/join.js');
 const config = require("../configs/config.js");
+const {MessageEmbed} = require("discord.js");
+const {notify} = require("./commands");
 
 let client;
 
@@ -59,7 +61,7 @@ module.exports.hasLive = (queue) => {
 module.exports.playPlayer = async (interaction) => {
   await join(interaction);
 
-  createPlayer(interaction.guildId);
+  await createPlayer(interaction, interaction.guildId);
 
   if (this.getQueue(interaction.guildId).player.state.status !== AudioPlayerStatus.Playing) {
     logGuild(interaction.guildId, `[play][Inter]: ${this.getQueue(interaction.guildId).songs[0].title}`);
@@ -68,7 +70,7 @@ module.exports.playPlayer = async (interaction) => {
   }
 }
 
-const createPlayer = (guildId) => {
+const createPlayer = async (interaction, guildId) => {
   let timerId;
   try {
     if (this.getQueue(guildId).connection && !this.getQueue(guildId).player) {
@@ -79,11 +81,22 @@ const createPlayer = (guildId) => {
       });
 
       this.getQueue(guildId).player.on('error', (e) => {
-        error(e);
+        error(e.name + ': ' + e.message);
         try {
           if (e.resource.playbackDuration === 0) {
-            timerId = setTimeout(() => {
+            timerId = setTimeout(async () => {
               logGuild(guildId, `[play][Error]: ${this.getQueue(guildId).nowPlaying.song.title}`);
+              if (e.message === 'No such format found: highestaudio') {
+                const embed = new MessageEmbed()
+                  .setColor(config.colors.warning)
+                  .setTitle("Говн\`о не играю")
+                  .setDescription(`Не ну ты чо серьзно? Ты бы еще из ж*пы пластинку достал. **Качество аудио высокого качества отсутствует, так что композиция будет пропущена**
+                    Фекалии: _${this.getQueue(guildId).nowPlaying.song.title}_`)
+                  .setTimestamp()
+                await notify('player', interaction, {embeds: [embed]});
+                await module.exports.skip(guildId)
+                return;
+              }
               play(guildId, true);
             }, 250);
           }
