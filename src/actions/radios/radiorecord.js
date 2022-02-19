@@ -25,5 +25,6 @@ const getInfo = async (id) => {
   return `
     Источник: **${escaping(nowPlaying.artist)}**
     Композиция: **${escaping(nowPlaying.song)}**
+    _Радио может не работать в связи с некоррректным API сайта, предоставляющего радиопотоки. Бот НЕ может повлиять на достоверность API_
   `;
 }
