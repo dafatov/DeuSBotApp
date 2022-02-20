@@ -96,6 +96,16 @@ const createPlayer = async (interaction, guildId) => {
                 await notify('player', interaction, {embeds: [embed]});
                 await module.exports.skip(guildId)
                 return;
+              } else if (e.message === 'Cookie header used in request, but unable to find YouTube identity token') {
+                const embed = new MessageEmbed()
+                  .setColor(config.colors.error)
+                  .setTitle("Проблемы с cookie")
+                  .setDescription(
+                    `Бот не сможет играть, так как cookie, установленные для него устарели. Пока что они устанавливаются вручную, но автор что-нибдь придумает когда ему не будет лень`)
+                  .setTimestamp()
+                await notify('player', interaction, {embeds: [embed]});
+                await module.exports.skip(guildId)
+                return;
               }
               play(guildId, true);
             }, 250);
