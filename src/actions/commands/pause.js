@@ -16,7 +16,7 @@ module.exports = {
 }
 
 module.exports.pause = async (interaction, isExecute) => {
-  if (!getQueue(interaction.guildId).connection || !getQueue(interaction.guildId).player) {
+  if (!getQueue(interaction.guildId).nowPlaying.song || !getQueue(interaction.guildId).connection || !getQueue(interaction.guildId).player) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
       .setTitle('Так ничего и не играло')
@@ -26,11 +26,10 @@ module.exports.pause = async (interaction, isExecute) => {
       await notify('pause', interaction, {embeds: [embed]});
     }
     logGuild(interaction.guildId, `[pause]: Изменить состояние паузы не вышло: плеер не играет`);
-    return;
+    return {result: "Плеер не играет"};
   }
 
-  if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
-    && getQueue(interaction.guildId).connection.joinConfig.channelId !==
+  if (getQueue(interaction.guildId)?.connection?.joinConfig?.channelId !==
     interaction.member.voice.channel.id) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
@@ -41,7 +40,7 @@ module.exports.pause = async (interaction, isExecute) => {
       await notify('pause', interaction, {embeds: [embed]});
     }
     logGuild(interaction.guildId, `[pause]: Изменить состояние паузы не вышло: не совпадают каналы`);
-    return;
+    return {result: "Не совпадают каналы"};
   }
 
   if (getQueue(interaction.guildId).nowPlaying.song.isLive) {
@@ -54,7 +53,7 @@ module.exports.pause = async (interaction, isExecute) => {
       await notify('pause', interaction, {embeds: [embed]});
     }
     logGuild(interaction.guildId, `[pause]: Изменить состояние паузы не вышло: играет стрим`);
-    return;
+    return {result: "Играет стрим"};
   }
 
   let isPause = getQueue(interaction.guildId).nowPlaying.isPause;
@@ -94,4 +93,5 @@ module.exports.pause = async (interaction, isExecute) => {
     await notify('pause', interaction, {embeds: [embed]});
   }
   logGuild(interaction.guildId, `[pause]: Композиция была успешна ${isPause ? 'возобновлена' : 'приостановлена'}`);
+  return {isPause: getQueue(interaction.guildId).nowPlaying.isPause}
 }
