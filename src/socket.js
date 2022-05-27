@@ -23,6 +23,6 @@ module.exports.init = (client) => {
       });
   });
 
-  httpServer.listen(3001);
+  httpServer.listen(process.env.PORT || 3001);
   log('Успешно запущен api сервер');
 }
