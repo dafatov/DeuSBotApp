@@ -8,7 +8,7 @@ module.exports = {
       {
         id: station.id,
         title: station.title,
-        url: station.stream_hls.replace('playlist.m3u8', '96/playlist.m3u8'),
+        url: station.stream_hls,
         preview: station.icon_fill_white
       }
     ))
