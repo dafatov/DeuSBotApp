@@ -15,7 +15,7 @@ const {remained} = require("../../utils/calc.js");
 const options = {
     requestOptions: {
         headers: {
-            cookie: config.cookie
+            cookie: process.env.COOKIE
         }
     }
 };

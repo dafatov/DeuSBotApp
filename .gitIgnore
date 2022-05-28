@@ -27,7 +27,7 @@ yarn-error.log*
 /*.iml
 
 ### Deus
-src/configs/config.local.js
 todo.txt
 /raw
 /scripts
+/*.env

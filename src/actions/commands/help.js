@@ -4,6 +4,7 @@ const {logGuild} = require("../../utils/logger");
 const {notify} = require("../commands");
 const config = require("../../configs/config.js");
 const helps = require("../../configs/helpDoc.js");
+const {parseVersion} = require("../../utils/string.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -22,7 +23,7 @@ module.exports = {
 
 const help = async (interaction) => {
     let command = interaction.options.getString("command");
-    let helpDefault = `Данный бот (Deus ${config.version}) был разработан DemetriouS (aka dafatov) в рамках частного проекта специально для данного сервера на чистом энузиазме, а, следовательно, все претензии, требования, жалобы и другие проявления человеческого социального одностроннего взаимодействия могут идти лесом, рощей и т.п.
+    let helpDefault = `Данный бот (Deus ${parseVersion(process.env.HEROKU_RELEASE_VERSION)}) был разработан DemetriouS (aka dafatov) в рамках частного проекта специально для данного сервера на чистом энузиазме, а, следовательно, все претензии, требования, жалобы и другие проявления человеческого социального одностроннего взаимодействия могут идти лесом, рощей и т.п.
     
         Для остальных - при нахождении бага, просьба точно определиться, что это баг, а не фича, для начала. Перейти на сайт <https://github.com/dafatov/DeusBot/issues> и оставить там **New issue**, в котором **описать ситуациию возникновения проблемы, ожидаемый результат и полученный результат**.`;
 

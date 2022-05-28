@@ -108,7 +108,7 @@ const play = async (interaction, isExecute, login = interaction.options.getStrin
       audios.push(`${anime.target_title} +ending ${j + 1} +full`);
     }
   });
-  const random = new RandomOrg({apiKey: config.randomOrgToken});
+  const random = new RandomOrg({apiKey: process.env.RANDOM_ORG_TOKEN});
   let requestsLeft = await random.generateIntegers({
       n: count,
       min: 0,

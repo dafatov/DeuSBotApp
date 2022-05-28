@@ -6,8 +6,7 @@
   "type": "commonjs",
   "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/bot.js"
+    "start": "node -r dotenv/config src/bot.js"
   },
   "author": "DemetriouS",
   "license": "MIT",
@@ -36,6 +35,9 @@
     "ytdl-core": "^4.9.1",
     "ytpl": "^2.2.3",
     "ytsr": "^3.5.3"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.1"
   },
   "engines": {
     "node": "16.13.0"

@@ -8,7 +8,7 @@ const {MessageEmbed} = require('discord.js');
 const db = require("../repositories/users.js");
 
 module.exports.init = async (client) => {
-    const rest = new REST({version: '9'}).setToken(config.discordToken);
+    const rest = new REST({version: '9'}).setToken(process.env.DISCORD_TOKEN);
     client.commands = new Collection();
 
     fs.readdirSync('./src/actions/commands')

@@ -9,7 +9,7 @@ const LABELS_REJECT = ['duplicate', 'invalid', 'wontfix'];
 
 module.exports = {
   async content(client) {
-    const octokit = new Octokit({auth: config.githubToken});
+    const octokit = new Octokit({auth: process.env.GITHUB_TOKEN});
     const lastIssueEvent = (await variablesDb.getAll())?.lastIssueEvent
     let data = [];
 
@@ -18,8 +18,8 @@ module.exports = {
       data = [
         ...data,
         ...(await octokit.request('/repos/{owner}/{repo}/issues/events', {
-          owner: config.githubLogin,
-          repo: config.githubRepository,
+          owner: process.env.GITHUB_LOGIN,
+          repo: process.env.GITHUB_REPOSITORY,
           per_page: PER_PAGE,
           page: ++page,
         })).data

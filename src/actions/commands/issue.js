@@ -31,7 +31,7 @@ module.exports = {
 }
 
 const issue = async (interaction) => {
-    const octokit = new Octokit({auth: config.githubToken});
+    const octokit = new Octokit({auth: process.env.GITHUB_TOKEN});
     const data = {
         type: interaction.options.getString('type'),
         title: interaction.options.getString('title'),
@@ -40,8 +40,8 @@ const issue = async (interaction) => {
 
     try {
         octokit.request('POST /repos/{owner}/{repo}/issues', {
-            owner: config.githubLogin,
-            repo: config.githubRepository,
+            owner: process.env.GITHUB_LOGIN,
+            repo: process.env.GITHUB_REPOSITORY,
             title: data.title,
             body: data.details,
             labels: [`<@${interaction.user.id}>`, data.type, 'discord-auto']

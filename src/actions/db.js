@@ -1,10 +1,9 @@
 const {Client} = require('pg');
-const config = require('../configs/config.js');
 const {log, error} = require('../utils/logger.js');
 
 const getNewClient = () => {
   return new Client({
-    connectionString: config.database,
+    connectionString: process.env.DATABASE_URL,
     ssl: {
       rejectUnauthorized: false
     }

@@ -22,3 +22,5 @@ module.exports.parseAnisonResponseOnAir = (onAir) => {
   res.title = onAir.substring(iMark2 + mark2.length + 8, iMark3);
   return res;
 }
+
+module.exports.parseVersion = version => parseInt(version.substring(1));

@@ -167,7 +167,7 @@ const createAudioStream = (song) => {
     return ytdl(song.url, {
       requestOptions: {
         headers: {
-          cookie: config.cookie,
+          cookie: process.env.COOKIE,
         },
       },
       filter: 'audioonly',
