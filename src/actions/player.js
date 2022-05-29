@@ -22,7 +22,7 @@ module.exports.init = (c) => {
 }
 
 module.exports.getQueue = (guildId) => {
-  return client?.queue.get(guildId);
+  return guildId ? client?.queue.get(guildId) : null;
 }
 
 module.exports.skip = async (guildId) => {

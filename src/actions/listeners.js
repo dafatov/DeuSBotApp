@@ -9,7 +9,7 @@ module.exports.init = async (c) => {
 module.exports.execute = async (interaction) => {
   if (!interaction || !interaction.message || !interaction.message.interaction ||
     !interaction.message.interaction.commandName) {
-    error('Ineraction was lost in listener');
+    error('Interaction was lost in listener');
     return;
   }
   let command = client.commands.get(interaction.message.interaction.commandName);

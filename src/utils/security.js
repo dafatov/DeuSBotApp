@@ -20,9 +20,9 @@ module.exports.authForVoiceMember = (token, client) =>
 
 module.exports.authForNowPlaying = (token, client) =>
   this.authForVoiceMember(token, client)
-    .then(member => member.guild.id)
+    .then(member => member?.guild.id)
     .then(guildId => getQueue(guildId))
-    .then(queue => queue.nowPlaying?.song ? {
+    .then(queue => queue?.nowPlaying?.song ? {
       song: {
         ...queue.nowPlaying?.song ?? {},
         playbackDuration: queue.nowPlaying?.resource?.playbackDuration ?? 0
@@ -33,5 +33,5 @@ module.exports.authForNowPlaying = (token, client) =>
 
 module.exports.authForSongs = (token, client) =>
   this.authForVoiceMember(token, client)
-    .then(member => member.guild.id)
-    .then(guildId => getQueue(guildId).songs ?? [])
+    .then(member => member?.guild.id)
+    .then(guildId => getQueue(guildId)?.songs ?? [])
