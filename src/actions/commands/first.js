@@ -17,5 +17,5 @@ module.exports = {
 
 const first = async (interaction) => {
   interaction.commandName = 'move'
-  await move(interaction, 0);
+  await move(interaction, true, 0);
 }
