@@ -24,3 +24,15 @@ module.exports.parseAnisonResponseOnAir = (onAir) => {
 }
 
 module.exports.parseVersion = version => parseInt(version.substring(1));
+
+module.exports.stringify = object => {
+  if (typeof object === 'object') {
+    return JSON.stringify(object, null, 2);
+  }
+  return object;
+}
+
+module.exports.padEnum = (item, enumeration) => {
+  const max = Math.max(...Object.values(enumeration).map(e => e.length));
+  return item.padStart(max, ' ');
+}

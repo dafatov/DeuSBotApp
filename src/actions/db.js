@@ -1,5 +1,5 @@
 const {Client} = require('pg');
-const {log, error} = require('../utils/logger.js');
+const {audit, TYPES, CATEGORIES} = require("./auditor");
 
 const getNewClient = () => {
   return new Client({
@@ -13,11 +13,20 @@ const getNewClient = () => {
 module.exports.db = getNewClient();
 
 module.exports.init = async () => {
-  await module.exports.db.connect().then(() => log('Успешно подключена база данных'));
+  await module.exports.db.connect().then(() => audit({
+    guildId: null,
+    type: TYPES.INFO,
+    category: CATEGORIES.INIT,
+    message: 'Успешно подключена база данных'
+  }));
 }
 
 module.exports.db.on('error', async (err) => {
-  error(err);
   module.exports.db = getNewClient();
-  await module.exports.init();
+  await module.exports.init().then(() => audit({
+    guildId: null,
+    type: TYPES.ERROR,
+    category: CATEGORIES.UNCATEGORIZED,
+    message: err
+  }));
 })

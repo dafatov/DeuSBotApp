@@ -7,6 +7,7 @@ const changelog = require("./actions/changelog.js");
 const publicist = require("./actions/publicist.js");
 const radios = require("./actions/radios.js");
 const db = require("./actions/db.js");
+const auditor = require("./actions/auditor.js");
 const {log, logGuild} = require('./utils/logger.js');
 const {VoiceConnectionStatus} = require("@discordjs/voice");
 const socket = require("./socket");
@@ -24,6 +25,7 @@ client.once('ready', async () => {
   client.user.setPresence({activities: [{name: `/help для помощи`}], status: 'online'});
 
   await db.init();
+  await auditor.init();
   await responses.init(client);
   await radios.init();
   await commands.init(client);

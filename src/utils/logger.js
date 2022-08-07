@@ -1,20 +1,26 @@
+const {audit, TYPES, CATEGORIES} = require("../actions/auditor");
+
+/**
+ * @deprecated
+ * @param guildId
+ * @param msg
+ */
 module.exports.logGuild = (guildId, msg) => {
-  this.log(`[${guildId}]: ${msg}`)
+  audit({guildId, type: TYPES.INFO, category: CATEGORIES.UNCATEGORIZED, message: msg});
 }
 
+/**
+ * @deprecated
+ * @param msg
+ */
 module.exports.log = (msg) => {
-  consolePrint('[Log]', msg)
+  audit({guildId: null, type: TYPES.INFO, category: CATEGORIES.UNCATEGORIZED, message: msg});
 }
 
+/**
+ * @deprecated
+ * @param msg
+ */
 module.exports.error = (msg) => {
-  consolePrint('[Err]', msg)
-}
-
-const consolePrint = (prefix, msg) => {
-  if (typeof (msg) === 'object') {
-    console.log(`${prefix}:`);
-    console.log(msg);
-  } else {
-    console.log(`${prefix}: ${msg}`);
-  }
+  audit({guildId: null, type: TYPES.ERROR, category: CATEGORIES.UNCATEGORIZED, message: msg});
 }
