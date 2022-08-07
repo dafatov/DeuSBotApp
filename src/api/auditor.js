@@ -9,7 +9,7 @@ module.exports = {
     socket.on("auditor:getCategories", callback =>
       callback({categories: CATEGORIES}));
 
-    socket.on("auditor:getAudit", callback =>
-      getAll().then(audit => callback({audit: audit})));
+    socket.on("auditor:audit", () =>
+      getAll().then(audit => socket.emit("auditor:audit", audit)));
   }
 }
