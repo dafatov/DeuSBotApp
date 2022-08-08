@@ -1,5 +1,6 @@
-const {deleteBeforeWithOffset, add} = require("../repositories/audit");
+const {deleteBeforeWithOffset, add, getAll} = require("../repositories/audit");
 const {stringify, padEnum} = require("../utils/string");
+const {bigIntReplacer} = require("../utils/jsonMapping");
 
 module.exports.TYPES = Object.freeze({
   ERROR: 'error',
@@ -52,6 +53,12 @@ module.exports.audit = async ({guildId, type, category, message}) => {
     await add({guildId, type, category, message});
   }
 }
+
+module.exports.getGuilds = async (client) =>
+  getAll().then(audit => audit.map(a => a.guildId))
+    .then(guildIds => client.guilds.fetch()
+      .then(guilds => guilds.filter(guild => guildIds.includes(guild.id))))
+    .then(guilds => JSON.stringify(guilds, bigIntReplacer));
 
 const condition = () => {
   const now = new Date();
