@@ -1,17 +1,28 @@
-const {getLast, add} = require("../repositories/changelog");
-const changelogDoc = require("../configs/changelogDoc");
-const config = require("../configs/config");
-const {log, error} = require("../utils/logger");
-const {parseVersion} = require("../utils/string");
+const {getLast, add} = require('../repositories/changelog');
+const changelog = require('../configs/changelog');
+const {parseVersion} = require('../utils/string');
+const {audit, TYPES, CATEGORIES} = require('../actions/auditor');
 
 module.exports.init = async () => {
-  if (!changelogDoc.isPublic || ((await getLast())?.version ?? 0) >= parseVersion(process.env.HEROKU_RELEASE_VERSION)) {
+  if (!changelog.isPublic || ((await getLast())?.version ?? 0) >= parseVersion(process.env.HEROKU_RELEASE_VERSION)) {
     return;
   }
-  if ((await getLast())?.description !== changelogDoc.text) {
-    await add(parseVersion(process.env.HEROKU_RELEASE_VERSION), changelogDoc.text)
-    log('Успешно зарегистрирована история изменений');
+  const message = JSON.stringify(changelog.message);
+
+  if ((await getLast())?.message !== message) {
+    await add(parseVersion(process.env.HEROKU_RELEASE_VERSION), message)
+      .then(() => audit({
+        guildId: null,
+        type: TYPES.INFO,
+        category: CATEGORIES.INIT,
+        message: 'Успешно зарегистрирована история изменений',
+      }));
   } else {
-    error('История изменений не обновлена!!!');
+    await audit({
+      guildId: null,
+      type: TYPES.ERROR,
+      category: CATEGORIES.INIT,
+      message: 'История изменений не обновлена',
+    });
   }
-}
+};

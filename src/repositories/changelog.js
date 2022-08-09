@@ -13,12 +13,12 @@ module.exports.getLast = async () => {
   return last;
 }
 
-module.exports.add = async (version, description) => {
+module.exports.add = async (version, message) => {
   if ((await this.getLast())?.version ?? 0 < version) {
     last = null;
-    await db.query('INSERT INTO CHANGELOG (version, description, shown) VALUES ($1, $2, $3)', [version, description, false]);
+    await db.query('INSERT INTO CHANGELOG (version, message, shown) VALUES ($1, $2, $3)', [version, message, false]);
   }
-}
+};
 
 module.exports.shown = async (...version) => {
   if (version.every(async v => v <= (await this.getLast()).version)) {
