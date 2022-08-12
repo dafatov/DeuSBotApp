@@ -1,14 +1,17 @@
 /**
- * @type {{isPublic: boolean, message: {features: string[], bugfixes: string[], ad: string, footer: string, announce: string}}}
+ * @type {{isPublic: boolean, message: {features: string[], bugfixes: string[], ad: string | null, footer: string | null, announce: string | null}}}
  */
 module.exports = {
   isPublic: true,
   message: {
     ad: 'В случае нахождения недостатков или предложений используйте команду /issue. Чем подробнее Вы опишите свою заявку, тем быстрее она будет рассмотрена',
-    announce: 'И никто не пользуется сайтом... плак.. плак..',
-    features: [],
+    announce: null,
+    features: [
+      'Изменена система changelog\'ов. Теперь сайт может сохранять историю изменений',
+      'Проведен рефакторинг кода (code-style)',
+    ],
     bugfixes: [
-      'Исправлена ошибка при протухании сессии авторизации',
+      'Исправлены некоторые опечатки',
     ],
     footer: null,
   },

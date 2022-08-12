@@ -51,11 +51,11 @@ module.exports = {
         ])))
     .addSubcommand(s => s
       .setName('ignore')
-      .setDescription('Переключить выводв уведомлений напоминающих о регистрации')),
+      .setDescription('Переключить вывод уведомлений напоминающих о регистрации')),
   async execute(interaction) {
     await birthday(interaction);
   },
-  async listener(interaction) {}
+  async listener(interaction) {},
 }
 
 const birthday = async (interaction) => {
@@ -97,7 +97,7 @@ const set = async (interaction) => {
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
       .setTitle('Жди поздравлений...')
-      .setDescription(`К качестве даты дня рождения устновлен: **${tmpDate.toLocaleDateString('ru-RU')}**`)
+      .setDescription(`К качестве даты дня рождения установлен: **${tmpDate.toLocaleDateString('ru-RU')}**`)
       .setTimestamp()
     await notify('birthday', interaction, {embeds: [embed]});
     logGuild(interaction.guildId, `[birthday]: Дата дня рождения успешно установлена`);

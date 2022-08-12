@@ -65,7 +65,7 @@ const set = async (interaction) => {
     try {
       "test".match(regex);
     } catch (e) {
-      await notifyError('response', `Некорретное регулярное выражение: ${regex}`, interaction);
+      await notifyError('response', `Некорректное регулярное выражение: ${regex}`, interaction);
     }
 
     await db.set(interaction.guildId, {
@@ -205,7 +205,7 @@ const onResponse = async (interaction) => {
         name: escaping(rule.regex),
         value: rule.react
       })))
-    //Данные количества на странице (count) беруться из footer'а. Да, костыль
+    //Данные количества на странице (count) берутся из footer'а. Да, костыль
     .setFooter(`${start + 1} - ${Math.min(start + count, rules.length)} из ${rules.length} по ${count}`);
 
   try {

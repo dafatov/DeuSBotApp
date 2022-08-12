@@ -12,7 +12,7 @@ module.exports = {
       .setDescription('Детальное описание тонкостей работы некоторых команд')
       .addStringOption(s => s
         .setName('command')
-        .setDescription('Наименование комманды')
+        .setDescription('Наименование команды')
         .setRequired(false)
         .addChoices([...helps.keys()].map(k => [k, k]))),
     async execute(interaction) {

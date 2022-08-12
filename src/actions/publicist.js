@@ -1,7 +1,7 @@
-const {getAll} = require("../repositories/publicist");
-const {log} = require("../utils/logger.js");
+const {getAll} = require('../repositories/publicist');
+const {log} = require('../utils/logger.js');
 const fs = require('fs');
-const {error} = require("../utils/logger");
+const {error} = require('../utils/logger');
 
 let client;
 
@@ -23,7 +23,7 @@ module.exports.init = async (c) => {
                 publication.onPublished(messages, content?.variables);
                 return messages;
               }).then(async messages => {
-                const guilds = await Promise.all(messages.map(m => m.guild))
+                const guilds = await Promise.all(messages.map(m => m.guild));
                 if (guilds.length > 0) {
                   log(`Успешно опубликована новость \"${f.split('.')[0]}\" для для гильдий: [${
                     guilds.map(g => g.name).sort().join(', ')
@@ -34,13 +34,14 @@ module.exports.init = async (c) => {
           }
           setTimeout(loop, 90000 - (new Date() % 60000));
         })();
-      })
-  ).then(() => log('Успешно зарегестрирован публицист'))
-}
+      }),
+  ).then(() => log('Успешно зарегистрирован публицист'));
+};
 
 const publish = async (content) => {
-  // const newsChannels = [{guildId: '905052154027475004', channelId: '923515576234696755'}];
-  const newsChannels = await getAll();
+  const newsChannels = process.env.DEV
+    ? [{guildId: '905052154027475004', channelId: '923515576234696755'}]
+    : await getAll();
 
   return Promise.all(newsChannels
     .filter(pair => content[pair.guildId] ?? content.default)
@@ -49,6 +50,6 @@ const publish = async (content) => {
       .then(guild => guild.channels.fetch())
       .then(channels => channels.get(pair.channelId))
       .then(channel => channel.send(content[pair.guildId] ?? content.default))
-      .catch(e => error(e))
+      .catch(e => error(e)),
     ));
-}
+};

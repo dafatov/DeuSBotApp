@@ -223,7 +223,7 @@ const onQueue = async (interaction) => {
             name: `${String(start + i + 1).padStart(String(songs.length).length, '0')}). ${escaping(song.title)}`,
             value: `\`${song.isLive ? '<Стрим>' : timeFormatSeconds(song.length)}\`—_\`${song.author.username}\`_`
         })))
-      //Данные количества на странице (count) беруться из footer'а. Да, костыль
+      //Данные количества на странице (count) берутся из footer'а. Да, костыль
       .setFooter(`${Math.min(start + 1, songs.length)} - ${Math.min(start + count, songs.length)} из ${songs.length} по ${count}`);
     if (getQueue(interaction.guildId).nowPlaying.song.isLive) {
         embed.setDescription(`<Стрим>

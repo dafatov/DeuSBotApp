@@ -89,8 +89,8 @@ const createPlayer = async (interaction, guildId) => {
               if (e.message === 'No such format found: highestaudio') {
                 const embed = new MessageEmbed()
                   .setColor(config.colors.warning)
-                  .setTitle("Говн\`о не играю")
-                  .setDescription(`Не ну ты чо серьзно? Ты бы еще из ж*пы пластинку достал. **Качество аудио высокого качества отсутствует, так что композиция будет пропущена**
+                  .setTitle('Говн\`о не играю')
+                  .setDescription(`Не ну ты чо серьёзно? Ты бы еще из ж*пы пластинку достал. **Качество аудио высокого качества отсутствует, так что композиция будет пропущена**
                     Фекалии: _${this.getQueue(guildId).nowPlaying.song.title}_`)
                   .setTimestamp()
                 await notify('player', interaction, {embeds: [embed]});
@@ -101,7 +101,7 @@ const createPlayer = async (interaction, guildId) => {
                   .setColor(config.colors.error)
                   .setTitle("Проблемы с cookie")
                   .setDescription(
-                    `Бот не сможет играть, так как cookie, установленные для него устарели. Пока что они устанавливаются вручную, но автор что-нибдь придумает когда ему не будет лень`)
+                    `Бот не сможет играть, так как cookie, установленные для него устарели. Пока что они устанавливаются вручную, но автор что-нибудь придумает когда ему не будет лень`)
                   .setTimestamp()
                 await notify('player', interaction, {embeds: [embed]});
                 await module.exports.skip(guildId)

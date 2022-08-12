@@ -18,7 +18,7 @@ module.exports = {
         .setRequired(true)))
     .addSubcommand(s => s
       .setName('remove')
-      .setDescription('Удаление инфомрмационного канала'))
+      .setDescription('Удаление информационного канала'))
     .addSubcommand(s => s
       .setName('show')
       .setDescription('Отображение текущего информационного канала')),

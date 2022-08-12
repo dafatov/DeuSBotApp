@@ -1,19 +1,21 @@
 const {MessageEmbed} = require('discord.js');
 const config = require('../../configs/config');
-const db = require('../../repositories/changelog');
 const {escaping} = require('../../utils/string');
+const {APPLICATIONS} = require('../changelog');
+const {getUnshown, shown} = require('../../repositories/changelog');
 
 module.exports = {
   async content(_client) {
-    const changelog = await db.getLast();
+    const changelogs = (await getUnshown())
+      .sort((a, b) => parseInt(a.version) - parseInt(b.version));
 
     return {
       default: {
         content: null,
-        embeds: [
+        embeds: changelogs.map(changelog =>
           new MessageEmbed()
             .setColor(config.colors.info)
-            .setTitle(`DeuS обновился! Изменения в v${changelog.version}:`)
+            .setTitle(createTitle(changelog.version, changelog.application))
             .setThumbnail('https://i.ibb.co/dK5VJcd/ancient.png')
             .setDescription(createDescription(changelog.message))
             .setTimestamp()
@@ -21,20 +23,24 @@ module.exports = {
               'Copyright (c) 2021-2022 dafatov',
               'https://e7.pngegg.com/pngimages/330/725/png-clipart-computer-icons-public-key-certificate-organization-test-certificate-miscellaneous-company.png',
             ),
-        ],
+        ),
         files: [],
         components: [],
+      },
+      variables: {
+        shownChangelogs: changelogs,
       },
     };
   },
   async condition(_now) {
-    return !((await db.getLast())?.shown ?? true);
+    return (await getUnshown()).length > 0;
   },
-  async onPublished(messages, _variables) {
+  async onPublished(messages, variables) {
     await Promise.all(messages.map(m =>
       m.react('👍').then(() => m.react('👎')),
     ));
-    await db.shown((await db.getLast()).version);
+    await Promise.all(variables.shownChangelogs.map(changelog =>
+      shown(changelog.version, changelog.application)));
   },
 };
 
@@ -57,4 +63,15 @@ const createDescription = (message) => {
   ];
 
   return ''.concat(...parts.filter(p => p));
+};
+
+const createTitle = (version, application) => {
+  switch (application) {
+    case APPLICATIONS.DEUS_BOT:
+      return `DeuS обновился! Изменения в v${version}:`;
+    case APPLICATIONS.DEUS_BOT_APP:
+      return `Сайт DeuS'а обновился! Изменения в v${version}:`;
+    default:
+      return `[Ошибка] Просьба связаться с администрацией`;
+  }
 };
