@@ -1,8 +1,7 @@
 const {MessageEmbed} = require('discord.js');
 const config = require('../../configs/config');
 const {escaping} = require('../../utils/string');
-const {APPLICATIONS} = require('../changelog');
-const {getUnshown, shown} = require('../../repositories/changelog');
+const {getUnshown, shown, APPLICATIONS} = require('../../db/repositories/changelog');
 
 module.exports = {
   async content(_client) {

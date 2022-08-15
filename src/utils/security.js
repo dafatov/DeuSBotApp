@@ -3,18 +3,22 @@ const {getQueue} = require("../actions/player");
 const {error} = require("./logger");
 
 //TODO добавить throw exception, когда пользователя нет или токен устарел
-module.exports.authForUserId = (token) =>
+const authForUserId = (token) =>
   axios.get('https://discord.com/api/users/@me', {
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      "Authorization": `Bearer ${token}`
-    }
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': `Bearer ${token}`,
+    },
   }).then(r => r.data.id)
-    .catch(e => {error(e?.res?.status === 401 ? 'Устарел токен. Проблема известна, но хз как исправить' : e)})
+    .catch(e => {
+      error(e?.res?.status === 401
+        ? 'Устарел токен. Проблема известна, но хз как исправить'
+        : e);
+    });
 
 //TODO добавить throw exception когда пользователь не в том канале
 module.exports.authForVoiceMember = (token, client) =>
-  this.authForUserId(token)
+  authForUserId(token)
     .then(userId => client.guilds.fetch()
       .then(guilds => Promise.all(guilds.map(g => g.fetch()
         .then(guild => guild.members.fetch()

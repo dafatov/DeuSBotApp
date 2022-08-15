@@ -1,10 +1,10 @@
-const {SlashCommandBuilder} = require("@discordjs/builders");
-const db = require("../../repositories/birthday");
-const {MessageEmbed} = require("discord.js");
-const config = require("../../configs/config");
-const {notify, notifyError} = require("../commands");
-const {logGuild} = require("../../utils/logger");
-const {createCalendar} = require("../../utils/attachments");
+const {SlashCommandBuilder} = require('@discordjs/builders');
+const db = require('../../db/repositories/birthday');
+const {MessageEmbed} = require('discord.js');
+const config = require('../../configs/config');
+const {notify, notifyError} = require('../commands');
+const {logGuild} = require('../../utils/logger');
+const {createCalendar} = require('../../utils/attachments');
 
 module.exports = {
   data: new SlashCommandBuilder()

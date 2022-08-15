@@ -1,17 +1,19 @@
-const {createCanvas, loadImage} = require("canvas");
-const {MessageAttachment} = require("discord.js");
-const {getStatusIcon} = require("./resources");
-const {timeFormatmSeconds} = require("./dateTime.js");
-const config = require("../configs/config.js");
-const {remained} = require("./calc");
-const {hasLive} = require("../actions/player");
-const {localeMonth} = require("./dateTime");
+const {createCanvas, loadImage} = require('canvas');
+const {MessageAttachment} = require('discord.js');
+const {getStatusIcon} = require('./resources');
+const {timeFormatMilliseconds} = require('./dateTime.js');
+const config = require('../configs/config.js');
+const {remained} = require('./calc');
+const {hasLive} = require('../actions/player');
+const {localeMonth} = require('./dateTime');
 
 module.exports.createStatus = async (queue) => {
   const canvas = createCanvas(510, 40);
-  const context = canvas.getContext("2d");
+  const context = canvas.getContext('2d');
 
-  let remainedTmp = `-${hasLive(queue) ? '<Никогда>' : timeFormatmSeconds(remained(queue))}`;
+  let remainedTmp = `-${hasLive(queue)
+    ? '<Никогда>'
+    : timeFormatMilliseconds(remained(queue))}`;
   context.font = '24px sans-serif';
 
   context.fillStyle = '#2F3136';

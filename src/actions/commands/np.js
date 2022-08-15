@@ -1,19 +1,19 @@
-const {SlashCommandBuilder} = require("@discordjs/builders");
-const {MessageEmbed} = require("discord.js");
-const {logGuild} = require("../../utils/logger");
-const {notify} = require("../commands");
-const config = require("../../configs/config.js");
-const {timeFormatSeconds, timeFormatmSeconds} = require("../../utils/dateTime");
+const {SlashCommandBuilder} = require('@discordjs/builders');
+const {MessageEmbed} = require('discord.js');
+const {logGuild} = require('../../utils/logger');
+const {notify} = require('../commands');
+const config = require('../../configs/config.js');
+const {timeFormatSeconds, timeFormatMilliseconds} = require('../../utils/dateTime');
 const progressBar = require('string-progressbar');
-const {escaping} = require("../../utils/string.js");
-const {createStatus} = require("../../utils/attachments");
-const {getQueue} = require("../player");
-const {getRadios} = require("../radios");
+const {escaping} = require('../../utils/string.js');
+const {createStatus} = require('../../utils/attachments');
+const {getQueue} = require('../player');
+const {getRadios} = require('../radios');
 
 module.exports = {
-    data: new SlashCommandBuilder()
-      .setName('np')
-      .setDescription('Отобразить текущую композицию'),
+  data: new SlashCommandBuilder()
+    .setName('np')
+    .setDescription('Отобразить текущую композицию'),
     async execute(interaction) {
         await np(interaction);
     },
@@ -63,10 +63,12 @@ const np = async (interaction) => {
             embed.setDescription(await getRadios().get(info.song.title).getInfo());
         }
     } else {
-        const barString = progressBar.filledBar(getQueue(interaction.guildId).nowPlaying.song.length * 1000,
-          getQueue(interaction.guildId).nowPlaying.resource.playbackDuration);
-        embed.setDescription(`\`${timeFormatmSeconds(getQueue(interaction.guildId).nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(
-          getQueue(interaction.guildId).nowPlaying.song.length)}\`—_\`${getQueue(interaction.guildId).nowPlaying.song.author.username}\`_
+      const barString = progressBar.filledBar(
+        getQueue(interaction.guildId).nowPlaying.song.length * 1000,
+        getQueue(interaction.guildId).nowPlaying.resource.playbackDuration,
+      );
+      embed.setDescription(`\`${timeFormatMilliseconds(getQueue(interaction.guildId).nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(
+        getQueue(interaction.guildId).nowPlaying.song.length)}\`—_\`${getQueue(interaction.guildId).nowPlaying.song.author.username}\`_
                 ${barString[0]} [${Math.round(barString[1])}%]\n`);
     }
     const status = await createStatus(getQueue(interaction.guildId));

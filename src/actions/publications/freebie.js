@@ -1,8 +1,8 @@
-const {MessageEmbed} = require("discord.js");
-const config = require("../../configs/config");
-const Parser = require("rss-parser");
-const variablesDb = require("../../repositories/variables");
-const {log, error} = require("../../utils/logger");
+const {MessageEmbed} = require('discord.js');
+const config = require('../../configs/config');
+const Parser = require('rss-parser');
+const variablesDb = require('../../db/repositories/variables');
+const {log, error} = require('../../utils/logger');
 
 const RSS_URL = 'https://freesteam.ru/feed/';
 

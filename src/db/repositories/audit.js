@@ -1,6 +1,20 @@
 // Необходимо так из-за того, что не успевает проинициализироваться весь файл /db,
 //   чтобы значение уже было, поэтому нужно импортировать принудительно через функцию
-const db = () => require("../actions/db").db;
+const db = () => require('../../actions/db').db;
+
+module.exports.TYPES = Object.freeze({
+  ERROR: 'error',
+  WARNING: 'warning',
+  INFO: 'info',
+  DEBUG: 'debug',
+});
+module.exports.CATEGORIES = Object.freeze({
+  PLAYER: 'player',
+  UNCATEGORIZED: 'uncategorized',
+  INIT: 'init',
+  AUDITOR: 'auditor',
+  DATABASE: 'database',
+});
 
 let audit = null;
 
@@ -10,7 +24,7 @@ module.exports.getAll = async () => {
     audit = response.rows || [];
   }
   return audit;
-}
+};
 
 module.exports.add = async ({guildId, type, category, message}) => {
   audit = null;

@@ -1,13 +1,13 @@
-const {SlashCommandBuilder} = require("@discordjs/builders");
+const {SlashCommandBuilder} = require('@discordjs/builders');
 const axios = require('axios').default;
-const {searchSongs} = require("../commands/play.js");
-const {logGuild, error} = require("../../utils/logger.js");
-const {MessageEmbed} = require("discord.js");
-const config = require("../../configs/config.js");
-const {notify, notifyError, update} = require("../commands.js");
-const db = require("../../repositories/users.js");
-const {escaping} = require("../../utils/string.js");
-const RandomOrg = require("random-org");
+const {searchSongs} = require('../commands/play.js');
+const {logGuild, error} = require('../../utils/logger.js');
+const {MessageEmbed} = require('discord.js');
+const config = require('../../configs/config.js');
+const {notify, notifyError, update} = require('../commands.js');
+const db = require('../../db/repositories/users.js');
+const {escaping} = require('../../utils/string.js');
+const RandomOrg = require('random-org');
 
 const MAX_COUNT = 100;
 

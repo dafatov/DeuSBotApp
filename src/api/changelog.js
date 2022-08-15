@@ -1,5 +1,5 @@
-const {getAll, cacheReset} = require('../repositories/changelog');
-const {publish, APPLICATIONS} = require('../actions/changelog');
+const {getAll, cacheReset, APPLICATIONS} = require('../db/repositories/changelog');
+const {publish} = require('../actions/changelog');
 
 module.exports = {
   execute({socket}) {

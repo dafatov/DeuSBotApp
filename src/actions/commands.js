@@ -5,7 +5,7 @@ const fs = require('fs');
 const {log, error, logGuild} = require('../utils/logger.js');
 const Collection = require('@discordjs/collection');
 const {MessageEmbed} = require('discord.js');
-const db = require("../repositories/users.js");
+const db = require('../db/repositories/users.js');
 
 module.exports.init = async (client) => {
     const rest = new REST({version: '9'}).setToken(process.env.DISCORD_TOKEN);

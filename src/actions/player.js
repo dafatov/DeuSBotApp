@@ -1,9 +1,6 @@
-const {
-  createAudioPlayer, createAudioResource,
-  AudioPlayerStatus, NoSubscriberBehavior
-} = require("@discordjs/voice");
+const {createAudioPlayer, createAudioResource, AudioPlayerStatus, NoSubscriberBehavior} = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
-const {timeFormatSeconds, timeFormatmSeconds} = require("../utils/dateTime.js");
+const {timeFormatSeconds, timeFormatMilliseconds} = require('../utils/dateTime.js');
 const {log, error, logGuild} = require('../utils/logger.js');
 const {join} = require('./commands/join.js');
 const config = require("../configs/config.js");
@@ -124,7 +121,7 @@ const createPlayer = async (interaction, guildId) => {
 
         let p = a.playbackDuration;
         if (this.getQueue(guildId).nowPlaying.song) {
-          logGuild(guildId, `[play][Idle]: [${timeFormatmSeconds(p)}/${timeFormatSeconds(this.getQueue(guildId).nowPlaying.song.length)}] `);
+          logGuild(guildId, `[play][Idle]: [${timeFormatMilliseconds(p)}/${timeFormatSeconds(this.getQueue(guildId).nowPlaying.song.length)}] `);
           if (p === 0 || this.getQueue(guildId).nowPlaying.song.isLive) {
             timerId = setTimeout(() => {
               if (this.getQueue(guildId).nowPlaying.song) {

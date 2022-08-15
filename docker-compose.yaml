@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+  postgresql:
+    image: postgres:13.7-alpine
+    container_name: deus_bot_postgresql
+    hostname: postgresql
+    ports:
+    - "5432:5432"
+    environment:
+    - POSTGRES_USER=postgres
+    - POSTGRES_PASSWORD=postgres
+    volumes:
+    - "./pgsql:/var/lib/postgresql/data"
+    networks:
+      default:
+        aliases:
+        - postgresql

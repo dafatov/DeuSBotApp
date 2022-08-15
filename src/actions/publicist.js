@@ -1,4 +1,4 @@
-const {getAll} = require('../repositories/publicist');
+const {getAll} = require('../db/repositories/publicist');
 const {log} = require('../utils/logger.js');
 const fs = require('fs');
 const {error} = require('../utils/logger');
@@ -39,9 +39,7 @@ module.exports.init = async (c) => {
 };
 
 const publish = async (content) => {
-  const newsChannels = process.env.DEV
-    ? [{guildId: '905052154027475004', channelId: '923515576234696755'}]
-    : await getAll();
+  const newsChannels = await getAll();
 
   return Promise.all(newsChannels
     .filter(pair => content[pair.guildId] ?? content.default)

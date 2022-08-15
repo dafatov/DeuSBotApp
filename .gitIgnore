@@ -31,3 +31,4 @@ todo.txt
 /raw
 /scripts
 /*.env
+/pgsql/

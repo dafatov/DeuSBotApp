@@ -1,20 +1,20 @@
-const {SlashCommandBuilder} = require("@discordjs/builders");
-const {MessageEmbed} = require("discord.js");
-const {logGuild} = require("../../utils/logger");
-const {notify} = require("../commands");
-const config = require("../../configs/config.js");
-const helps = require("../../configs/helpDoc.js");
-const {parseVersion} = require("../../utils/string.js");
+const {SlashCommandBuilder} = require('@discordjs/builders');
+const {MessageEmbed} = require('discord.js');
+const {logGuild} = require('../../utils/logger');
+const {notify} = require('../commands');
+const config = require('../../configs/config.js');
+const helps = require('../../configs/help.js');
+const {parseVersion} = require('../../utils/string.js');
 
 module.exports = {
-    data: new SlashCommandBuilder()
-      .setName('help')
-      .setDescription('Детальное описание тонкостей работы некоторых команд')
-      .addStringOption(s => s
-        .setName('command')
-        .setDescription('Наименование команды')
-        .setRequired(false)
-        .addChoices([...helps.keys()].map(k => [k, k]))),
+  data: new SlashCommandBuilder()
+    .setName('help')
+    .setDescription('Детальное описание тонкостей работы некоторых команд')
+    .addStringOption(s => s
+      .setName('command')
+      .setDescription('Наименование команды')
+      .setRequired(false)
+      .addChoices([...helps.keys()].map(k => [k, k]))),
     async execute(interaction) {
         await help(interaction);
     },

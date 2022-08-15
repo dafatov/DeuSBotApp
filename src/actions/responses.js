@@ -1,5 +1,5 @@
 const {log, error, logGuild} = require('../utils/logger.js');
-const db = require("../repositories/responses.js");
+const db = require('../db/repositories/responses.js');
 
 module.exports.init = async (client) => {
   await db.count().then(response => response.rows ?? [])

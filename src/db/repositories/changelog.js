@@ -1,4 +1,9 @@
-const {db} = require('../actions/db');
+const {db} = require('../../actions/db');
+
+module.exports.APPLICATIONS = Object.freeze({
+  DEUS_BOT: 'deus_bot',
+  DEUS_BOT_APP: 'deus_bot_app',
+});
 
 let changelogs;
 

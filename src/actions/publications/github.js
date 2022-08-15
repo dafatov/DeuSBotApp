@@ -1,7 +1,7 @@
-const {Octokit} = require("@octokit/core");
-const config = require("../../configs/config");
-const variablesDb = require("../../repositories/variables");
-const {MessageEmbed} = require("discord.js");
+const {Octokit} = require('@octokit/core');
+const config = require('../../configs/config');
+const variablesDb = require('../../db/repositories/variables');
+const {MessageEmbed} = require('discord.js');
 
 const PER_PAGE = 30;
 const EVENTS_LISTEN = ['closed', 'reopened'];
@@ -10,7 +10,7 @@ const LABELS_REJECT = ['duplicate', 'invalid', 'wontfix'];
 module.exports = {
   async content(client) {
     const octokit = new Octokit({auth: process.env.GITHUB_TOKEN});
-    const lastIssueEvent = (await variablesDb.getAll())?.lastIssueEvent
+    const lastIssueEvent = (await variablesDb.getAll())?.lastIssueEvent;
     let data = [];
 
     let page = 0;

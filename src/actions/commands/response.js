@@ -1,6 +1,6 @@
-const config = require('../../configs/config.js');
+﻿const config = require('../../configs/config.js');
 const {logGuild} = require('../../utils/logger.js');
-const db = require('../../repositories/responses.js');
+const db = require('../../db/repositories/responses.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
 const {MessageEmbed, MessageActionRow, MessageButton} = require('discord.js');
 const {notify, notifyError} = require('../commands.js');
@@ -38,8 +38,8 @@ module.exports = {
   },
   async listener(interaction) {
     await onResponse(interaction);
-  }
-}
+  },
+};
 
 const response = async (interaction) => {
   if (interaction.options.getSubcommand() === 'set') {
@@ -49,12 +49,12 @@ const response = async (interaction) => {
   } else if (interaction.options.getSubcommand() === 'show') {
     await show(interaction);
   }
-}
+};
 
 const set = async (interaction) => {
   let {regex, react} = {
-    regex: interaction.options.getString("regex"),
-    react: interaction.options.getString("react")
+    regex: interaction.options.getString('regex'),
+    react: interaction.options.getString('react'),
   };
 
   try {
@@ -63,15 +63,15 @@ const set = async (interaction) => {
     }
 
     try {
-      "test".match(regex);
+      'test'.match(regex);
     } catch (e) {
       await notifyError('response', `Некорректное регулярное выражение: ${regex}`, interaction);
     }
 
     await db.set(interaction.guildId, {
-      "regex": regex,
-      "react": react
-    })
+      'regex': regex,
+      'react': react,
+    });
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
       .setTitle('Я создал реакцию')
@@ -86,14 +86,14 @@ const set = async (interaction) => {
 };
 
 const remove = async (interaction) => {
-  let regex = interaction.options.getString("regex");
+  let regex = interaction.options.getString('regex');
 
   try {
     if (!regex) {
       await notifyError('response', `Regex is undefined: [regex: "${regex}"]`, interaction);
     }
 
-    await db.delete(interaction.guildId, regex)
+    await db.delete(interaction.guildId, regex);
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
       .setTitle('Я уничтожил реакцию')
@@ -118,8 +118,8 @@ const show = async (interaction) => {
     .slice(start, count)
     .map(rule => ({
       name: escaping(rule.regex),
-      value: rule.react
-    }))
+      value: rule.react,
+    })),
   );
 
   const row = new MessageActionRow()
@@ -197,13 +197,13 @@ const onResponse = async (interaction) => {
     if (b.customId === 'last') {
       b.setDisabled(start + count >= rules.length);
     }
-  })
+  });
 
   embed.setFields(rules
       .slice(start, start + count)
       .map(rule => ({
         name: escaping(rule.regex),
-        value: rule.react
+        value: rule.react,
       })))
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
     .setFooter(`${start + 1} - ${Math.min(start + count, rules.length)} из ${rules.length} по ${count}`);
@@ -213,7 +213,7 @@ const onResponse = async (interaction) => {
   } catch (e) {
     await notifyError('response', e, interaction);
   }
-}
+};
 
 function calcPages(footer) {
   let array = footer.split(' ');

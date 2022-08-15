@@ -1,4 +1,4 @@
-const {db} = require("../actions/db");
+const {db} = require('../../actions/db');
 
 let variables
 

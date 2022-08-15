@@ -1,19 +1,15 @@
-const {getLast, add} = require('../repositories/changelog');
+const {getLast, add, APPLICATIONS} = require('../db/repositories/changelog');
 const changelog = require('../configs/changelog');
 const {parseVersion} = require('../utils/string');
-const {audit, TYPES, CATEGORIES} = require('../actions/auditor');
-
-module.exports.APPLICATIONS = Object.freeze({
-  DEUS_BOT: 'deus_bot',
-  DEUS_BOT_APP: 'deus_bot_app',
-});
+const {audit} = require('../actions/auditor');
+const {TYPES, CATEGORIES} = require('../db/repositories/audit');
 
 module.exports.init = async () => {
-  await this.publish(process.env.HEROKU_RELEASE_VERSION, this.APPLICATIONS.DEUS_BOT, changelog.isPublic, changelog.message);
+  await this.publish(process.env.HEROKU_RELEASE_VERSION, APPLICATIONS.DEUS_BOT, changelog.isPublic, changelog.message);
 };
 
 module.exports.publish = async (version, application, isPublic, message) => {
-  if (!isPublic || !version || !application || process.env.DEV) {
+  if (!isPublic || !version || !application) {
     return `v${(await getLast(application))?.version}`;
   }
 
@@ -30,7 +26,7 @@ module.exports.publish = async (version, application, isPublic, message) => {
   } else {
     await audit({
       guildId: null,
-      type: TYPES.ERROR,
+      type: TYPES.WARNING,
       category: CATEGORIES.INIT,
       message: `История изменений не обновлена у ${application}`,
     });

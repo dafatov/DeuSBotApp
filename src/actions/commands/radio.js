@@ -1,13 +1,13 @@
-const {SlashCommandBuilder} = require("@discordjs/builders");
-const {MessageEmbed} = require("discord.js");
-const {logGuild} = require("../../utils/logger");
-const {notify} = require("../commands");
-const config = require("../../configs/config.js");
-const {getQueue, playPlayer, hasLive} = require("../player");
-const {escaping} = require("../../utils/string");
-const {timeFormatSeconds, timeFormatmSeconds} = require("../../utils/dateTime");
-const {remained} = require("../../utils/calc");
-const {getRadios} = require("../radios");
+const {SlashCommandBuilder} = require('@discordjs/builders');
+const {MessageEmbed} = require('discord.js');
+const {logGuild} = require('../../utils/logger');
+const {notify} = require('../commands');
+const config = require('../../configs/config.js');
+const {getQueue, playPlayer, hasLive} = require('../player');
+const {escaping} = require('../../utils/string');
+const {timeFormatSeconds, timeFormatMilliseconds} = require('../../utils/dateTime');
+const {remained} = require('../../utils/calc');
+const {getRadios} = require('../radios');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -74,10 +74,16 @@ module.exports.radio = async (interaction, isExecute, stationKey = interaction.o
     .setColor(config.colors.info)
     .setTitle(escaping(info.title))
     .setURL(info.url)
-    .setDescription(`Длительность: **${info.isLive ?
-      '<Стрим>' : timeFormatSeconds(info.length)}**
+    .setDescription(`Длительность: **${info.isLive
+      ?
+      '<Стрим>'
+      : timeFormatSeconds(info.length)}**
             Место в очереди: **${getQueue(interaction.guildId).songs.length}**
-            Начнется через: **${hasLive(getQueue(interaction.guildId)) ? '<Никогда>' : remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
+            Начнется через: **${hasLive(getQueue(interaction.guildId))
+      ? '<Никогда>'
+      : remainedValue === 0
+        ? '<Сейчас>'
+        : timeFormatMilliseconds(remainedValue)}**`)
     .setThumbnail(info.preview)
     .setTimestamp()
     .setFooter(`Радиостанцию добавил пользователь ${interaction.user.username}`, interaction.user.displayAvatarURL());

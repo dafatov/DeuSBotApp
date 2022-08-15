@@ -1,16 +1,16 @@
-const {SlashCommandBuilder} = require("@discordjs/builders");
-const {MessageEmbed} = require("discord.js");
-const ytdl = require("ytdl-core");
-const {logGuild} = require("../../utils/logger.js");
-const {timeFormatSeconds, timeFormatmSeconds} = require("../../utils/dateTime.js");
-const ytsr = require("ytsr");
-const ytpl = require("ytpl");
-const {notify, notifyError} = require("../commands.js");
-const config = require("../../configs/config.js");
-const {playPlayer, getQueue, hasLive} = require("../player.js");
-const {escaping} = require("../../utils/string.js");
+const {SlashCommandBuilder} = require('@discordjs/builders');
+const {MessageEmbed} = require('discord.js');
+const ytdl = require('ytdl-core');
+const {logGuild} = require('../../utils/logger.js');
+const {timeFormatSeconds, timeFormatMilliseconds} = require('../../utils/dateTime.js');
+const ytsr = require('ytsr');
+const ytpl = require('ytpl');
+const {notify, notifyError} = require('../commands.js');
+const config = require('../../configs/config.js');
+const {playPlayer, getQueue, hasLive} = require('../player.js');
+const {escaping} = require('../../utils/string.js');
 const progressBar = require('string-progressbar');
-const {remained} = require("../../utils/calc.js");
+const {remained} = require('../../utils/calc.js');
 
 const options = {
     requestOptions: {
@@ -198,8 +198,12 @@ module.exports.searchSongs = async (interaction, isExecute, audios, login) => {
               .setURL(`https://shikimori.one/${login}/list/anime/mylist/completed,watching/order-by/ranked`)
               .setDescription(`Количество композиций: **${audios.length}**
                   Общая длительность: **${timeFormatSeconds(allLength)}**
-                  Начнется через: **${hasLive(getQueue(interaction.guildId)) ? '<Никогда>' :
-                remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
+                  Начнется через: **${hasLive(getQueue(interaction.guildId))
+                ? '<Никогда>'
+                :
+                remainedValue === 0
+                  ? '<Сейчас>'
+                  : timeFormatMilliseconds(remainedValue)}**`)
               .setThumbnail('https://i.ibb.co/PGFbnkS/Afk-W8-Fi-E-400x400.png')
               .setTimestamp()
               .setFooter(`Плейлист создал ${interaction.user.username}`, interaction.user.displayAvatarURL());
@@ -216,10 +220,16 @@ const notifySong = async (interaction, info, isExecute) => {
       .setColor(config.colors.info)
       .setTitle(escaping(info.title))
       .setURL(info.url)
-      .setDescription(`Длительность: **${info.isLive ?
-        '<Стрим>' : timeFormatSeconds(info.length)}**
+      .setDescription(`Длительность: **${info.isLive
+        ?
+        '<Стрим>'
+        : timeFormatSeconds(info.length)}**
             Место в очереди: **${getQueue(interaction.guildId).songs.length}**
-            Начнется через: **${hasLive(getQueue(interaction.guildId)) ? '<Никогда>' : remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
+            Начнется через: **${hasLive(getQueue(interaction.guildId))
+        ? '<Никогда>'
+        : remainedValue === 0
+          ? '<Сейчас>'
+          : timeFormatMilliseconds(remainedValue)}**`)
       .setThumbnail(info.preview)
       .setTimestamp()
       .setFooter(`Композицию заказал пользователь ${interaction.user.username}`, interaction.user.displayAvatarURL());
@@ -239,7 +249,11 @@ const notifyPlaylist = async (interaction, info, isExecute) => {
       .setURL(info.url)
       .setDescription(`Количество композиций: **${info.length}**
             Общая длительность: **${timeFormatSeconds(info.duration)}**
-            Начнется через: **${hasLive(getQueue(interaction.guildId)) ? '<Никогда>' : remainedValue === 0 ? '<Сейчас>' : timeFormatmSeconds(remainedValue)}**`)
+            Начнется через: **${hasLive(getQueue(interaction.guildId))
+        ? '<Никогда>'
+        : remainedValue === 0
+          ? '<Сейчас>'
+          : timeFormatMilliseconds(remainedValue)}**`)
       .setThumbnail(info.preview)
       .setTimestamp()
       .setFooter(`Плейлист предложил пользователь ${interaction.user.username}`, interaction.user.displayAvatarURL());

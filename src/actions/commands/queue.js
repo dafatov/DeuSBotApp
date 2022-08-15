@@ -1,17 +1,17 @@
-const {SlashCommandBuilder} = require("@discordjs/builders");
-const {MessageEmbed, MessageActionRow, MessageButton} = require("discord.js");
-const {logGuild} = require("../../utils/logger");
-const {timeFormatSeconds, timeFormatmSeconds} = require("../../utils/dateTime.js");
-const {notify, notifyError} = require("../commands");
-const config = require("../../configs/config.js");
+const {SlashCommandBuilder} = require('@discordjs/builders');
+const {MessageEmbed, MessageActionRow, MessageButton} = require('discord.js');
+const {logGuild} = require('../../utils/logger');
+const {timeFormatSeconds, timeFormatMilliseconds} = require('../../utils/dateTime.js');
+const {notify, notifyError} = require('../commands');
+const config = require('../../configs/config.js');
 const progressBar = require('string-progressbar');
-const {escaping} = require("../../utils/string.js");
-const {createStatus} = require("../../utils/attachments");
-const {pause} = require("./pause");
-const {skip} = require("./skip");
-const {loop} = require("./loop");
-const {getQueue} = require("../player");
-const {getRadios} = require("../radios");
+const {escaping} = require('../../utils/string.js');
+const {createStatus} = require('../../utils/attachments');
+const {pause} = require('./pause');
+const {skip} = require('./skip');
+const {loop} = require('./loop');
+const {getQueue} = require('../player');
+const {getRadios} = require('../radios');
 
 let {start, count} = {start: 0, count: 5};
 
@@ -75,9 +75,11 @@ const queue = async (interaction) => {
             embed.setDescription(await getRadios().get(getQueue(interaction.guildId).nowPlaying.song.title).getInfo());
         }
     } else {
-        const barString = progressBar.filledBar(getQueue(interaction.guildId).nowPlaying.song.length * 1000,
-          getQueue(interaction.guildId).nowPlaying.resource.playbackDuration);
-        embed.setDescription(`\`${timeFormatmSeconds(getQueue(interaction.guildId).nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(
+        const barString = progressBar.filledBar(
+          getQueue(interaction.guildId).nowPlaying.song.length * 1000,
+          getQueue(interaction.guildId).nowPlaying.resource.playbackDuration,
+        );
+        embed.setDescription(`\`${timeFormatMilliseconds(getQueue(interaction.guildId).nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(
           getQueue(interaction.guildId).nowPlaying.song.length)}\`—_\`${getQueue(interaction.guildId).nowPlaying.song.author.username}\`_
             ${barString[0]} [${Math.round(barString[1])}%]\n`);
     }
@@ -232,9 +234,11 @@ const onQueue = async (interaction) => {
             embed.setDescription(await getRadios().get(getQueue(interaction.guildId).nowPlaying.song.title).getInfo());
         }
     } else {
-        const barString = progressBar.filledBar(getQueue(interaction.guildId).nowPlaying.song.length * 1000,
-          getQueue(interaction.guildId).nowPlaying.resource.playbackDuration);
-        embed.setDescription(`\`${timeFormatmSeconds(getQueue(interaction.guildId).nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(
+        const barString = progressBar.filledBar(
+          getQueue(interaction.guildId).nowPlaying.song.length * 1000,
+          getQueue(interaction.guildId).nowPlaying.resource.playbackDuration,
+        );
+        embed.setDescription(`\`${timeFormatMilliseconds(getQueue(interaction.guildId).nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(
           getQueue(interaction.guildId).nowPlaying.song.length)}\`—_\`${getQueue(interaction.guildId).nowPlaying.song.author.username}\`_
                 ${barString[0]} [${Math.round(barString[1])}%]\n`);
     }

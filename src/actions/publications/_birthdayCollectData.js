@@ -1,7 +1,7 @@
-const db = require("../../repositories/birthday");
-const {MessageEmbed} = require("discord.js");
-const config = require("../../configs/config");
-const {log, error} = require("../../utils/logger");
+const db = require('../../db/repositories/birthday');
+const {MessageEmbed} = require('discord.js');
+const config = require('../../configs/config');
+const {log, error} = require('../../utils/logger');
 
 module.exports = {
   async content(client) {

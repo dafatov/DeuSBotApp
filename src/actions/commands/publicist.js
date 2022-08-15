@@ -1,9 +1,9 @@
-const {SlashCommandBuilder} = require("@discordjs/builders");
-const db = require('../../repositories/publicist.js');
-const {MessageEmbed} = require("discord.js");
-const config = require("../../configs/config");
-const {notify, notifyError} = require("../commands");
-const {logGuild} = require("../../utils/logger");
+const {SlashCommandBuilder} = require('@discordjs/builders');
+const db = require('../../db/repositories/publicist.js');
+const {MessageEmbed} = require('discord.js');
+const config = require('../../configs/config');
+const {notify, notifyError} = require('../commands');
+const {logGuild} = require('../../utils/logger');
 
 module.exports = {
   data: new SlashCommandBuilder()
