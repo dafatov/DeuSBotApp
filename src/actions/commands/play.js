@@ -31,7 +31,7 @@ module.exports = {
     async execute(interaction) {
         await module.exports.play(interaction, true);
     },
-    async listener(interaction) {}
+    async listener(_interaction) {},
 }
 
 module.exports.play = async (interaction, isExecute, audio = interaction.options.getString('audio')) => {
@@ -101,7 +101,7 @@ module.exports.play = async (interaction, isExecute, audio = interaction.options
         }
         return {result: e};
     }
-    return {Added: added};
+    return {added};
 }
 
 const playPlaylist = async (interaction, p, isExecute) => {

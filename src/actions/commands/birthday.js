@@ -55,7 +55,7 @@ module.exports = {
   async execute(interaction) {
     await birthday(interaction);
   },
-  async listener(interaction) {},
+  async listener(_interaction) {},
 }
 
 const birthday = async (interaction) => {

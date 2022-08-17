@@ -12,7 +12,7 @@ module.exports = {
   async execute(interaction) {
     await first(interaction);
   },
-  async listener(interaction) {}
+  async listener(_interaction) {},
 }
 
 const first = async (interaction) => {

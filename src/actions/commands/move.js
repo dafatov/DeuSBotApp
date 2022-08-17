@@ -22,7 +22,7 @@ module.exports = {
   async execute(interaction) {
     await module.exports.move(interaction, true);
   },
-  async listener(interaction) {}
+  async listener(_interaction) {},
 }
 
 module.exports.move = async (interaction, isExecute, positionIndex = interaction.options.getInteger("position") - 1,

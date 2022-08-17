@@ -9,12 +9,14 @@ module.exports.init = async () => {
 };
 
 module.exports.publish = async (version, application, isPublic, message) => {
-  if (!isPublic || !version || !application) {
-    return `v${(await getLast(application))?.version}`;
+  const lastChangelog = await getLast(application);
+
+  if (!isPublic || !version || !application || !message || parseVersion(version) <= parseInt(lastChangelog?.version ?? 0)) {
+    return `v${lastChangelog?.version}`;
   }
 
   message = JSON.stringify(message);
-  if (((await getLast(application))?.message ?? '') !== message) {
+  if ((lastChangelog?.message ?? '') !== message) {
     await add(parseVersion(version), application, message)
       .then(() => audit({
         guildId: null,
@@ -22,7 +24,6 @@ module.exports.publish = async (version, application, isPublic, message) => {
         category: CATEGORIES.INIT,
         message: `Успешно зарегистрирована история изменений у ${application}`,
       }));
-    return version;
   } else {
     await audit({
       guildId: null,
@@ -30,6 +31,6 @@ module.exports.publish = async (version, application, isPublic, message) => {
       category: CATEGORIES.INIT,
       message: `История изменений не обновлена у ${application}`,
     });
-    return `v${(await getLast(application))?.version}`;
   }
+  return version;
 };

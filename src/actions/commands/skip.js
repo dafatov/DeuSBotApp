@@ -13,7 +13,7 @@ module.exports = {
   async execute(interaction) {
     await module.exports.skip(interaction, true);
   },
-  async listener(interaction) {}
+  async listener(_interaction) {},
 }
 
 module.exports.skip = async (interaction, isExecute) => { //TODO добавить аналогичные изменения везде где требуется

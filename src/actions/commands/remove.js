@@ -17,7 +17,7 @@ module.exports = {
   async execute(interaction) {
     await module.exports.remove(interaction, true);
   },
-  async listener(interaction) {}
+  async listener(_interaction) {},
 }
 
 module.exports.remove = async (interaction, isExecute, targetIndex = interaction.options.getInteger("target") - 1) => {

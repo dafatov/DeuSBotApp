@@ -47,10 +47,10 @@ module.exports = {
   async execute(interaction) {
     await shikimori(interaction);
   },
-  async listener(interaction) {},
+  async listener(_interaction) {},
   async update(interaction) {
     await update(interaction);
-  }
+  },
 }
 
 module.exports.shikimoriPlay = async (interaction, login, count) => await play(interaction, false, login, count);

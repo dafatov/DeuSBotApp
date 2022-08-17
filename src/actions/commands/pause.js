@@ -12,7 +12,7 @@ module.exports = {
   async execute(interaction) {
     await module.exports.pause(interaction, true);
   },
-  async listener(interaction) {}
+  async listener(_interaction) {},
 }
 
 module.exports.pause = async (interaction, isExecute) => {

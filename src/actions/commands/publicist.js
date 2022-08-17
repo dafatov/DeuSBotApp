@@ -25,7 +25,7 @@ module.exports = {
   async execute(interaction) {
     await publicist(interaction);
   },
-  async listener(interaction) {}
+  async listener(_interaction) {},
 }
 
 const publicist = async (interaction) => {

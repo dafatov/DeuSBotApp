@@ -27,7 +27,7 @@ module.exports = {
     async execute(interaction) {
         await issue(interaction);
     },
-    async listener(interaction) {}
+    async listener(_interaction) {},
 }
 
 const issue = async (interaction) => {

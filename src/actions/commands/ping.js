@@ -9,7 +9,7 @@ module.exports = {
   async execute(interaction) {
     await ping(interaction);
   },
-  async listener(interaction) {}
+  async listener(_interaction) {},
 }
 
 const ping = async (interaction) => {

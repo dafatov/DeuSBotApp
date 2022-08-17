@@ -1,4 +1,4 @@
-﻿const config = require('../../configs/config.js');
+const config = require('../../configs/config.js');
 const {logGuild} = require('../../utils/logger.js');
 const db = require('../../db/repositories/responses.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
