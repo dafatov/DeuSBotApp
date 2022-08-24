@@ -4,6 +4,9 @@ const {MessageEmbed} = require('discord.js');
 const config = require('../../configs/config');
 const {notify, notifyError} = require('../commands');
 const {logGuild} = require('../../utils/logger');
+const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {audit} = require('../auditor');
+const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -39,6 +42,22 @@ const publicist = async (interaction) => {
 }
 
 const set = async (interaction) => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PUBLICIST_SET)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Доступ к команде \"publicist set\" запрещен')
+      .setTimestamp()
+      .setDescription('Запросите доступ у администратора сервера');
+    await notify('publicist', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.PERMISSION,
+      message: 'Доступ к команде publicist.set запрещен',
+    });
+    return;
+  }
+
   const channel = interaction.options.getChannel('channel');
 
   try {
@@ -47,7 +66,7 @@ const set = async (interaction) => {
       .setColor(config.colors.info)
       .setTitle('Хех.. ой щас заспамлю')
       .setDescription(`В качестве информационного канала установлен канал **${channel.name}**`)
-      .setTimestamp()
+      .setTimestamp();
     await notify('publicist', interaction, {embeds: [embed]});
     logGuild(interaction.guildId, `[publicist]: Информационный канал успешно установлен`);
   } catch (e) {
@@ -56,13 +75,29 @@ const set = async (interaction) => {
 }
 
 const remove = async (interaction) => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PUBLICIST_REMOVE)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Доступ к команде \"publicist remove\" запрещен')
+      .setTimestamp()
+      .setDescription('Запросите доступ у администратора сервера');
+    await notify('publicist', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.PERMISSION,
+      message: 'Доступ к команде publicist.remove запрещен',
+    });
+    return;
+  }
+
   try {
     await db.delete(interaction.guildId);
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
       .setTitle('Ты чо меня заскамил? Чтоб я больше не спамил Йоу')
       .setDescription('Информационный канал удален. Deus больше не сможет посылать уведомления')
-      .setTimestamp()
+      .setTimestamp();
     await notify('publicist', interaction, {embeds: [embed]});
     logGuild(interaction.guildId, `[publicist]: Информационный канал успешно удален`);
   } catch (e) {
@@ -71,6 +106,22 @@ const remove = async (interaction) => {
 };
 
 const show = async (interaction) => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PUBLICIST_SHOW)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Доступ к команде \"publicist show\" запрещен')
+      .setTimestamp()
+      .setDescription('Запросите доступ у администратора сервера');
+    await notify('publicist', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.PERMISSION,
+      message: 'Доступ к команде publicist.show запрещен',
+    });
+    return;
+  }
+
   try {
     const channelId = (await db.getAll()).find(p => p.guildId === interaction.guildId)?.channelId;
     const embed = new MessageEmbed()
@@ -78,7 +129,7 @@ const show = async (interaction) => {
       .setTitle(`Информационный канал сервера ${interaction.guild.name}`)
       .setDescription(`На данный момент сервером дискорда является... _\*барабанная дробь типа\*_
         ...**${interaction.guild.channels.cache.get(channelId)?.name}**`)
-      .setTimestamp()
+      .setTimestamp();
     await notify('publicist', interaction, {embeds: [embed]});
     logGuild(interaction.guildId, `[publicist]: Информационный канал успешно выведен`);
   } catch (e) {

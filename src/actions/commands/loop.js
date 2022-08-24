@@ -1,9 +1,12 @@
-const {SlashCommandBuilder} = require("@discordjs/builders");
-const {MessageEmbed} = require("discord.js");
-const {logGuild} = require("../../utils/logger");
-const {notify} = require("../commands");
-const config = require("../../configs/config.js");
-const {getQueue} = require("../player");
+const {SlashCommandBuilder} = require('@discordjs/builders');
+const {MessageEmbed} = require('discord.js');
+const {logGuild} = require('../../utils/logger');
+const {notify} = require('../commands');
+const config = require('../../configs/config.js');
+const {getQueue} = require('../player');
+const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {audit} = require('../auditor');
+const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -13,9 +16,25 @@ module.exports = {
     await module.exports.loop(interaction, true);
   },
   async listener(_interaction) {},
-}
+};
 
 module.exports.loop = async (interaction, isExecute) => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_LOOP)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Доступ к команде \"loop\" запрещен')
+      .setTimestamp()
+      .setDescription('Запросите доступ у администратора сервера');
+    await notify('loop', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.PERMISSION,
+      message: 'Доступ к команде loop запрещен',
+    });
+    return {result: 'Доступ к команде запрещен'};
+  }
+
   if (!getQueue(interaction.guildId).nowPlaying.song || !getQueue(interaction.guildId).connection || !getQueue(interaction.guildId).player) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)

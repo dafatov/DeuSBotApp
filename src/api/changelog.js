@@ -6,7 +6,7 @@ module.exports = {
     socket.on('changelog:changelog', () =>
       getAll().then(changelog => socket.emit(
         'changelog:changelog',
-        changelog.map(c => ({...c, message: JSON.parse(c.message)})),
+        {status: 200, data: changelog.map(c => ({...c, message: JSON.parse(c.message)}))},
       )));
 
     socket.on('changelog:publish', (version, changelog, callback) =>

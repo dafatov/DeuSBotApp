@@ -11,13 +11,16 @@ const {playPlayer, getQueue, hasLive} = require('../player.js');
 const {escaping} = require('../../utils/string.js');
 const progressBar = require('string-progressbar');
 const {remained} = require('../../utils/calc.js');
+const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {audit} = require('../auditor');
+const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
 
 const options = {
     requestOptions: {
         headers: {
-            cookie: process.env.COOKIE
-        }
-    }
+            cookie: process.env.COOKIE,
+        },
+    },
 };
 
 module.exports = {
@@ -35,6 +38,22 @@ module.exports = {
 }
 
 module.exports.play = async (interaction, isExecute, audio = interaction.options.getString('audio')) => {
+    if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PLAY)) {
+        const embed = new MessageEmbed()
+          .setColor(config.colors.warning)
+          .setTitle('Доступ к команде \"play\" запрещен')
+          .setTimestamp()
+          .setDescription('Запросите доступ у администратора сервера');
+        await notify('play', interaction, {embeds: [embed], ephemeral: true});
+        await audit({
+            guildId: interaction.guildId,
+            type: TYPES.INFO,
+            category: CATEGORIES.PERMISSION,
+            message: 'Доступ к команде play запрещен',
+        });
+        return {result: 'Доступ к команде запрещен'};
+    }
+
     if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
       && getQueue(interaction.guildId).connection.joinConfig.channelId !==
       interaction.member.voice.channel.id) {
@@ -47,7 +66,7 @@ module.exports.play = async (interaction, isExecute, audio = interaction.options
             await notify('play', interaction, {embeds: [embed]});
         }
         logGuild(interaction.guildId, `[play]: Добавить композицию не вышло: не совпадают каналы`);
-        return {result: "Не совпадают каналы"};
+        return {result: 'Не совпадают каналы'};
     }
 
     let added;

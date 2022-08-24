@@ -1,10 +1,13 @@
-const {SlashCommandBuilder} = require("@discordjs/builders");
-const {MessageEmbed} = require("discord.js");
-const {logGuild} = require("../../utils/logger");
-const {notify} = require("../commands");
-const config = require("../../configs/config.js");
-const {escaping} = require("../../utils/string.js");
-const {getQueue} = require("../player");
+const {SlashCommandBuilder} = require('@discordjs/builders');
+const {MessageEmbed} = require('discord.js');
+const {logGuild} = require('../../utils/logger');
+const {notify} = require('../commands');
+const config = require('../../configs/config.js');
+const {escaping} = require('../../utils/string.js');
+const {getQueue} = require('../player');
+const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {audit} = require('../auditor');
+const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -21,6 +24,22 @@ module.exports = {
 }
 
 module.exports.remove = async (interaction, isExecute, targetIndex = interaction.options.getInteger("target") - 1) => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_REMOVE)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Доступ к команде \"remove\" запрещен')
+      .setTimestamp()
+      .setDescription('Запросите доступ у администратора сервера');
+    await notify('remove', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.PERMISSION,
+      message: 'Доступ к команде remove запрещен',
+    });
+    return {result: 'Доступ к команде запрещен'};
+  }
+
   if (!getQueue(interaction.guildId).songs || getQueue(interaction.guildId).songs.length < 1) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)

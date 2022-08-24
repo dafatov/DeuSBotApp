@@ -3,6 +3,9 @@ const {MessageEmbed} = require('discord.js');
 const {notify, notifyError} = require('../commands');
 const {logGuild} = require('../../utils/logger.js');
 const config = require('../../configs/config.js');
+const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {audit} = require('../auditor');
+const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
 
 module.exports = {
   data: new SlashCommandBuilder().setName('ping').setDescription('Пинг и отпинг'),
@@ -10,9 +13,25 @@ module.exports = {
     await ping(interaction);
   },
   async listener(_interaction) {},
-}
+};
 
 const ping = async (interaction) => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PING)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Доступ к команде \"ping\" запрещен')
+      .setTimestamp()
+      .setDescription('Запросите доступ у администратора сервера');
+    await notify('ping', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.PERMISSION,
+      message: 'Доступ к команде ping запрещен',
+    });
+    return;
+  }
+
   const embed = new MessageEmbed()
     .setColor(config.colors.info)
     .setTitle('Мое время обработки данных')

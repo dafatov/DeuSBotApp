@@ -12,59 +12,80 @@ const {skip} = require('./skip');
 const {loop} = require('./loop');
 const {getQueue} = require('../player');
 const {getRadios} = require('../radios');
+const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {audit} = require('../auditor');
+const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
 
 let {start, count} = {start: 0, count: 5};
 
 module.exports = {
-    data: new SlashCommandBuilder()
-      .setName('queue')
-      .setDescription('Отображение очереди композиций на воспроизведение'),
-    async execute(interaction) {
-        await queue(interaction);
-    },
-    async listener(interaction) {
-        await onQueue(interaction);
-    }
-}
+  data: new SlashCommandBuilder()
+    .setName('queue')
+    .setDescription('Отображение очереди композиций на воспроизведение'),
+  async execute(interaction) {
+    await queue(interaction);
+  },
+  async listener(interaction) {
+    await onQueue(interaction);
+  },
+};
 
 const queue = async (interaction) => {
-    const songs = getQueue(interaction.guildId).songs;
-
-    if (songs.length === 0 && !getQueue(interaction.guildId).nowPlaying.song) {
-        const embed = new MessageEmbed()
-          .setColor(config.colors.warning)
-          .setTitle('Мир музыки пуст')
-          .setDescription(`Может ли существовать мир без музыки? Каким бы он был...
-                Ах да! Таким, в котором сейчас живешь ты~~`)
-          .setTimestamp();
-        await notify('queue', interaction, {embeds: [embed]});
-        logGuild(interaction.guildId, `[queue]: Вывести очередь не вышло: плеер не играет и очередь пуста`);
-        return;
-    }
-
-    if (songs.length !== 0 && !getQueue(interaction.guildId).nowPlaying.song) {
-        const embed = new MessageEmbed()
-          .setColor(config.colors.warning)
-          .setTitle('Да, кто ты такой, чтобы вмешиваться в мою работу!!!')
-          .setDescription(`Бот в процессе формирования плейлиста и может не отвечать на сообщения`)
-          .setTimestamp();
-        await notify('queue', interaction, {embeds: [embed]});
-        logGuild(interaction.guildId, `[queue]: Вывести очередь не вышло: плеер не играет, а очередь не пуста`);
-        return;
-    }
-
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_QUEUE)) {
     const embed = new MessageEmbed()
-      .setColor(config.colors.info)
-      .setFooter(`${Math.min(start + 1, songs.length)} - ${Math.min(start + count, songs.length)} из ${songs.length} по ${count}`);
+      .setColor(config.colors.warning)
+      .setTitle('Доступ к команде \"queue\" запрещен')
+      .setTimestamp()
+      .setDescription('Запросите доступ у администратора сервера');
+    await notify('queue', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.PERMISSION,
+      message: 'Доступ к команде queue запрещен',
+    });
+    return;
+  }
 
-    embed.setFields(songs
-      .slice(start, count)
-      .map((song, i) => ({
-          name: `${String(start + i + 1).padStart(String(songs.length).length, '0')}). ${escaping(song.title)}`,
-          value: `\`${song.isLive ? '<Стрим>' : timeFormatSeconds(song.length)}\`—_\`${song.author.username}\`_`
-      })));
+  const songs = getQueue(interaction.guildId).songs;
 
-    embed.setTitle(escaping(getQueue(interaction.guildId).nowPlaying.song.title))
+  if (songs.length === 0 && !getQueue(interaction.guildId).nowPlaying.song) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Мир музыки пуст')
+      .setDescription(`Может ли существовать мир без музыки? Каким бы он был...
+                Ах да! Таким, в котором сейчас живешь ты~~`)
+      .setTimestamp();
+    await notify('queue', interaction, {embeds: [embed]});
+    logGuild(interaction.guildId, `[queue]: Вывести очередь не вышло: плеер не играет и очередь пуста`);
+    return;
+  }
+
+  if (songs.length !== 0 && !getQueue(interaction.guildId).nowPlaying.song) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Да, кто ты такой, чтобы вмешиваться в мою работу!!!')
+      .setDescription(`Бот в процессе формирования плейлиста и может не отвечать на сообщения`)
+      .setTimestamp();
+    await notify('queue', interaction, {embeds: [embed]});
+    logGuild(interaction.guildId, `[queue]: Вывести очередь не вышло: плеер не играет, а очередь не пуста`);
+    return;
+  }
+
+  const embed = new MessageEmbed()
+    .setColor(config.colors.info)
+    .setFooter(`${Math.min(start + 1, songs.length)} - ${Math.min(start + count, songs.length)} из ${songs.length} по ${count}`);
+
+  embed.setFields(songs
+    .slice(start, count)
+    .map((song, i) => ({
+      name: `${String(start + i + 1).padStart(String(songs.length).length, '0')}). ${escaping(song.title)}`,
+      value: `\`${song.isLive
+        ? '<Стрим>'
+        : timeFormatSeconds(song.length)}\`—_\`${song.author.username}\`_`,
+    })));
+
+  embed.setTitle(escaping(getQueue(interaction.guildId).nowPlaying.song.title))
       .setURL(getQueue(interaction.guildId).nowPlaying.song.url)
       .setThumbnail(getQueue(interaction.guildId).nowPlaying.song.preview)
       .setTimestamp();

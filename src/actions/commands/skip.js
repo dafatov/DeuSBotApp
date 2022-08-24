@@ -16,7 +16,23 @@ module.exports = {
   async listener(_interaction) {},
 }
 
-module.exports.skip = async (interaction, isExecute) => { //TODO добавить аналогичные изменения везде где требуется
+module.exports.skip = async (interaction, isExecute) => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_SKIP)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Доступ к команде \"skip\" запрещен')
+      .setTimestamp()
+      .setDescription('Запросите доступ у администратора сервера');
+    await notify('skip', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.PERMISSION,
+      message: 'Доступ к команде skip запрещен',
+    });
+    return {result: 'Доступ к команде запрещен'};
+  }
+
   if (!player.getQueue(interaction.guildId).nowPlaying.song || !player.getQueue(interaction.guildId).connection ||
     !player.getQueue(interaction.guildId).player) {
     const embed = new MessageEmbed()

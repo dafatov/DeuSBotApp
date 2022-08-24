@@ -8,6 +8,9 @@ const {escaping} = require('../../utils/string');
 const {timeFormatSeconds, timeFormatMilliseconds} = require('../../utils/dateTime');
 const {remained} = require('../../utils/calc');
 const {getRadios} = require('../radios');
+const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {audit} = require('../auditor');
+const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -40,6 +43,22 @@ module.exports = {
 }
 
 module.exports.radio = async (interaction, isExecute, stationKey = interaction.options.getString('station')) => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_RADIO)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Доступ к команде \"radio\" запрещен')
+      .setTimestamp()
+      .setDescription('Запросите доступ у администратора сервера');
+    await notify('radio', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.PERMISSION,
+      message: 'Доступ к команде radio запрещен',
+    });
+    return {result: 'Доступ к команде запрещен'};
+  }
+
   if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
     && getQueue(interaction.guildId).connection.joinConfig.channelId !==
     interaction.member.voice.channel.id) {

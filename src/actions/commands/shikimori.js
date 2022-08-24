@@ -8,6 +8,9 @@ const {notify, notifyError, update} = require('../commands.js');
 const db = require('../../db/repositories/users.js');
 const {escaping} = require('../../utils/string.js');
 const RandomOrg = require('random-org');
+const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {audit} = require('../auditor');
+const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
 
 const MAX_COUNT = 100;
 
@@ -66,13 +69,29 @@ const shikimori = async (interaction) => {
 }
 
 const play = async (interaction, isExecute, login = interaction.options.getString('nickname'), count = interaction.options.getInteger('count') || 1) => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_SHIKIMORI_PLAY)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Доступ к команде \"shikimori play\" запрещен')
+      .setTimestamp()
+      .setDescription('Запросите доступ у администратора сервера');
+    await notify('shikimori', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.PERMISSION,
+      message: 'Доступ к команде shikimori.play запрещен',
+    });
+    return {result: 'Доступ к команде запрещен'};
+  }
+
   let animes, response;
 
   try {
     response = await axios.get(`https://shikimori.one/${login}/list_export/animes.json`);
     animes = response.data.filter(a =>
       (a.status === 'completed' || a.status === 'watching')
-      && a.episodes > 1
+      && a.episodes > 1,
     );
   } catch (e) {
     const embed = new MessageEmbed()
@@ -144,10 +163,26 @@ const play = async (interaction, isExecute, login = interaction.options.getStrin
 }
 
 const set = async (interaction) => {
-  let {login, nickname} = {
-    login: interaction.options.getString("login"),
-    nickname: interaction.options.getString("nickname")
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_SHIKIMORI_SET)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Доступ к команде \"shikimori set\" запрещен')
+      .setTimestamp()
+      .setDescription('Запросите доступ у администратора сервера');
+    await notify('shikimori', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.PERMISSION,
+      message: 'Доступ к команде shikimori.set запрещен',
+    });
+    return {result: 'Доступ к команде запрещен'};
   }
+
+  let {login, nickname} = {
+    login: interaction.options.getString('login'),
+    nickname: interaction.options.getString('nickname'),
+  };
 
   try {
     if (!login || !nickname) {
@@ -180,7 +215,23 @@ const set = async (interaction) => {
 }
 
 const remove = async (interaction) => {
-  let login = interaction.options.getString("login");
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_SHIKIMORI_REMOVE)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Доступ к команде \"shikimori remove\" запрещен')
+      .setTimestamp()
+      .setDescription('Запросите доступ у администратора сервера');
+    await notify('shikimori', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.PERMISSION,
+      message: 'Доступ к команде shikimori.remove запрещен',
+    });
+    return {result: 'Доступ к команде запрещен'};
+  }
+
+  let login = interaction.options.getString('login');
 
   try {
     if (!login) {

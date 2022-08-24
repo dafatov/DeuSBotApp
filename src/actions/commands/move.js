@@ -1,11 +1,14 @@
-const {SlashCommandBuilder} = require("@discordjs/builders");
-const {MessageEmbed} = require("discord.js");
-const {logGuild} = require("../../utils/logger");
-const {notify} = require("../commands");
-const config = require("../../configs/config.js");
-const {escaping} = require("../../utils/string");
-const {arrayMoveMutable} = require("../../utils/array.js");
-const {getQueue} = require("../player");
+const {SlashCommandBuilder} = require('@discordjs/builders');
+const {MessageEmbed} = require('discord.js');
+const {logGuild} = require('../../utils/logger');
+const {notify} = require('../commands');
+const config = require('../../configs/config.js');
+const {escaping} = require('../../utils/string');
+const {arrayMoveMutable} = require('../../utils/array.js');
+const {getQueue} = require('../player');
+const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {audit} = require('../auditor');
+const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -28,6 +31,22 @@ module.exports = {
 module.exports.move = async (interaction, isExecute, positionIndex = interaction.options.getInteger("position") - 1,
   targetIndex = interaction.options.getInteger("target") - 1
 ) => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_MOVE)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Доступ к команде \"move\" запрещен')
+      .setTimestamp()
+      .setDescription('Запросите доступ у администратора сервера');
+    await notify('move', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.PERMISSION,
+      message: 'Доступ к команде move запрещен',
+    });
+    return {result: 'Доступ к команде запрещен'};
+  }
+
   if (!getQueue(interaction.guildId).songs || getQueue(interaction.guildId).songs.length < 2) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)

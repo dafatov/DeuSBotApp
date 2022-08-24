@@ -5,6 +5,9 @@ const {SlashCommandBuilder} = require('@discordjs/builders');
 const {MessageEmbed, MessageActionRow, MessageButton} = require('discord.js');
 const {notify, notifyError} = require('../commands.js');
 const {escaping} = require('../../utils/string.js');
+const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {audit} = require('../auditor');
+const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
 
 const {start, count} = {start: 0, count: 5};
 
@@ -52,6 +55,22 @@ const response = async (interaction) => {
 };
 
 const set = async (interaction) => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_RESPONSE_SET)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Доступ к команде \"response set\" запрещен')
+      .setTimestamp()
+      .setDescription('Запросите доступ у администратора сервера');
+    await notify('response', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.PERMISSION,
+      message: 'Доступ к команде response.set запрещен',
+    });
+    return;
+  }
+
   let {regex, react} = {
     regex: interaction.options.getString('regex'),
     react: interaction.options.getString('react'),
@@ -86,6 +105,22 @@ const set = async (interaction) => {
 };
 
 const remove = async (interaction) => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_RESPONSE_REMOVE)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Доступ к команде \"response remove\" запрещен')
+      .setTimestamp()
+      .setDescription('Запросите доступ у администратора сервера');
+    await notify('response', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.PERMISSION,
+      message: 'Доступ к команде response.remove запрещен',
+    });
+    return;
+  }
+
   let regex = interaction.options.getString('regex');
 
   try {
@@ -108,6 +143,22 @@ const remove = async (interaction) => {
 };
 
 const show = async (interaction) => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_RESPONSE_SHOW)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Доступ к команде \"response show\" запрещен')
+      .setTimestamp()
+      .setDescription('Запросите доступ у администратора сервера');
+    await notify('response', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.PERMISSION,
+      message: 'Доступ к команде response.show запрещен',
+    });
+    return;
+  }
+
   const rules = await db.getAll(interaction.guildId);
   const embed = new MessageEmbed()
     .setColor('#000000')

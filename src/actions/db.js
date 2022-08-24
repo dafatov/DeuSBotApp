@@ -12,26 +12,20 @@ const getNewClient = () => {
         rejectUnauthorized: false,
       },
   });
-}
+};
 
 module.exports.db = getNewClient();
 
 module.exports.init = async () => {
   await this.db.connect()
-    .then(() => migrate({client: this.db}, 'src/db/migrations', {
-      logger: async message => await audit({
-        guildId: null,
-        type: TYPES.DEBUG,
-        category: CATEGORIES.DATABASE,
-        message,
-      }),
-    })).then(() => audit({
+    .then(() => migrate({client: this.db}, 'src/db/migrations'))
+    .then(() => audit({
       guildId: null,
       type: TYPES.INFO,
       category: CATEGORIES.INIT,
       message: 'Успешно загружена база данных',
     })).catch(() => {});
-}
+};
 
 module.exports.db.on('error', async (err) => {
   module.exports.db = getNewClient();

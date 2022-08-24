@@ -14,6 +14,8 @@ module.exports.CATEGORIES = Object.freeze({
   INIT: 'init',
   AUDITOR: 'auditor',
   DATABASE: 'database',
+  PERMISSION: 'permission',
+  API: 'api',
 });
 
 let audit = null;

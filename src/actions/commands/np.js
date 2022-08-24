@@ -9,49 +9,68 @@ const {escaping} = require('../../utils/string.js');
 const {createStatus} = require('../../utils/attachments');
 const {getQueue} = require('../player');
 const {getRadios} = require('../radios');
+const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {audit} = require('../auditor');
+const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('np')
     .setDescription('Отобразить текущую композицию'),
-    async execute(interaction) {
-        await np(interaction);
-    },
-    async listener(_interaction) {},
-}
+  async execute(interaction) {
+    await np(interaction);
+  },
+  async listener(_interaction) {},
+};
 
 const np = async (interaction) => {
-    let info = getQueue(interaction.guildId).nowPlaying;
-
-    if (!getQueue(interaction.guildId).connection || !getQueue(interaction.guildId).player || !info.song) {
-        const embed = new MessageEmbed()
-          .setColor(config.colors.warning)
-          .setTitle('Так ничего и не играло')
-          .setDescription(`Как ты жалок... Это же уже было когда ты пытался пропустить, верно?~
-                Теперь ты повторяешь это в при получении текущей композиции. Или это было в другом порядке?`)
-          .setTimestamp();
-        await notify('np', interaction, {embeds: [embed]});
-        logGuild(interaction.guildId, `[np]: Пропустить композицию не вышло: плеер не играет`);
-        return;
-    }
-
-    if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
-      && getQueue(interaction.guildId).connection.joinConfig.channelId !==
-      interaction.member.voice.channel.id) {
-        const embed = new MessageEmbed()
-          .setColor(config.colors.warning)
-          .setTitle('Канал не тот')
-          .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь...
-                Дежавю? Разве этого же не было в пропуске композиции? Или у этого времени другой порядок...`)
-          .setTimestamp();
-        await notify('np', interaction, {embeds: [embed]});
-        logGuild(interaction.guildId, `[np]: Пропустить композицию не вышло: не совпадают каналы`);
-        return;
-    }
-
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_NP)) {
     const embed = new MessageEmbed()
-      .setColor(config.colors.info)
-      .setTitle(escaping(info.song.title))
+      .setColor(config.colors.warning)
+      .setTitle('Доступ к команде \"np\" запрещен')
+      .setTimestamp()
+      .setDescription('Запросите доступ у администратора сервера');
+    await notify('np', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.PERMISSION,
+      message: 'Доступ к команде np запрещен',
+    });
+    return;
+  }
+
+  let info = getQueue(interaction.guildId).nowPlaying;
+
+  if (!getQueue(interaction.guildId).connection || !getQueue(interaction.guildId).player || !info.song) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Так ничего и не играло')
+      .setDescription(`Как ты жалок... Это же уже было когда ты пытался пропустить, верно?~
+                Теперь ты повторяешь это в при получении текущей композиции. Или это было в другом порядке?`)
+      .setTimestamp();
+    await notify('np', interaction, {embeds: [embed]});
+    logGuild(interaction.guildId, `[np]: Пропустить композицию не вышло: плеер не играет`);
+    return;
+  }
+
+  if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
+    && getQueue(interaction.guildId).connection.joinConfig.channelId !==
+    interaction.member.voice.channel.id) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle('Канал не тот')
+      .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь...
+                Дежавю? Разве этого же не было в пропуске композиции? Или у этого времени другой порядок...`)
+      .setTimestamp();
+    await notify('np', interaction, {embeds: [embed]});
+    logGuild(interaction.guildId, `[np]: Пропустить композицию не вышло: не совпадают каналы`);
+    return;
+  }
+
+  const embed = new MessageEmbed()
+    .setColor(config.colors.info)
+    .setTitle(escaping(info.song.title))
       .setURL(info.song.url)
       .setThumbnail(info.song.preview)
       .setTimestamp()
