@@ -41,7 +41,7 @@ module.exports = {
     }, {})));
   },
   async condition(now) {
-    return now.getHours() === 21 && now.getMinutes() === 0;
+    return now.getHours() === 18 && now.getMinutes() === 0;
   },
   async onPublished(_messages, _variables) {}
 }
