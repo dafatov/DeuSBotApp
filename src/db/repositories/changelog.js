@@ -31,7 +31,7 @@ module.exports.add = async (version, application, message) => {
 };
 
 module.exports.shown = async (version, application) => {
-  if (await isValidShown(parseInt(version), application)) {
+  if (await isValidShown(version, application)) {
     this.cacheReset();
     await db.query(`UPDATE CHANGELOG
                     SET SHOWN = true
@@ -52,7 +52,10 @@ const isValidShown = async (version, application) => {
     .then(all => all.filter(item => !item.shown))
     .then(all => all.filter(item => item.application === application))
     .then(all => all.map(item => item.version))
-    .then(versions => Math.min(...versions));
+    .then(all => all.sort((a, b) => isVersionUpdated(a, b)
+      ? -1
+      : 1))
+    .then(versions => versions[0]);
   return firstUnshownVersion === version;
 };
 

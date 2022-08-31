@@ -7,6 +7,7 @@ const helps = require('../../configs/help.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {audit} = require('../auditor');
 const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
+const {version} = require('../../../package');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -41,7 +42,7 @@ const help = async (interaction) => {
   }
 
   let command = interaction.options.getString('command');
-  let helpDefault = `Данный бот (Deus v${process.env.npm_package_version}) был разработан DemetriouS (aka dafatov) в рамках частного проекта специально для данного сервера на чистом энузиазме, а, следовательно, все претензии, требования, жалобы и другие проявления человеческого социального одностроннего взаимодействия могут идти лесом, рощей и т.п.
+  let helpDefault = `Данный бот (Deus v${version}) был разработан DemetriouS (aka dafatov) в рамках частного проекта специально для данного сервера на чистом энузиазме, а, следовательно, все претензии, требования, жалобы и другие проявления человеческого социального одностроннего взаимодействия могут идти лесом, рощей и т.п.
     
         Для остальных - при нахождении бага, просьба точно определиться, что это баг, а не фича, для начала. Перейти на сайт <https://github.com/dafatov/DeusBot/issues> и оставить там **New issue**, в котором **описать ситуациию возникновения проблемы, ожидаемый результат и полученный результат**.
     

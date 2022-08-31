@@ -3,9 +3,10 @@ const changelog = require('../configs/changelog');
 const {isVersionUpdated} = require('../utils/string');
 const {audit} = require('../actions/auditor');
 const {TYPES, CATEGORIES} = require('../db/repositories/audit');
+const {version} = require('../../package');
 
 module.exports.init = async () => {
-  await this.publish(process.env.npm_package_version, APPLICATIONS.DEUS_BOT, changelog.isPublic, changelog.message);
+  await this.publish(version, APPLICATIONS.DEUS_BOT, changelog.isPublic, changelog.message);
 };
 
 module.exports.publish = async (version, application, isPublic, message) => {
