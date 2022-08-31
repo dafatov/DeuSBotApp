@@ -1,4 +1,5 @@
 const {db} = require('../../actions/db');
+const {isVersionUpdated} = require('../../utils/string');
 
 module.exports.APPLICATIONS = Object.freeze({
   DEUS_BOT: 'deus_bot',
@@ -20,7 +21,7 @@ module.exports.getUnshown = async () => await this.getAll()
 module.exports.getLast = async (application) => await this.getAll()
   .then(all => getLastVersion(application)
     .then(lastVersion => all.find(changelog =>
-      parseInt(changelog.version) === lastVersion)));
+      changelog.version === lastVersion)));
 
 module.exports.add = async (version, application, message) => {
   if (await isValidAdd(version, application)) {
@@ -43,7 +44,7 @@ module.exports.cacheReset = () => changelogs = null;
 
 const isValidAdd = async (version, application) => {
   const lastVersion = await getLastVersion(application);
-  return (lastVersion ?? 0) < version;
+  return isVersionUpdated(lastVersion ?? '0.0.0', version);
 };
 
 const isValidShown = async (version, application) => {
@@ -58,4 +59,7 @@ const isValidShown = async (version, application) => {
 const getLastVersion = (application) => this.getAll()
   .then(all => all.filter(item => item.application === application))
   .then(all => all.map(item => item.version))
-  .then(versions => Math.max(...versions));
+  .then(all => all.sort((a, b) => isVersionUpdated(a, b)
+    ? 1
+    : -1))
+  .then(versions => versions[0]);

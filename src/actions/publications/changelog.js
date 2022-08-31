@@ -1,12 +1,14 @@
 const {MessageEmbed} = require('discord.js');
 const config = require('../../configs/config');
-const {escaping} = require('../../utils/string');
+const {escaping, isVersionUpdated} = require('../../utils/string');
 const {getUnshown, shown, APPLICATIONS} = require('../../db/repositories/changelog');
 
 module.exports = {
   async content(_client) {
     const changelogs = (await getUnshown())
-      .sort((a, b) => parseInt(a.version) - parseInt(b.version));
+      .sort((a, b) => isVersionUpdated(a.version, b.version)
+        ? -1
+        : 1);
 
     return {
       default: {

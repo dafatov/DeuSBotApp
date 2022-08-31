@@ -1,23 +1,23 @@
 const {getLast, add, APPLICATIONS} = require('../db/repositories/changelog');
 const changelog = require('../configs/changelog');
-const {parseVersion} = require('../utils/string');
+const {isVersionUpdated} = require('../utils/string');
 const {audit} = require('../actions/auditor');
 const {TYPES, CATEGORIES} = require('../db/repositories/audit');
 
 module.exports.init = async () => {
-  await this.publish(process.env.HEROKU_RELEASE_VERSION, APPLICATIONS.DEUS_BOT, changelog.isPublic, changelog.message);
+  await this.publish(process.env.npm_package_version, APPLICATIONS.DEUS_BOT, changelog.isPublic, changelog.message);
 };
 
 module.exports.publish = async (version, application, isPublic, message) => {
   const lastChangelog = await getLast(application);
 
-  if (!isPublic || !version || !application || !message || parseVersion(version) <= parseInt(lastChangelog?.version ?? 0)) {
-    return `v${lastChangelog?.version}`;
+  if (!isPublic || !version || !application || !message || !isVersionUpdated(lastChangelog?.version ?? '0.0.0', version)) {
+    return lastChangelog?.version;
   }
 
   message = JSON.stringify(message);
   if ((lastChangelog?.message ?? '') !== message) {
-    await add(parseVersion(version), application, message)
+    await add(version, application, message)
       .then(() => audit({
         guildId: null,
         type: TYPES.INFO,

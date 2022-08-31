@@ -3,10 +3,10 @@ module.exports.escaping = (str) => {
 
   symbols.forEach(s => {
     str = str.replaceAll(s, `\\${s}`);
-  })
+  });
 
   return str;
-}
+};
 
 module.exports.parseAnisonResponseOnAir = (onAir) => {
   const res = {};
@@ -21,18 +21,35 @@ module.exports.parseAnisonResponseOnAir = (onAir) => {
   res.source = onAir.substring(iMark1 + mark1.length, iMark2);
   res.title = onAir.substring(iMark2 + mark2.length + 8, iMark3);
   return res;
-}
+};
 
-module.exports.parseVersion = version => parseInt(version.substring(1));
+module.exports.isVersionUpdated = (versionOld, versionNew) => {
+  versionOld = versionOld.split('.').map(v => parseInt(v));
+  versionNew = versionNew.split('.').map(v => parseInt(v));
+
+  if (versionOld.length !== versionNew.length) {
+    throw 'Version has wrong format';
+  }
+
+  if (versionOld[0] !== versionNew[0]) {
+    return versionOld[0] < versionNew[0];
+  }
+
+  if (versionOld[1] !== versionNew[1]) {
+    return versionOld[1] < versionNew[1];
+  }
+
+  return versionOld[2] < versionNew[2];
+};
 
 module.exports.stringify = object => {
   if (typeof object === 'object') {
     return JSON.stringify(object, null, 2);
   }
   return object;
-}
+};
 
 module.exports.padEnum = (item, enumeration) => {
   const max = Math.max(...Object.values(enumeration).map(e => e.length));
   return item.padStart(max, ' ');
-}
+};
