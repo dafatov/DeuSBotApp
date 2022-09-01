@@ -2,7 +2,7 @@
  * @type {{isPublic: boolean, message: {features: string[], bugfixes: string[], ad: string | null, footer: string | null, announce: string | null}}}
  */
 module.exports = {
-  isPublic: true,
+  isPublic: false,
   message: {
     ad: 'В случае нахождения недостатков или предложений используйте команду /issue. Чем подробнее Вы опишите свою заявку, тем быстрее она будет рассмотрена',
     announce: 'Бот переезжает! В жопу хероку, в жопу плавный переезд, ну... не совсем... В течении тестового периода, а именно весь сентябрь предлагаю (ответов не жду~) пользоваться ботом на новом хостинге',
