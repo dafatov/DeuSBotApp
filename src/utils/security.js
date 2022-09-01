@@ -11,7 +11,7 @@ const authForUserId = (token) =>
       'Authorization': `Bearer ${token}`,
     },
   }).then(r => r.data.id)
-    .catch(e => error(JSON.stringify(e, null, 2)));
+    .catch(e => error(e));
 
 module.exports.authForScopes = (token) =>
   authForUserId(token)
@@ -35,7 +35,7 @@ module.exports.authForVoiceMember = (token, client) =>
         .then(guild => guild.members.fetch()
           .then(members => members.find(member => member.user.id === userId))))))
       .then(members => members.find(member => member.voice.channelId)))
-    .catch(e => error(JSON.stringify(e, null, 2)));
+    .catch(e => error(e));
 
 module.exports.authForNowPlaying = (token, client) =>
   this.authForVoiceMember(token, client)
@@ -51,13 +51,13 @@ module.exports.authForNowPlaying = (token, client) =>
         isLoop: queue.nowPlaying?.isLoop ?? false,
       }
       : {})
-    .catch(e => error(JSON.stringify(e, null, 2)));
+    .catch(e => error(e));
 
 module.exports.authForSongs = (token, client) =>
   this.authForVoiceMember(token, client)
     .then(member => member?.guild.id)
     .then(guildId => getQueue(guildId)?.songs ?? [])
-    .catch(e => error(JSON.stringify(e, null, 2)));
+    .catch(e => error(e));
 
 module.exports.generateInteraction = member => {
   return new Promise((resolve, reject) => {

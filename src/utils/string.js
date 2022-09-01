@@ -44,7 +44,9 @@ module.exports.isVersionUpdated = (versionOld, versionNew) => {
 
 module.exports.stringify = object => {
   if (typeof object === 'object') {
-    return JSON.stringify(object, null, 2);
+    return JSON.stringify(object, Object.getOwnPropertyNames(object), 2)
+      .replace(/\\r/g, '\r')
+      .replace(/\\n/g, '\n');
   }
   return object;
 };

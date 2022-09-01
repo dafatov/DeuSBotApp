@@ -1,10 +1,13 @@
-const {SlashCommandBuilder} = require("@discordjs/builders");
-const {MessageEmbed} = require("discord.js");
-const {logGuild} = require("../../utils/logger");
-const {notify} = require("../commands");
-const config = require("../../configs/config.js");
-const {escaping} = require("../../utils/string.js");
-const player = require("../player");
+const {SlashCommandBuilder} = require('@discordjs/builders');
+const {MessageEmbed} = require('discord.js');
+const {logGuild} = require('../../utils/logger');
+const {notify} = require('../commands');
+const config = require('../../configs/config.js');
+const {escaping} = require('../../utils/string.js');
+const player = require('../player');
+const {isForbidden, SCOPES} = require('../../db/repositories/permission');
+const {audit} = require('../auditor');
+const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -14,7 +17,7 @@ module.exports = {
     await module.exports.skip(interaction, true);
   },
   async listener(_interaction) {},
-}
+};
 
 module.exports.skip = async (interaction, isExecute) => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_SKIP)) {
@@ -44,7 +47,7 @@ module.exports.skip = async (interaction, isExecute) => {
       await notify('skip', interaction, {embeds: [embed]});
     }
     logGuild(interaction.guildId, `[skip]: Пропустить композицию не вышло: плеер не играет`);
-    return {result: "Плеер не играет"};
+    return {result: 'Плеер не играет'};
   }
 
   if (player.getQueue(interaction.guildId)?.connection?.joinConfig?.channelId !==
@@ -58,7 +61,7 @@ module.exports.skip = async (interaction, isExecute) => {
       await notify('skip', interaction, {embeds: [embed]});
     }
     logGuild(interaction.guildId, `[skip]: Пропустить композицию не вышло: не совпадают каналы`);
-    return {result: "Не совпадают каналы"};
+    return {result: 'Не совпадают каналы'};
   }
 
   let skipped = await player.skip(interaction.guildId);
@@ -72,4 +75,4 @@ module.exports.skip = async (interaction, isExecute) => {
   }
   logGuild(interaction.guildId, `[skip]: Композиция была успешно пропущена`);
   return {};
-}
+};

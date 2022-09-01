@@ -70,7 +70,7 @@ module.exports.notify = async (commandName, interaction, content) => {
       await interaction.followUp(content);
     }
   } catch (e) {
-    error(JSON.stringify(e, null, 2));
+    error(e);
     interaction.message?.send(content);
   }
 };
