@@ -55,6 +55,7 @@ module.exports.execute = async (interaction) => {
     return;
   }
   try {
+    await interaction.deferReply();
     await command.execute(interaction);
     logGuild(interaction.guildId, `Command "${command.data.name}" is executed`);
   } catch (e) {
@@ -64,10 +65,15 @@ module.exports.execute = async (interaction) => {
 
 module.exports.notify = async (commandName, interaction, content) => {
   try {
-    if (interaction.commandName === commandName && !interaction.replied) {
+    if (interaction.commandName === commandName && !interaction.replied && !interaction.deferred) {
       await interaction.reply(content);
     } else {
       await interaction.followUp(content);
+      return;
+    }
+
+    if (interaction.deferred) {
+      await interaction.editReply(content);
     }
   } catch (e) {
     error(e);
