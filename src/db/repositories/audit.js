@@ -30,8 +30,10 @@ module.exports.getAll = async () => {
 
 module.exports.add = async ({guildId, type, category, message}) => {
   audit = null;
-  await db().query('INSERT INTO AUDIT ("guildId", type, category, message) VALUES ($1, $2, $3, $4)',
-    [guildId, type, category, message]);
+  await db().query(
+    'INSERT INTO AUDIT (guild_id, type, category, message) VALUES ($1, $2, $3, $4)',
+    [guildId, type, category, message],
+  );
 }
 
 /**

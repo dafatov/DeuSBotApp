@@ -42,7 +42,7 @@ module.exports.audit = async ({guildId, type, category, message}) => {
 }
 
 module.exports.getGuilds = async (client) =>
-  getAll().then(audit => audit.map(a => a.guildId))
+  getAll().then(audit => audit.map(a => a.guild_id))
     .then(guildIds => client.guilds.fetch()
       .then(guilds => guilds.filter(guild => guildIds.includes(guild.id))))
     .then(guilds => JSON.stringify(guilds, bigIntReplacer));

@@ -1,6 +1,6 @@
 {
   "name": "ru.demetrious.discord-bot.deus",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "A bot for discord by DemetriouS",
   "main": "src/bot.js",
   "type": "commonjs",
