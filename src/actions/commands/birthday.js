@@ -190,10 +190,9 @@ const show = async (interaction) => {
   monthDate.setDate(monthDate.getDate() - (monthDate.getDay() === 0
     ? 7
     : monthDate.getDay()) + 1);
-  await interaction.deferReply();
   const calendar = await createCalendar(interaction.guild, birthdays, monthDate, {month, year});
   try {
-    await interaction.editReply({files: [calendar]});
+    await notify('birthday', interaction, {files: [calendar]});
     logGuild(interaction.guildId, `[birthday]: Календарь дней рождений успешно выведен`);
   } catch (e) {
     await notifyError('birthday', e, interaction);
