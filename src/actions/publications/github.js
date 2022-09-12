@@ -5,7 +5,6 @@ const {MessageEmbed} = require('discord.js');
 
 const PER_PAGE = 30;
 const EVENTS_LISTEN = ['closed', 'reopened'];
-const LABELS_REJECT = ['duplicate', 'invalid', 'wontfix'];
 
 module.exports = {
   async content(client) {
@@ -24,9 +23,9 @@ module.exports = {
           page: ++page,
         })).data
           .filter(event => EVENTS_LISTEN.includes(event.event))
-          .filter(event => new Date(event.created_at).getTime() > new Date(lastIssueEvent ?? 0).getTime())
-      ]
-    } while (data.length >= PER_PAGE * page)
+          .filter(event => new Date(event.created_at).getTime() > new Date(lastIssueEvent ?? 0).getTime()),
+      ];
+    } while (data.length >= PER_PAGE * page);
 
     return (await ((await client.guilds.fetch()).reduce(async (accumulator, guild) => {
       const users = (await (await guild.fetch()).members.fetch()).map(m => m.user);
@@ -37,15 +36,17 @@ module.exports = {
             .find(label => label.name
               .startsWith('<@')).name
             .slice(2, -1)))
-        .sort((a, b) => new Date(a.created_at).getTime() < new Date(b.created_at).getTime() ? -1 : 1)
-        .slice(0, 10)
+        .sort((a, b) => new Date(a.created_at).getTime() < new Date(b.created_at).getTime()
+          ? -1
+          : 1)
+        .slice(0, 10);
       const notifyingUsers = events
         .map(event => event.issue.labels
           .map(label => label.name)
           .find(name => name
             .startsWith('<@')))
         .filter((name, index, array) => array
-          .indexOf(name) === index)
+          .indexOf(name) === index);
 
       if (events.length <= 0) {
         return accumulator;
@@ -65,14 +66,14 @@ module.exports = {
                   **Описание:** ${event.issue.body}
                   **Автор:** ${event.issue.labels.find(label => label.name.startsWith('<@')).name}
               `)
-              .setTimestamp(new Date(event.created_at))
-          )
+              .setTimestamp(new Date(event.created_at)),
+          ),
         },
         variables: {
-          lastIssueEvent: events[events.length - 1]?.created_at
-        }
-      }
-    }, {})))
+          lastIssueEvent: events[events.length - 1]?.created_at,
+        },
+      };
+    }, {})));
   },
   async condition(now) {
     return now.getMinutes() % 5 === 0;
@@ -81,14 +82,20 @@ module.exports = {
     if (variables?.lastIssueEvent) {
       await variablesDb.set('lastIssueEvent', variables.lastIssueEvent);
     }
-  }
-}
+  },
+};
 const getStateLocale = (event) => {
   if (event.event === 'closed') {
-    return event.issue.labels.map(label => label.name).some(name => LABELS_REJECT.includes(name)) ? 'отвергнута' : 'выполнена'
+    if (event.issue.state_reason === 'completed') {
+      return 'выполнена';
+    } else if (event.issue.state_reason === 'not_planned') {
+      return 'отклонена';
+    } else {
+      return 'undefined';
+    }
   } else if (event.event === 'reopened') {
     return 'переоткрыта';
   } else {
-    return 'undefined'
+    return 'undefined';
   }
-}
+};
