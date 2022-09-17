@@ -1,4 +1,5 @@
 const {db} = require('../../actions/db.js');
+const {transaction} = require('../dbUtils');
 
 let rules = new Map();
 
@@ -8,17 +9,19 @@ module.exports.getAll = async (guildId) => {
     rules.set(guildId, response.rows || []);
   }
   return rules.get(guildId);
-}
+};
 
 module.exports.set = async (guildId, {regex, react}) => {
-  await this.delete(guildId, regex);
-  await db.query('INSERT INTO RESPONSE (guild_id, regex, react) VALUES ($1, $2, $3)', [guildId, regex, react]);
-}
+  await transaction(async () => {
+    await this.remove(guildId, regex);
+    await db.query('INSERT INTO RESPONSE (guild_id, regex, react) VALUES ($1, $2, $3)', [guildId, regex, react]);
+  });
+};
 
-module.exports.delete = async (guildId, regex) => {
+module.exports.remove = async (guildId, regex) => {
   rules.delete(guildId);
   await db.query('DELETE FROM RESPONSE WHERE guild_id=$1 AND regex=$2', [guildId, regex]);
-}
+};
 
 module.exports.count = async () => {
   return await db.query('SELECT guild_id, COUNT(*) FROM RESPONSE GROUP BY guild_id')

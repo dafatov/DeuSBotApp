@@ -128,7 +128,7 @@ const remove = async (interaction) => {
       await notifyError('response', `Regex is undefined: [regex: "${regex}"]`, interaction);
     }
 
-    await db.delete(interaction.guildId, regex);
+    await db.remove(interaction.guildId, regex);
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
       .setTitle('Я уничтожил реакцию')

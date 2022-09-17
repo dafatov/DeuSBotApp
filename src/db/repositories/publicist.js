@@ -1,4 +1,5 @@
 const {db} = require('../../actions/db');
+const {transaction} = require('../dbUtils');
 let newsChannels;
 
 module.exports.getAll = async () => {
@@ -8,14 +9,16 @@ module.exports.getAll = async () => {
       ({guildId: r.guild_id, channelId: r.channel_id})) || [];
   }
   return newsChannels;
-}
+};
 
 module.exports.set = async (guildId, channelId) => {
-  await this.delete(guildId);
-  await db.query('INSERT INTO PUBLICIST (guild_id, channel_id) VALUES ($1, $2)', [guildId, channelId]);
-}
+  await transaction(async () => {
+    await this.remove(guildId);
+    await db.query('INSERT INTO PUBLICIST (guild_id, channel_id) VALUES ($1, $2)', [guildId, channelId]);
+  });
+};
 
-module.exports.delete = async (guildId) => {
+module.exports.remove = async (guildId) => {
   newsChannels = null;
   await db.query('DELETE FROM PUBLICIST WHERE guild_id=$1', [guildId]);
-}
+};

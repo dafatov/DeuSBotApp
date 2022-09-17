@@ -1,4 +1,4 @@
-const {deleteBeforeWithOffset, add, getAll, TYPES, CATEGORIES} = require('../db/repositories/audit');
+const {removeBeforeWithOffset, add, getAll, TYPES, CATEGORIES} = require('../db/repositories/audit');
 const {stringify, padEnum} = require('../utils/string');
 const {bigIntReplacer} = require('../utils/jsonMapping');
 
@@ -7,7 +7,7 @@ module.exports.init = async () => {
     if (condition()) {
       const interval = '1M';
 
-      await deleteBeforeWithOffset(interval).then(response => {
+      await removeBeforeWithOffset(interval).then(response => {
         if (response?.rowCount > 0) {
           module.exports.audit({
             guildId: null,

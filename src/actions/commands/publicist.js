@@ -92,7 +92,7 @@ const remove = async (interaction) => {
   }
 
   try {
-    await db.delete(interaction.guildId);
+    await db.remove(interaction.guildId);
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
       .setTitle('Ты чо меня заскамил? Чтоб я больше не спамил Йоу')

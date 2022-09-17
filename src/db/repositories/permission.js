@@ -1,6 +1,7 @@
 const {db} = require('../../actions/db');
 const {audit} = require('../../actions/auditor');
 const {TYPES, CATEGORIES} = require('./audit');
+const {transaction} = require('../dbUtils');
 
 module.exports.SCOPES = Object.freeze({
   COMMAND_BIRTHDAY_SET: 'command.birthday.set',
@@ -74,9 +75,7 @@ module.exports.isForbidden = async (userId, scope) =>
 module.exports.cacheReset = () => permissions = null;
 
 module.exports.setPatch = async (patch) => {
-  try {
-    await db.query('BEGIN');
-
+  await transaction(async () => {
     const toDelete = [
       ...new Set(patch.deleted
         .concat(patch.updated.filter(permission => !patch.created.some(item => permission.user_id === item.user_id)))
@@ -90,12 +89,7 @@ module.exports.setPatch = async (patch) => {
     for (const permission of toAdd) {
       await add(permission.user_id, permission.isWhiteList, permission.scopes);
     }
-
-    await db.query('COMMIT');
-  } catch (e) {
-    await db.query('ROLLBACK');
-    throw e;
-  }
+  });
 };
 
 const add = async (userId, isWhiteList, scopes) => {

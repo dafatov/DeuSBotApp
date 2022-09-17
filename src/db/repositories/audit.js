@@ -44,7 +44,7 @@ module.exports.add = async ({guildId, type, category, message}) => {
  * @example  "T1M"
  * @returns {Promise<void>}
  */
-module.exports.deleteBeforeWithOffset = async (offset) => {
+module.exports.removeBeforeWithOffset = async (offset) => {
   audit = null;
   return await db().query(`DELETE
                            FROM AUDIT

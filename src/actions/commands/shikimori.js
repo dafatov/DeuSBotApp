@@ -238,7 +238,7 @@ const remove = async (interaction) => {
       await notifyError('shikimori', `Login is undefined: [login: "${login}"]`, interaction);
     }
 
-    await db.deleteByLogin(login);
+    await db.removeByLogin(login);
 
     const embed = new MessageEmbed()
       .setColor(config.colors.info)

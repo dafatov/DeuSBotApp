@@ -143,7 +143,7 @@ const remove = async (interaction) => {
   }
 
   try {
-    await db.delete(interaction.user.id);
+    await db.remove(interaction.user.id);
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
       .setTitle('Больше не жди поздравлений')

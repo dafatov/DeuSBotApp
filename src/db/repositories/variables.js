@@ -1,6 +1,7 @@
 const {db} = require('../../actions/db');
+const {transaction} = require('../dbUtils');
 
-let variables
+let variables;
 
 module.exports.getAll = async () => {
   if (!variables) {
@@ -9,14 +10,11 @@ module.exports.getAll = async () => {
       .reduce((obj, item) => ({...obj, [item.key]: item.value}), {});
   }
   return variables;
-}
+};
 
 module.exports.set = async (key, value) => {
-  await this.delete(key);
-  await db.query('INSERT INTO VARIABLES (key, value) VALUES ($1, $2)', [key, value]);
-}
-
-module.exports.delete = async (key) => {
-  variables = null;
-  await db.query('DELETE FROM VARIABLES WHERE key=$1', [key]);
-}
+  await transaction(async () => {
+    await db.query('DELETE FROM VARIABLES WHERE key=$1', [key]);
+    await db.query('INSERT INTO VARIABLES (key, value) VALUES ($1, $2)', [key, value]);
+  });
+};
