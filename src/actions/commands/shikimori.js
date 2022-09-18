@@ -4,7 +4,7 @@ const {searchSongs} = require('../commands/play.js');
 const {logGuild, error} = require('../../utils/logger.js');
 const {MessageEmbed} = require('discord.js');
 const config = require('../../configs/config.js');
-const {notify, notifyError, update} = require('../commands.js');
+const {notify, notifyError, updateCommands} = require('../commands.js');
 const db = require('../../db/repositories/users.js');
 const {escaping} = require('../../utils/string.js');
 const RandomOrg = require('random-org');
@@ -51,9 +51,6 @@ module.exports = {
     await shikimori(interaction);
   },
   async listener(_interaction) {},
-  async update(interaction) {
-    await update(interaction);
-  },
 }
 
 module.exports.shikimoriPlay = async (interaction, login, count) => await play(interaction, false, login, count);
@@ -196,8 +193,8 @@ const set = async (interaction) => {
     }
 
     await db.set({
-      "login": login,
-      "nickname": nickname
+      'login': login,
+      'nickname': nickname,
     });
 
     const embed = new MessageEmbed()
@@ -205,9 +202,8 @@ const set = async (interaction) => {
       .setTitle('Создан новый пользователь shikimori')
       .setTimestamp()
       .addField(escaping(login), escaping(nickname));
-    await interaction.deferReply();
-    await update(interaction.client);
-    await interaction.editReply({embeds: [embed]});
+    await updateCommands(interaction.client);
+    await notify('shikimori', interaction, {embeds: [embed]});
     logGuild(interaction.guildId, `[shikimori]: Пользователь успешно добавлен`);
   } catch (e) {
     await notifyError('shikimori', e, interaction);
@@ -245,9 +241,8 @@ const remove = async (interaction) => {
       .setTitle('Удален пользователь shikimori')
       .setTimestamp()
       .setDescription(escaping(login));
-    await interaction.deferReply();
-    await update(interaction.client);
-    await interaction.editReply({embeds: [embed]});
+    await updateCommands(interaction.client);
+    await notify('shikimori', interaction, {embeds: [embed]});
     logGuild(interaction.guildId, `[shikimori]: Пользователь успешно удален`);
   } catch (e) {
     await notifyError('shikimori', e, interaction);
