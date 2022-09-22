@@ -12,8 +12,8 @@ module.exports = {
       const rss = await new Parser({customFields: {}}).parseURL(RSS_URL);
       const lastFreebie = (await variablesDb.getAll())?.lastFreebie;
       const freebies = rss.items
-        .filter(f => new Date(f.isoDate).getTime() > (new Date(lastFreebie ?? 0)))
-        .sort((a, b) => new Date(a.isoDate).getTime() < new Date(b.isoDate).getTime() ? -1 : 1)
+        .filter(f => new Date(f.isoDate).getTime() > (new Date(lastFreebie ?? 0).getTime()))
+        .sort((a, b) => new Date(a.isoDate).getTime() - new Date(b.isoDate).getTime())
         .slice(0, 10);
 
       if (freebies.length <= 0) {

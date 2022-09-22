@@ -14,6 +14,7 @@ module.exports.getAll = async () => {
 
 module.exports.set = async (key, value) => {
   await transaction(async () => {
+    variables = null;
     await db.query('DELETE FROM VARIABLES WHERE key=$1', [key]);
     await db.query('INSERT INTO VARIABLES (key, value) VALUES ($1, $2)', [key, value]);
   });
