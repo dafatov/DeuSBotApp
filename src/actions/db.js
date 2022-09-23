@@ -18,7 +18,7 @@ module.exports.db = getNewClient();
 
 module.exports.init = async () => {
   await this.db.connect()
-    .then(() => migrate({client: this.db}, 'src/db/migrations'))
+    .then(() => migrate({client: this.db}, 'src/db/migrations', {logger: console.log}))
     .then(() => audit({
       guildId: null,
       type: TYPES.INFO,
