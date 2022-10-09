@@ -1,8 +1,9 @@
-const {getLast, add, APPLICATIONS} = require('../db/repositories/changelog');
+const {APPLICATIONS, add, getLast} = require('../db/repositories/changelog');
+const {CATEGORIES, TYPES} = require('../db/repositories/audit');
+const {audit} = require('../actions/auditor');
 const changelog = require('../configs/changelog');
 const {isVersionUpdated} = require('../utils/string');
-const {audit} = require('../actions/auditor');
-const {TYPES, CATEGORIES} = require('../db/repositories/audit');
+const {t} = require('i18next');
 const {version} = require('../../package');
 
 module.exports.init = async () => {
@@ -17,21 +18,21 @@ module.exports.publish = async (version, application, isPublic, message) => {
   }
 
   message = JSON.stringify(message);
-  if ((lastChangelog?.message ?? '') !== message) {
+  if ((lastChangelog?.message ?? '') === message) {
+    await audit({
+      guildId: null,
+      type: TYPES.WARNING,
+      category: CATEGORIES.INIT,
+      message: t('inner:audit.changelog.unchanged', {application: application}),
+    });
+  } else {
     await add(version, application, message)
       .then(() => audit({
         guildId: null,
         type: TYPES.INFO,
         category: CATEGORIES.INIT,
-        message: `Успешно зарегистрирована история изменений у ${application}`,
+        message: t('inner:audit.changelog.registered', {application: application}),
       }));
-  } else {
-    await audit({
-      guildId: null,
-      type: TYPES.WARNING,
-      category: CATEGORIES.INIT,
-      message: `История изменений не обновлена у ${application}`,
-    });
   }
   return version;
 };

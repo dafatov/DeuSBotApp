@@ -1,81 +1,89 @@
-const {SlashCommandBuilder} = require('@discordjs/builders');
-const {MessageEmbed} = require('discord.js');
-const {logGuild} = require('../../utils/logger');
-const {notify} = require('../commands');
-const config = require('../../configs/config.js');
-const {getQueue, playPlayer, hasLive} = require('../player');
-const {escaping} = require('../../utils/string');
-const {timeFormatSeconds, timeFormatMilliseconds} = require('../../utils/dateTime');
-const {remained} = require('../../utils/calc');
-const {getRadios} = require('../radios');
+const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {getQueue, hasLive, playPlayer} = require('../player');
+const {timeFormatMilliseconds, timeFormatSeconds} = require('../../utils/dateTime');
+const {MessageEmbed} = require('discord.js');
+const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
-const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
+const config = require('../../configs/config.js');
+const {escaping} = require('../../utils/string');
+const {getRadios} = require('../radios');
+const {notify} = require('../commands');
+const {remained} = require('../../utils/calc');
+const {t} = require('i18next');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('radio')
-    .setDescription('Запустить проигрывание радио')
+    .setDescription(t('discord:command.radio.description'))
     .addSubcommandGroup(g => {
       const radios = getRadios();
       let localG = g;
 
+      // eslint-disable-next-line no-loops/no-loops
       for (let i = 0; i < Math.ceil(radios.size / 25); i++) {
         const choices = [...radios.keys()].sort().map(k => [k.toString(), k.toString()]).splice(25 * i, 25);
 
         localG = localG.addSubcommand(s => s
           .setName((i + 1).toString())
-          .setDescription(`Страница ${choices[0][0][0]}-${choices[choices.length - 1][0][0]}`)
+          .setDescription(t('discord:command.radio.page.radioStation.description', {
+            pageStart: choices[0][0][0],
+            pageEnd: choices[choices.length - 1][0][0],
+          }))
           .addStringOption(s => s
             .setName('station')
-            .setDescription('Радиостанция')
+            .setDescription(t('discord:command.radio.page.radioStation.option.station.description'))
             .setRequired(true)
-            .addChoices(choices)))
+            .addChoices(choices)));
       }
       g.setName('page');
-      g.setDescription('Номер страницы');
+      g.setDescription(t('discord:command.radio.page.description'));
       return localG;
     }),
   async execute(interaction) {
     await module.exports.radio(interaction, true);
   },
-  async listener(_interaction) {},
-}
+};
 
 module.exports.radio = async (interaction, isExecute, stationKey = interaction.options.getString('station')) => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_RADIO)) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Доступ к команде \"radio\" запрещен')
+      .setTitle(t('discord:embed.forbidden.title', {command: 'radio'}))
       .setTimestamp()
-      .setDescription('Запросите доступ у администратора сервера');
+      .setDescription(t('discord:embed.forbidden.description'));
     await notify('radio', interaction, {embeds: [embed], ephemeral: true});
     await audit({
       guildId: interaction.guildId,
-      type: TYPES.INFO,
+      type: TYPES.WARNING,
       category: CATEGORIES.PERMISSION,
-      message: 'Доступ к команде radio запрещен',
+      message: t('inner:info.forbidden', {command: 'radio'}),
     });
-    return {result: 'Доступ к команде запрещен'};
+    return {result: t('web:info.forbidden', {command: 'radio'})};
   }
 
   if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
-    && getQueue(interaction.guildId).connection.joinConfig.channelId !==
-    interaction.member.voice.channel.id) {
+    && getQueue(interaction.guildId).connection.joinConfig.channelId
+    !== interaction.member.voice.channel.id) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Канал не тот')
-      .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
+      .setTitle(t('discord:embed.unequalChannels.title'))
+      .setDescription(t('discord:embed.unequalChannels.description'))
       .setTimestamp();
     if (isExecute) {
       await notify('radio', interaction, {embeds: [embed]});
     }
-    logGuild(interaction.guildId, `[radio]: Запустить радио не вышло: не совпадают каналы`);
-    return {result: "Не совпадают каналы"};
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.clear.unequalChannels'),
+    });
+    return {result: t('web:info.unequalChannels')};
   }
 
   const station = getRadios().get(stationKey);
-  let info = {
+  const info = {
     id: `${new Date().getTime()}`,
     type: 'radio',
     title: stationKey,
@@ -83,7 +91,7 @@ module.exports.radio = async (interaction, isExecute, stationKey = interaction.o
     url: station.channel.url,
     isLive: true,
     preview: station.channel.preview,
-    author: interaction.user
+    author: interaction.user,
   };
   getQueue(interaction.guildId).songs.push(info);
 
@@ -93,24 +101,30 @@ module.exports.radio = async (interaction, isExecute, stationKey = interaction.o
     .setColor(config.colors.info)
     .setTitle(escaping(info.title))
     .setURL(info.url)
-    .setDescription(`Длительность: **${info.isLive
-      ?
-      '<Стрим>'
-      : timeFormatSeconds(info.length)}**
-            Место в очереди: **${getQueue(interaction.guildId).songs.length}**
-            Начнется через: **${hasLive(getQueue(interaction.guildId))
-      ? '<Никогда>'
-      : remainedValue === 0
-        ? '<Сейчас>'
-        : timeFormatMilliseconds(remainedValue)}**`)
+    .setDescription(t('discord:command.radio.completed.description', {
+      allLength: info.isLive
+        ? t('common:player.stream')
+        : timeFormatSeconds(info.length),
+      length: getQueue(interaction.guildId).songs.length,
+      beginIn: hasLive(getQueue(interaction.guildId))
+        ? t('common:player.noRemained')
+        : remainedValue === 0
+          ? t('common:player.beginNow')
+          : timeFormatMilliseconds(remainedValue),
+    }))
     .setThumbnail(info.preview)
     .setTimestamp()
-    .setFooter(`Радиостанцию добавил пользователь ${interaction.user.username}`, interaction.user.displayAvatarURL());
+    .setFooter(t('discord:command.radio.completed.footer', {username: interaction.user.username}), interaction.user.displayAvatarURL());
   if (isExecute) {
     await notify('radio', interaction, {embeds: [embed]});
   }
-  logGuild(interaction.guildId, `[radio]: Радиостанция успешно добавлена в очередь`);
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.INFO,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:audit.command.radio'),
+  });
 
   await playPlayer(interaction);
   return {info};
-}
+};

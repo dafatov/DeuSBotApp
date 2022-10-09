@@ -18,7 +18,7 @@ module.exports.set = async (guildId, channelId) => {
   });
 };
 
-module.exports.remove = async (guildId) => {
+module.exports.remove = async guildId => {
   newsChannels = null;
   await db.query('DELETE FROM PUBLICIST WHERE guild_id=$1', [guildId]);
 };

@@ -1,7 +1,9 @@
+const {CATEGORIES, TYPES} = require('../db/repositories/audit');
 const {Client} = require('pg');
 const {audit} = require('./auditor');
 const {migrate} = require('postgres-migrations');
-const {TYPES, CATEGORIES} = require('../db/repositories/audit');
+const {stringify} = require('../utils/string');
+const {t} = require('i18next');
 
 const getNewClient = () => {
   return new Client({
@@ -18,21 +20,29 @@ module.exports.db = getNewClient();
 
 module.exports.init = async () => {
   await this.db.connect()
-    .then(() => migrate({client: this.db}, 'src/db/migrations', {logger: console.log}))
+    .then(() => migrate({client: this.db}, 'src/db/migrations', process.env.LOGGING === 'DEBUG'
+      // eslint-disable-next-line no-console
+      ? {logger: console.log}
+      : {}))
     .then(() => audit({
       guildId: null,
       type: TYPES.INFO,
       category: CATEGORIES.INIT,
-      message: 'Успешно загружена база данных',
-    })).catch(() => {});
+      message: t('inner:audit.init.database'),
+    })).catch(e => audit({
+      guildId: null,
+      type: TYPES.ERROR,
+      category: CATEGORIES.DATABASE,
+      message: stringify(e),
+    }));
 };
 
-module.exports.db.on('error', async (err) => {
+module.exports.db.on('error', async e => {
   module.exports.db = getNewClient();
   await module.exports.init().then(() => audit({
     guildId: null,
     type: TYPES.ERROR,
     category: CATEGORIES.DATABASE,
-    message: err,
+    message: stringify(e),
   }));
 });

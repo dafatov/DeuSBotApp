@@ -1,7 +1,8 @@
+const {MessageEmbed} = require('discord.js');
 const {Octokit} = require('@octokit/core');
 const config = require('../../configs/config');
+const {t} = require('i18next');
 const variablesDb = require('../../db/repositories/variables');
-const {MessageEmbed} = require('discord.js');
 
 const PER_PAGE = 30;
 const EVENTS_LISTEN = ['closed', 'reopened'];
@@ -13,6 +14,7 @@ module.exports = {
     let data = [];
 
     let page = 0;
+    // eslint-disable-next-line no-loops/no-loops
     do {
       data = [
         ...data,
@@ -60,12 +62,11 @@ module.exports = {
           embeds: events.map(event =>
             new MessageEmbed()
               .setColor(config.colors.info)
-              .setTitle(`Заявка ${getStateLocale(event)}`)
-              .setDescription(`
-                  **Наименование:** [${event.issue.title}](${event.issue.html_url})
-                  **Описание:** ${event.issue.body}
-                  **Автор:** ${event.issue.labels.find(label => label.name.startsWith('<@')).name}
-              `)
+              .setTitle(t('discord:embed.publicist.github.title', {state: getStateLocale(event)}))
+              .setDescription(t('discord:embed.publicist.github.description', {
+                issue: event.issue,
+                author: event.issue.labels.find(label => label.name.startsWith('<@')).name,
+              }))
               .setTimestamp(new Date(event.created_at)),
           ),
         },
@@ -75,7 +76,7 @@ module.exports = {
       };
     }, {})));
   },
-  async condition(now) {
+  condition(now) {
     return now.getMinutes() % 5 === 0;
   },
   async onPublished(_messages, variables) {
@@ -84,18 +85,18 @@ module.exports = {
     }
   },
 };
-const getStateLocale = (event) => {
+const getStateLocale = event => {
   if (event.event === 'closed') {
     if (event.issue.state_reason === 'completed') {
-      return 'выполнена';
+      return t('discord:embed.publicist.github.states.completed');
     } else if (event.issue.state_reason === 'not_planned') {
-      return 'отклонена';
+      return t('discord:embed.publicist.github.states.notPlanned');
     } else {
-      return 'undefined';
+      return t('discord:embed.publicist.github.states.undefined');
     }
   } else if (event.event === 'reopened') {
-    return 'переоткрыта';
+    return t('discord:embed.publicist.github.states.reopened');
   } else {
-    return 'undefined';
+    return t('discord:embed.publicist.github.states.undefined');
   }
 };

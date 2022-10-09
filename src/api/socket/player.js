@@ -1,16 +1,16 @@
-const {authForNowPlaying, authForVoiceMember, authForSongs, generateInteraction, generateInteractionWithVoiceChannel} = require('../utils/security');
-const {skip} = require('../actions/commands/skip');
-const {pause} = require('../actions/commands/pause');
-const {loop} = require('../actions/commands/loop');
-const {remove} = require('../actions/commands/remove');
-const {move} = require('../actions/commands/move');
-const {shuffle} = require('../actions/commands/shuffle');
-const {clear} = require('../actions/commands/clear');
-const {play} = require('../actions/commands/play');
-const {getAll} = require('../db/repositories/users');
-const {shikimoriPlay} = require('../actions/commands/shikimori');
-const {getRadios} = require('../actions/radios');
-const {radio} = require('../actions/commands/radio');
+const {authForNowPlaying, authForSongs, authForVoiceMember, generateInteraction, generateInteractionWithVoiceChannel} = require('../../utils/security');
+const {clear} = require('../../actions/commands/clear');
+const {getAll} = require('../../db/repositories/users');
+const {getRadios} = require('../../actions/radios');
+const {loop} = require('../../actions/commands/loop');
+const {move} = require('../../actions/commands/move');
+const {pause} = require('../../actions/commands/pause');
+const {play} = require('../../actions/commands/play');
+const {radio} = require('../../actions/commands/radio');
+const {remove} = require('../../actions/commands/remove');
+const {shikimoriPlay} = require('../../actions/commands/shikimori');
+const {shuffle} = require('../../actions/commands/shuffle');
+const {skip} = require('../../actions/commands/skip');
 
 module.exports = {
   execute(params) {
@@ -53,7 +53,7 @@ const nowPlaying = ({io, socket, client}) => {
 };
 
 const queue = ({io, socket, client}) => {
-  socket.on('queue:now', (token) => authForSongs(token, client).then(data => socket.emit('queue:now', data)));
+  socket.on('queue:now', token => authForSongs(token, client).then(data => socket.emit('queue:now', data)));
 
   socket.on('queue:remove', (token, index, callback) =>
     authForVoiceMember(token, client)

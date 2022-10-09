@@ -19,7 +19,7 @@ module.exports.set = async ({login, nickname}) => {
   });
 };
 
-module.exports.removeByLogin = async (login) => {
+module.exports.removeByLogin = async login => {
   users = null;
   await db.query('DELETE FROM NICKNAME WHERE login=$1', [login]);
 };

@@ -1,6 +1,7 @@
-const db = require('../../db/repositories/birthday');
 const {MessageEmbed} = require('discord.js');
 const config = require('../../configs/config');
+const db = require('../../db/repositories/birthday');
+const {t} = require('i18next');
 
 module.exports = {
   async content(client) {
@@ -21,27 +22,16 @@ module.exports = {
           embeds: [
             new MessageEmbed()
               .setColor(config.colors.info)
-              .setTitle(`Сегодня день рождения у...`)
+              .setTitle(t('discord:embed.publicist.birthday.title'))
               .setThumbnail('https://i.ibb.co/8m1FGzr/maxresdefault.png')
-              .setDescription(`
-            - Привет, меня зовут Deus и я бот...
-            \*звучат редкие хлопки в зале\*
-            - ...Мы собрались здесь, чтобы поздравить с великим днем, одним из 365 или больше других великих дней в году, но этот более особенный...
-            \*слышатся смешки из зала\*
-            - ...Так ладно ок. Поняли? Сегодня праздник, так что не надо портить этот день, понятно?
-            \*из зала кто-то кричит\*
-            - Вообще-то это ты все испортил
-            - Извините, у меня такое впервые... Но это не оправдание... Короче, желаю всего наилучшего и наибольшего, но не проблем... кхе-кхе... С днюхой короче...
-            \*камера показывает зал и там сид${users.length > 1 ? 'ят' : 'ит'} ${users.map(user => user.username).join(', ')}\*
-          `)
-              .setTimestamp()
-          ]
-        }
-      }
+              .setDescription(t('discord:embed.publicist.birthday.description'))
+              .setTimestamp(),
+          ],
+        },
+      };
     }, {})));
   },
-  async condition(now) {
+  condition(now) {
     return now.getHours() === 18 && now.getMinutes() === 0;
   },
-  async onPublished(_messages, _variables) {}
-}
+};

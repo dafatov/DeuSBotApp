@@ -23,7 +23,7 @@ module.exports.getAll = async () => {
   return birthdays;
 };
 
-module.exports.get = async (userId) => {
+module.exports.get = async userId => {
   return (await db.query('SELECT * FROM BIRTHDAY WHERE user_id=$1', [userId])).rows.map(b => ({userId: b.user_id, date: b.date, ignored: b.ignored})) || [];
 };
 
@@ -39,7 +39,7 @@ module.exports.set = async (userId, date, ignored = false) => {
   });
 };
 
-module.exports.remove = async (userId) => {
+module.exports.remove = async userId => {
   todayBirthdays = null;
   birthdays = null;
   await db.query('DELETE FROM BIRTHDAY WHERE user_id=$1', [userId]);

@@ -1,6 +1,5 @@
 const {db} = require('../../actions/db');
-const {audit} = require('../../actions/auditor');
-const {TYPES, CATEGORIES} = require('./audit');
+const {t} = require('i18next');
 const {transaction} = require('../dbUtils');
 
 module.exports.SCOPES = Object.freeze({
@@ -9,7 +8,6 @@ module.exports.SCOPES = Object.freeze({
   COMMAND_BIRTHDAY_SHOW: 'command.birthday.show',
   COMMAND_BIRTHDAY_IGNORE: 'command.birthday.ignore',
   COMMAND_CLEAR: 'command.clear',
-  COMMAND_FIRST: 'command.first',
   COMMAND_HELP: 'command.help',
   COMMAND_ISSUE: 'command.issue',
   COMMAND_JOIN: 'command.join',
@@ -58,7 +56,7 @@ module.exports.getAll = async () => {
   return permissions;
 };
 
-module.exports.getScopes = async (userId) =>
+module.exports.getScopes = userId =>
   this.getAll()
     .then(all => all.find(item => item.user_id === userId))
     .then(permission => {
@@ -72,9 +70,9 @@ module.exports.getScopes = async (userId) =>
 module.exports.isForbidden = async (userId, scope) =>
   !(await this.getScopes(userId).then(scopes => scopes.includes(scope)));
 
-module.exports.cacheReset = () => permissions = null;
+module.exports.cacheReset = () => {permissions = null;};
 
-module.exports.setPatch = async (patch) => {
+module.exports.setPatch = async patch => {
   await transaction(async () => {
     const toDelete = [
       ...new Set(patch.deleted
@@ -86,9 +84,7 @@ module.exports.setPatch = async (patch) => {
     const toAdd = patch.updated
       .concat(patch.created.filter(permission => !patch.updated.some(item => permission.user_id === item.user_id)))
       .filter(permission => !patch.deleted.some(item => permission.user_id === item.user_id));
-    for (const permission of toAdd) {
-      await add(permission.user_id, permission.isWhiteList, permission.scopes);
-    }
+    await Promise.all(toAdd.map(permission => add(permission.user_id, permission.isWhiteList, permission.scopes)));
   });
 };
 
@@ -101,22 +97,16 @@ const add = async (userId, isWhiteList, scopes) => {
       JSON.stringify(scopes),
     ]);
   } else {
-    await audit({
-      guildId: null,
-      type: TYPES.ERROR,
-      category: CATEGORIES.DATABASE,
-      message: `permission.set(userId=${userId}, isWhiteList=${isWhiteList}, scopes=${JSON.stringify(scopes)}) - Не прошло проверку isValidScopes`,
-    });
-    throw 'Invalid scope';
+    throw t('inner:error.invalidScope', {userId, isWhiteList, scopes: JSON.stringify(scopes)});
   }
 };
 
-const remove = async (userIds) => {
+const remove = async userIds => {
   this.cacheReset();
   await db.query(`DELETE
                   FROM PERMISSION
                   WHERE user_id = ANY ($1)`, [[...userIds]]);
 };
 
-const isValidScopes = (scopes) =>
+const isValidScopes = scopes =>
   scopes.every(scope => Object.values(this.SCOPES).includes(scope));

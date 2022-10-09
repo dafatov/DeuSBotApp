@@ -1,13 +1,16 @@
+const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {MessageEmbed} = require('discord.js');
-const config = require('../../configs/config');
 const Parser = require('rss-parser');
+const {audit} = require('../auditor');
+const config = require('../../configs/config');
+const {stringify} = require('../../utils/string');
+const {t} = require('i18next');
 const variablesDb = require('../../db/repositories/variables');
-const {log, error} = require('../../utils/logger');
 
 const RSS_URL = 'https://freesteam.ru/feed/';
 
 module.exports = {
-  async content(_client) {
+  async content() {
     try {
       const rss = await new Parser({customFields: {}}).parseURL(RSS_URL);
       const lastFreebie = (await variablesDb.getAll())?.lastFreebie;
@@ -29,18 +32,23 @@ module.exports = {
               .setTitle(f.title)
               .setThumbnail(getThumbnail(f.categories))
               .setDescription(f.content)
-              .setTimestamp(new Date(f.isoDate))
-          )
+              .setTimestamp(new Date(f.isoDate)),
+          ),
         },
         variables: {
-          lastFreebie: freebies[freebies.length - 1]?.isoDate
-        }
-      }
+          lastFreebie: freebies[freebies.length - 1]?.isoDate,
+        },
+      };
     } catch (e) {
-      error(e);
+      await audit({
+        guildId: null,
+        type: TYPES.ERROR,
+        category: CATEGORIES.PUBLICIST,
+        message: stringify(e),
+      });
     }
   },
-  async condition(now) {
+  condition(now) {
     return now.getMinutes() % 5 === 0;
   },
   async onPublished(messages, variables) {
@@ -49,14 +57,23 @@ module.exports = {
     }
     Promise.all(messages.map(message => {
       if (message.channel.type === 'GUILD_NEWS') {
-        return message.crosspost()
+        return message.crosspost();
       }
-    })).then(() => log("Успешно разослана публикация \"freebie\" на подписанные каналы"))
-      .catch((e) => error(e))
-  }
-}
+    })).then(() => audit({
+      guildId: null,
+      type: TYPES.INFO,
+      category: CATEGORIES.PUBLICIST,
+      message: t('inner:audit.publicist.crossPost', {publication: 'freebie'}),
+    })).catch(e => audit({
+      guildId: null,
+      type: TYPES.ERROR,
+      category: CATEGORIES.PUBLICIST,
+      message: stringify(e),
+    }));
+  },
+};
 
-const getThumbnail = (categories) => {
+const getThumbnail = categories => {
   if (categories.includes('Epic Games')) {
     return 'https://w7.pngwing.com/pngs/531/238/png-transparent-epic-games-gears-of-war-exile-fortnite-unreal-engine-4-unreal-tournament-epic-games-emblem-logo-video-game-thumbnail.png';
   } else if (categories.includes('Steam')) {
@@ -64,4 +81,4 @@ const getThumbnail = (categories) => {
   } else {
     return 'https://static10.tgstat.ru/channels/_0/0c/0c75b8bf567806a342839cb1a406f4f8.jpg';
   }
-}
+};

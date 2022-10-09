@@ -1,95 +1,108 @@
-const {SlashCommandBuilder} = require('@discordjs/builders');
+const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {MessageEmbed} = require('discord.js');
-const {logGuild} = require('../../utils/logger');
-const {notify} = require('../commands');
+const {SlashCommandBuilder} = require('@discordjs/builders');
+const {arrayMoveMutable} = require('../../utils/array.js');
+const {audit} = require('../auditor');
 const config = require('../../configs/config.js');
 const {escaping} = require('../../utils/string');
-const {arrayMoveMutable} = require('../../utils/array.js');
 const {getQueue} = require('../player');
-const {SCOPES, isForbidden} = require('../../db/repositories/permission');
-const {audit} = require('../auditor');
-const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
+const {notify} = require('../commands');
+const {t} = require('i18next');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('move')
-    .setDescription('Переместить композицию с места в очереди на другое')
+    .setDescription(t('discord:command.move.description'))
     .addIntegerOption(o => o
       .setName('target')
-      .setDescription('Номер в очереди целевой композиции')
+      .setDescription(t('discord:command.move.option.target.description'))
       .setRequired(true))
     .addIntegerOption(o => o
       .setName('position')
-      .setDescription('Номер конечной позиции целевой композиции')
+      .setDescription(t('discord:command.move.option.position.description'))
       .setRequired(true)),
   async execute(interaction) {
     await module.exports.move(interaction, true);
   },
-  async listener(_interaction) {},
-}
+};
 
-module.exports.move = async (interaction, isExecute, positionIndex = interaction.options.getInteger("position") - 1,
-  targetIndex = interaction.options.getInteger("target") - 1
+module.exports.move = async (interaction, isExecute, positionIndex = interaction.options.getInteger('position') - 1,
+  targetIndex = interaction.options.getInteger('target') - 1,
 ) => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_MOVE)) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Доступ к команде \"move\" запрещен')
+      .setTitle(t('discord:embed.forbidden.title', {command: 'move'}))
       .setTimestamp()
-      .setDescription('Запросите доступ у администратора сервера');
+      .setDescription(t('discord:embed.forbidden.description'));
     await notify('move', interaction, {embeds: [embed], ephemeral: true});
     await audit({
       guildId: interaction.guildId,
-      type: TYPES.INFO,
+      type: TYPES.WARNING,
       category: CATEGORIES.PERMISSION,
-      message: 'Доступ к команде move запрещен',
+      message: t('inner:info.forbidden', {command: 'move'}),
     });
-    return {result: 'Доступ к команде запрещен'};
+    return {result: t('web:info.forbidden', {command: 'move'})};
   }
 
   if (!getQueue(interaction.guildId).songs || getQueue(interaction.guildId).songs.length < 2) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Ты одинок что ли? Соло-игрок?')
+      .setTitle(t('discord:command.move.noPlaying.title'))
       .setDescription(`${getQueue(interaction.guildId).songs.length === 0
-        ? 'Пытаться перемещать то, чего нет, показывает все твое отчаяние. **Пуст плейлист. Пуст.**'
-        : 'В одиночку, конечно, можно получить удовольствие, но двигать то все равно не куда. **Одна песня в плейлисте. Как ты...**'}`)
+        ? t('discord:command.move.noPlaying.description.zeroSongs')
+        : t('discord:command.move.noPlaying.description.oneSong')}`)
       .setTimestamp();
     if (isExecute) {
       await notify('move', interaction, {embeds: [embed]});
     }
-    logGuild(interaction.guildId, `[move]: Переместить композицию не вышло: плеер не играет`);
-    return {result: "Плеер не играет"};
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.move.noPlaying'),
+    });
+    return {result: t('web:info.noPlaying')};
   }
 
   if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
-    && getQueue(interaction.guildId).connection.joinConfig.channelId !==
-    interaction.member.voice.channel.id) {
+    && getQueue(interaction.guildId).connection.joinConfig.channelId
+    !== interaction.member.voice.channel.id) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Канал не тот')
-      .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
+      .setTitle(t('discord:embed.unequalChannels.title'))
+      .setDescription(t('discord:embed.unequalChannels.description'))
       .setTimestamp();
     if (isExecute) {
       await notify('move', interaction, {embeds: [embed]});
     }
-    logGuild(interaction.guildId, `[move]: Переместить композицию не вышло: не совпадают каналы`);
-    return {result: "Не совпадают каналы"};
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.move.unequalChannels'),
+    });
+    return {result: t('web:info.unequalChannels')};
   }
 
   if (targetIndex < 0 || targetIndex + 1 > getQueue(interaction.guildId).songs.length
     || positionIndex < 0 || positionIndex + 1 > getQueue(interaction.guildId).songs.length) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Ты это.. Вселенной ошибся, чел.')
-      .setDescription(`Типа знаешь вселенная расширяется, а твой мозг походу нет. Ну вышел ты за пределы размеров очереди.
-                    Диапазон значений _от 1 до ${getQueue(interaction.guildId).songs.length}_`)
+      .setTitle(t('discord:embed.unbound.title'))
+      .setDescription(t('discord:embed.unbound.description', {length: getQueue(interaction.guildId).songs.length}))
       .setTimestamp();
     if (isExecute) {
       await notify('move', interaction, {embeds: [embed]});
     }
-    logGuild(interaction.guildId, `[move]: Переместить композицию не вышло: выход за пределы очереди`);
-    return {result: "Выход за пределы очереди"};
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.move.unbound'),
+    });
+    return {result: t('web:info.unbound')};
   }
 
   const target = getQueue(interaction.guildId).songs[targetIndex];
@@ -97,12 +110,16 @@ module.exports.move = async (interaction, isExecute, positionIndex = interaction
   arrayMoveMutable(getQueue(interaction.guildId).songs, targetIndex, positionIndex);
   const embed = new MessageEmbed()
     .setColor(config.colors.info)
-    .setTitle('Целевая композиция передвинута')
-    .setDescription(`Композиция **${escaping(target.title)}** протолкала всех локтями на позицию **${positionIndex + 1}**.
-            Кто бы сомневался. Донатеры ${escaping('****')}ые`);
+    .setTitle(t('discord:command.move.completed.title'))
+    .setDescription(t('discord:command.move.completed.description', {title: escaping(target.title), position: positionIndex + 1}));
   if (isExecute) {
     await notify('move', interaction, {embeds: [embed]});
   }
-  logGuild(interaction.guildId, `[move]: Композиция была успешна перемещена`);
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.INFO,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:audit.command.move.completed'),
+  });
   return {isMoved: target, newIndex: positionIndex};
-}
+};
