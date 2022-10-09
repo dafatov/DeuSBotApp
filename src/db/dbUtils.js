@@ -1,6 +1,6 @@
 const {db} = require('../actions/db');
 
-module.exports.transaction = async (callback) => {
+module.exports.transaction = async callback => {
   try {
     await db.query('BEGIN');
     await callback();

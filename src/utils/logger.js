@@ -1,5 +1,5 @@
+const {CATEGORIES, TYPES} = require('../db/repositories/audit');
 const {audit} = require('../actions/auditor');
-const {TYPES, CATEGORIES} = require('../db/repositories/audit');
 
 /**
  * @deprecated
@@ -14,14 +14,6 @@ module.exports.logGuild = (guildId, msg) => {
  * @deprecated
  * @param msg
  */
-module.exports.log = (msg) => {
-  audit({guildId: null, type: TYPES.INFO, category: CATEGORIES.UNCATEGORIZED, message: msg});
-}
-
-/**
- * @deprecated
- * @param msg
- */
-module.exports.error = (msg) => {
+module.exports.error = msg => {
   audit({guildId: null, type: TYPES.ERROR, category: CATEGORIES.UNCATEGORIZED, message: msg});
-}
+};

@@ -1,47 +1,51 @@
-const {SlashCommandBuilder} = require('@discordjs/builders');
-const {MessageEmbed} = require('discord.js');
-const {notify, notifyError} = require('../commands');
-const {logGuild} = require('../../utils/logger.js');
-const config = require('../../configs/config.js');
+const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {notify, notifyError} = require('../commands');
+const {MessageEmbed} = require('discord.js');
+const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
-const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
+const config = require('../../configs/config.js');
+const {t} = require('i18next');
 
 module.exports = {
-  data: new SlashCommandBuilder().setName('ping').setDescription('Пинг и отпинг'),
+  data: new SlashCommandBuilder().setName('ping').setDescription(t('discord:command.ping.description')),
   async execute(interaction) {
     await ping(interaction);
   },
-  async listener(_interaction) {},
 };
 
-const ping = async (interaction) => {
+const ping = async interaction => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PING)) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Доступ к команде \"ping\" запрещен')
+      .setTitle(t('discord:embed.forbidden.title', {command: 'ping'}))
       .setTimestamp()
-      .setDescription('Запросите доступ у администратора сервера');
+      .setDescription(t('discord:embed.forbidden.description'));
     await notify('ping', interaction, {embeds: [embed], ephemeral: true});
     await audit({
       guildId: interaction.guildId,
       type: TYPES.INFO,
       category: CATEGORIES.PERMISSION,
-      message: 'Доступ к команде ping запрещен',
+      message: t('inner:info.forbidden', {command: 'ping'}),
     });
     return;
   }
 
   const embed = new MessageEmbed()
     .setColor(config.colors.info)
-    .setTitle('Мое время обработки данных')
+    .setTitle(t('discord:command.ping.completed.title'))
     .setTimestamp()
-    .setDescription(`Решал на досуге задачи тысячелетия и решил за ${Math.round(interaction.client.ws.ping)}мс. Их все.`);
+    .setDescription(t('discord:command.ping.completed.description', {ping: Math.round(interaction.client.ws.ping)}));
 
   try {
     await notify('ping', interaction, {embeds: [embed]});
-    logGuild(interaction.guildId, `[ping]: Список реакций успешно обновлен`);
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.ping'),
+    });
   } catch (e) {
     await notifyError('ping', e, interaction);
   }
-}
+};

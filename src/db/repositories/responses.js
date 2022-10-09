@@ -1,9 +1,9 @@
 const {db} = require('../../actions/db.js');
 const {transaction} = require('../dbUtils');
 
-let rules = new Map();
+const rules = new Map();
 
-module.exports.getAll = async (guildId) => {
+module.exports.getAll = async guildId => {
   if (!rules.has(guildId)) {
     const response = await db.query('SELECT regex, react FROM RESPONSE WHERE guild_id=$1', [guildId]);
     rules.set(guildId, response.rows || []);
@@ -24,5 +24,5 @@ module.exports.remove = async (guildId, regex) => {
 };
 
 module.exports.count = async () => {
-  return await db.query('SELECT guild_id, COUNT(*) FROM RESPONSE GROUP BY guild_id')
-}
+  return await db.query('SELECT guild_id, COUNT(*) FROM RESPONSE GROUP BY guild_id');
+};

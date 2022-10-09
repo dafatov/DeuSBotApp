@@ -1,37 +1,36 @@
-const {SlashCommandBuilder} = require('@discordjs/builders');
-const db = require('../../db/repositories/publicist.js');
-const {MessageEmbed} = require('discord.js');
-const config = require('../../configs/config');
-const {notify, notifyError} = require('../commands');
-const {logGuild} = require('../../utils/logger');
+const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {notify, notifyError} = require('../commands');
+const {MessageEmbed} = require('discord.js');
+const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
-const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
+const config = require('../../configs/config');
+const db = require('../../db/repositories/publicist.js');
+const {t} = require('i18next');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('publicist')
-    .setDescription('Манипулирование новостным информатором')
+    .setDescription(t('discord:command.publicist.description'))
     .addSubcommand(s => s
       .setName('set')
-      .setDescription('Добавление или изменение информационного канала')
+      .setDescription(t('discord:command.publicist.set.description'))
       .addChannelOption(c => c
         .setName('channel')
-        .setDescription('Канал, именуемый информационным')
+        .setDescription(t('discord:command.publicist.set.option.channel.description'))
         .setRequired(true)))
     .addSubcommand(s => s
       .setName('remove')
-      .setDescription('Удаление информационного канала'))
+      .setDescription(t('discord:command.publicist.remove.description')))
     .addSubcommand(s => s
       .setName('show')
-      .setDescription('Отображение текущего информационного канала')),
+      .setDescription(t('discord:command.publicist.show.description'))),
   async execute(interaction) {
     await publicist(interaction);
   },
-  async listener(_interaction) {},
-}
+};
 
-const publicist = async (interaction) => {
+const publicist = async interaction => {
   if (interaction.options.getSubcommand() === 'set') {
     await set(interaction);
   } else if (interaction.options.getSubcommand() === 'remove') {
@@ -39,21 +38,21 @@ const publicist = async (interaction) => {
   } else if (interaction.options.getSubcommand() === 'show') {
     await show(interaction);
   }
-}
+};
 
-const set = async (interaction) => {
+const set = async interaction => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PUBLICIST_SET)) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Доступ к команде \"publicist set\" запрещен')
+      .setTitle(t('discord:embed.forbidden.title', {command: 'publicist'}))
       .setTimestamp()
-      .setDescription('Запросите доступ у администратора сервера');
+      .setDescription(t('discord:embed.forbidden.description'));
     await notify('publicist', interaction, {embeds: [embed], ephemeral: true});
     await audit({
       guildId: interaction.guildId,
-      type: TYPES.INFO,
+      type: TYPES.WARNING,
       category: CATEGORIES.PERMISSION,
-      message: 'Доступ к команде publicist.set запрещен',
+      message: t('inner:info.forbidden', {command: 'publicist'}),
     });
     return;
   }
@@ -64,29 +63,34 @@ const set = async (interaction) => {
     await db.set(interaction.guildId, channel.id);
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
-      .setTitle('Хех.. ой щас заспамлю')
-      .setDescription(`В качестве информационного канала установлен канал **${channel.name}**`)
+      .setTitle(t('discord:command.publicist.set.completed.title'))
+      .setDescription(t('discord:command.publicist.set.completed.description', {channel: channel.name}))
       .setTimestamp();
     await notify('publicist', interaction, {embeds: [embed]});
-    logGuild(interaction.guildId, `[publicist]: Информационный канал успешно установлен`);
-  } catch (e) {
-    await notifyError('publicist', e, interaction);
-  }
-}
-
-const remove = async (interaction) => {
-  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PUBLICIST_REMOVE)) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle('Доступ к команде \"publicist remove\" запрещен')
-      .setTimestamp()
-      .setDescription('Запросите доступ у администратора сервера');
-    await notify('publicist', interaction, {embeds: [embed], ephemeral: true});
     await audit({
       guildId: interaction.guildId,
       type: TYPES.INFO,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.publicist.set'),
+    });
+  } catch (e) {
+    await notifyError('publicist', e, interaction);
+  }
+};
+
+const remove = async interaction => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PUBLICIST_REMOVE)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle(t('discord:embed.forbidden.title', {command: 'publicist'}))
+      .setTimestamp()
+      .setDescription(t('discord:embed.forbidden.description'));
+    await notify('publicist', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
       category: CATEGORIES.PERMISSION,
-      message: 'Доступ к команде publicist.remove запрещен',
+      message: t('inner:info.forbidden', {command: 'publicist'}),
     });
     return;
   }
@@ -95,29 +99,34 @@ const remove = async (interaction) => {
     await db.remove(interaction.guildId);
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
-      .setTitle('Ты чо меня заскамил? Чтоб я больше не спамил Йоу')
-      .setDescription('Информационный канал удален. Deus больше не сможет посылать уведомления')
+      .setTitle(t('discord:command.publicist.remove.completed.title'))
+      .setDescription(t('discord:command.publicist.remove.completed.description'))
       .setTimestamp();
     await notify('publicist', interaction, {embeds: [embed]});
-    logGuild(interaction.guildId, `[publicist]: Информационный канал успешно удален`);
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.publicist.remove'),
+    });
   } catch (e) {
     await notifyError('publicist', e, interaction);
   }
 };
 
-const show = async (interaction) => {
+const show = async interaction => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PUBLICIST_SHOW)) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Доступ к команде \"publicist show\" запрещен')
+      .setTitle(t('discord:embed.forbidden.title', {command: 'publicist'}))
       .setTimestamp()
-      .setDescription('Запросите доступ у администратора сервера');
+      .setDescription(t('discord:embed.forbidden.description'));
     await notify('publicist', interaction, {embeds: [embed], ephemeral: true});
     await audit({
       guildId: interaction.guildId,
-      type: TYPES.INFO,
+      type: TYPES.WARNING,
       category: CATEGORIES.PERMISSION,
-      message: 'Доступ к команде publicist.show запрещен',
+      message: t('inner:info.forbidden', {command: 'publicist'}),
     });
     return;
   }
@@ -126,12 +135,16 @@ const show = async (interaction) => {
     const channelId = (await db.getAll()).find(p => p.guildId === interaction.guildId)?.channelId;
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
-      .setTitle(`Информационный канал сервера ${interaction.guild.name}`)
-      .setDescription(`На данный момент сервером дискорда является... _\*барабанная дробь типа\*_
-        ...**${interaction.guild.channels.cache.get(channelId)?.name}**`)
+      .setTitle(t('discord:command.publicist.show.completed.title', {name: interaction.guild.name}))
+      .setDescription(t('discord:command.publicist.show.completed.description', {name: interaction.guild.channels.cache.get(channelId)?.name}))
       .setTimestamp();
     await notify('publicist', interaction, {embeds: [embed]});
-    logGuild(interaction.guildId, `[publicist]: Информационный канал успешно выведен`);
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.publicist.show'),
+    });
   } catch (e) {
     await notifyError('publicist', e, interaction);
   }

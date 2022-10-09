@@ -1,78 +1,91 @@
-const {SlashCommandBuilder} = require('@discordjs/builders');
+const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {MessageEmbed} = require('discord.js');
-const {logGuild} = require('../../utils/logger');
-const {notify} = require('../commands');
+const {SlashCommandBuilder} = require('@discordjs/builders');
+const {audit} = require('../auditor');
 const config = require('../../configs/config.js');
 const {escaping} = require('../../utils/string.js');
+const {notify} = require('../commands');
 const player = require('../player');
-const {isForbidden, SCOPES} = require('../../db/repositories/permission');
-const {audit} = require('../auditor');
-const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
+const {t} = require('i18next');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('skip')
-    .setDescription('Пропустить текущую композицию'),
+    .setDescription(t('discord:command.skip.description')),
   async execute(interaction) {
     await module.exports.skip(interaction, true);
   },
-  async listener(_interaction) {},
 };
 
 module.exports.skip = async (interaction, isExecute) => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_SKIP)) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Доступ к команде \"skip\" запрещен')
+      .setTitle(t('discord:embed.forbidden.title', {command: 'skip'}))
       .setTimestamp()
-      .setDescription('Запросите доступ у администратора сервера');
-    await notify('skip', interaction, {embeds: [embed], ephemeral: true});
+      .setDescription(t('discord:embed.forbidden.description'));
+    await notify('response', interaction, {embeds: [embed], ephemeral: true});
     await audit({
       guildId: interaction.guildId,
-      type: TYPES.INFO,
+      type: TYPES.WARNING,
       category: CATEGORIES.PERMISSION,
-      message: 'Доступ к команде skip запрещен',
+      message: t('inner:info.forbidden', {command: 'skip'}),
     });
-    return {result: 'Доступ к команде запрещен'};
+    return {result: t('web:info.forbidden', {command: 'skip'})};
   }
 
-  if (!player.getQueue(interaction.guildId).nowPlaying.song || !player.getQueue(interaction.guildId).connection ||
-    !player.getQueue(interaction.guildId).player) {
+  if (!player.getQueue(interaction.guildId).nowPlaying.song || !player.getQueue(interaction.guildId).connection
+    || !player.getQueue(interaction.guildId).player) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Так ничего и не играло')
-      .setDescription(`Как ты жалок... Зачем пропускать, то чего нет? Или у тебя голоса в голове?`)
+      .setTitle(t('discord:embed.noPlaying.title'))
+      .setDescription(t('discord:embed.noPlaying.description'))
       .setTimestamp();
     if (isExecute) {
       await notify('skip', interaction, {embeds: [embed]});
     }
-    logGuild(interaction.guildId, `[skip]: Пропустить композицию не вышло: плеер не играет`);
-    return {result: 'Плеер не играет'};
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.remove.noPlaying'),
+    });
+    return {result: t('web:info.noPlaying')};
   }
 
-  if (player.getQueue(interaction.guildId)?.connection?.joinConfig?.channelId !==
-    interaction.member.voice.channel.id) {
+  if (player.getQueue(interaction.guildId)?.connection?.joinConfig?.channelId
+    !== interaction.member.voice.channel.id) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Канал не тот')
-      .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
+      .setTitle(t('discord:embed.unequalChannels.title'))
+      .setDescription(t('discord:embed.unequalChannels.description'))
       .setTimestamp();
     if (isExecute) {
       await notify('skip', interaction, {embeds: [embed]});
     }
-    logGuild(interaction.guildId, `[skip]: Пропустить композицию не вышло: не совпадают каналы`);
-    return {result: 'Не совпадают каналы'};
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.clear.unequalChannels'),
+    });
+    return {result: t('web:info.unequalChannels')};
   }
 
-  let skipped = await player.skip(interaction.guildId);
+  const skipped = await player.skip(interaction.guildId);
   const embed = new MessageEmbed()
     .setColor(config.colors.info)
-    .setTitle('Текущая композиция уничтожена')
-    .setDescription(`Название того, что играло уже не помню. Прошлое должно остаться в прошлом.
-        ...Вроде это **${escaping(skipped.title)}**, но уже какая разница?`);
+    .setTitle(t('discord:command.skip.completed.title'))
+    .setDescription(t('discord:command.skip.completed.description', {title: escaping(skipped.title)}));
   if (isExecute) {
     await notify('skip', interaction, {embeds: [embed]});
   }
-  logGuild(interaction.guildId, `[skip]: Композиция была успешно пропущена`);
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.INFO,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:audit.command.skip'),
+  });
   return {};
 };

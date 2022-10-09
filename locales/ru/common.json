@@ -1,0 +1,51 @@
+{
+  "player": {
+    "toLoop": "Зациклить",
+    "loop": "зациклена",
+    "toUnloop": "Отциклить",
+    "unloop": "отциклена",
+    "toResume": "Возобновить",
+    "resumed": "возобновлено",
+    "toPause": "Приостановить",
+    "paused": "приостановлено",
+    "noRemained": "<Никогда>",
+    "beginNow": "<Сейчас>",
+    "stream": "<Стрим>",
+    "first": "|<",
+    "previous": "<",
+    "update": "Обновить",
+    "next": ">",
+    "last": ">|",
+    "skip": "Пропустить"
+  },
+  "calendar": {
+    "month": {
+      "list": [
+        "Январь",
+        "Февраль",
+        "Март",
+        "Апрель",
+        "Май",
+        "Июнь",
+        "Июль",
+        "Август",
+        "Сентябрь",
+        "Октябрь",
+        "Ноябрь",
+        "Декабрь"
+      ],
+      "numeral": {
+        "monthWithCount_one": "{{count}} месяц"
+      },
+      "name": "Месяц"
+    },
+    "year": {
+      "name": "Год"
+    },
+    "day": {
+      "name": "День"
+    }
+  },
+  "date": "$t(common:calendar.month.list.{{month}}) {{year}}",
+  "markItem": "\\t- {{item}}"
+}

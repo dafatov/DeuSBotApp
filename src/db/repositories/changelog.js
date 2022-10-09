@@ -18,7 +18,7 @@ module.exports.getAll = async () => {
 module.exports.getUnshown = async () => await this.getAll()
   .then(all => all.filter(changelog => !changelog.shown));
 
-module.exports.getLast = async (application) => await this.getAll()
+module.exports.getLast = async application => await this.getAll()
   .then(all => getLastVersion(application)
     .then(lastVersion => all.find(changelog =>
       changelog.version === lastVersion)));
@@ -40,7 +40,7 @@ module.exports.shown = async (version, application) => {
   }
 };
 
-module.exports.cacheReset = () => changelogs = null;
+module.exports.cacheReset = () => {changelogs = null;};
 
 const isValidAdd = async (version, application) => {
   const lastVersion = await getLastVersion(application);
@@ -59,7 +59,7 @@ const isValidShown = async (version, application) => {
   return firstUnshownVersion === version;
 };
 
-const getLastVersion = (application) => this.getAll()
+const getLastVersion = application => this.getAll()
   .then(all => all.filter(item => item.application === application))
   .then(all => all.map(item => item.version))
   .then(all => all.sort((a, b) => isVersionUpdated(a, b)

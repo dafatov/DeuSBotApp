@@ -1,75 +1,59 @@
-const {Client, Intents} = require("discord.js");
-const responses = require("./actions/responses.js");
-const commands = require("./actions/commands.js");
-const listeners = require("./actions/listeners.js");
-const player = require("./actions/player.js");
-const changelog = require("./actions/changelog.js");
-const publicist = require("./actions/publicist.js");
-const radios = require("./actions/radios.js");
-const db = require("./actions/db.js");
-const auditor = require("./actions/auditor.js");
-const {log, logGuild} = require('./utils/logger.js');
-const {VoiceConnectionStatus} = require("@discordjs/voice");
-const socket = require("./socket");
+const {CATEGORIES, TYPES} = require('./db/repositories/audit');
+const {Client, Intents} = require('discord.js');
+const {audit} = require('./actions/auditor');
+const locale = require('../locales/locale');
+const {t} = require('i18next');
 
 const client = new Client({
   intents: [
     Intents.FLAGS.GUILDS,
     Intents.FLAGS.GUILD_MESSAGES,
     Intents.FLAGS.GUILD_VOICE_STATES,
-    Intents.FLAGS.GUILD_MEMBERS
-  ]
+    Intents.FLAGS.GUILD_MEMBERS,
+  ],
 });
 
 client.once('ready', async () => {
-  client.user.setPresence({activities: [{name: `/help для помощи`}], status: 'online'});
+  client.user.setPresence({activities: [{name: t('discord:presence')}], status: 'online'});
 
-  await db.init();
-  await auditor.init();
-  await responses.init(client);
-  await radios.init();
-  await commands.init(client);
-  await listeners.init(client);
-  player.init(client);
-  await changelog.init();
-  await publicist.init(client);
-  socket.init(client);
+  await require('./actions/db.js').init();
+  await require('./actions/auditor.js').init();
+  await require('./actions/responses.js').init(client);
+  await require('./actions/radios.js').init();
+  await require('./actions/commands.js').init(client);
+  await require('./actions/listeners.js').init(client);
+  await require('./actions/player.js').init(client);
+  await require('./actions/changelog.js').init();
+  await require('./actions/publicist.js').init(client);
+  await require('./server').init(client);
 
-  log('Бот запущен');
+  await audit({
+    guildId: null,
+    type: TYPES.INFO,
+    category: CATEGORIES.INIT,
+    message: t('inner:audit.init.bot'),
+  });
 });
 
 client.on('interactionCreate', async interaction => {
   if (interaction.isCommand()) {
-    await commands.execute(interaction);
+    await require('./actions/commands.js').execute(interaction);
   }
   if (interaction.isButton()) {
-    await listeners.execute(interaction);
+    await require('./actions/listeners.js').execute(interaction);
   }
 });
 
-client.on('messageCreate', (message) => {
+client.on('messageCreate', async message => {
   if (message.author.bot) {
     return;
   }
 
-  responses.execute(message);
+  await require('./actions/responses.js').execute(message);
 });
 
 client.on('voiceStateUpdate', async (_oldState, newState) => {
-  if (!player.getQueue(newState.guild.id)?.voiceChannel
-    || !player.getQueue(newState.guild.id).connection
-    || player.getQueue(newState.guild.id).connection._state.status === VoiceConnectionStatus.Destroyed) {
-    return;
-  }
-
-  if (newState.id === client.user.id && (!newState.channelId || newState.channelId !== player.getQueue(newState.guild.id).voiceChannel.id)
-    || player.getQueue(newState.guild.id).voiceChannel.members
-      .filter(m => !m.user.bot).size < 1) {
-    player.getQueue(newState.guild.id).connection.destroy();
-    player.clearNowPlaying(newState.guild.id);
-    player.clearQueue(newState.guild.id);
-    player.clearConnection(newState.guild.id);
-    logGuild(newState.guild.id, '[bot][stateUpdate] Leaved cause moved, disconnected or solo');
-  }
+  await require('./actions/voiceStateUpdate').voiceStateUpdate(newState, client);
 });
-client.login(process.env.DISCORD_TOKEN);
+
+locale.init().then(() => client.login(process.env.DISCORD_TOKEN));

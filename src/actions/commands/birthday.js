@@ -1,67 +1,55 @@
-const {SlashCommandBuilder} = require('@discordjs/builders');
-const db = require('../../db/repositories/birthday');
-const {MessageEmbed} = require('discord.js');
-const config = require('../../configs/config');
-const {notify, notifyError} = require('../commands');
-const {logGuild} = require('../../utils/logger');
-const {createCalendar} = require('../../utils/attachments');
+const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {getFixedT, t} = require('i18next');
+const {notify, notifyError} = require('../commands');
+const {MessageEmbed} = require('discord.js');
+const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
-const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
+const config = require('../../configs/config');
+const {createCalendar} = require('../../utils/attachments');
+const db = require('../../db/repositories/birthday');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('birthday')
-    .setDescription('Манипулирование системой дней рождений')
+    .setDescription(t('discord:command.birthday.description'))
     .addSubcommand(s => s
       .setName('set')
-      .setDescription('Установление даты рождения')
+      .setDescription(t('discord:command.birthday.set.description'))
       .addIntegerOption(i => i
         .setName('year')
-        .setDescription('Год')
+        .setDescription(t('common:calendar.year.name'))
         .setRequired(true))
       .addIntegerOption(i => i
         .setName('month')
-        .setDescription('Месяц')
+        .setDescription(t('common:calendar.month.name'))
         .setRequired(true))
       .addIntegerOption(i => i
         .setName('day')
-        .setDescription('День')
+        .setDescription(t('common:calendar.day.name'))
         .setRequired(true)))
     .addSubcommand(s => s
       .setName('remove')
-      .setDescription('Удаление даты рождения'))
+      .setDescription(t('discord:command.birthday.remove.description')))
     .addSubcommand(s => s
       .setName('show')
-      .setDescription('Отображение текущей даты рождения')
+      .setDescription(t('discord:command.birthday.show.description'))
       .addStringOption(s => s
         .setName('month')
-        .setDescription('Месяц')
+        .setDescription(t('common:calendar.month.name'))
         .setRequired(false)
-        .addChoices([
-          ['Январь', '0'],
-          ['Февраль', '1'],
-          ['Март', '2'],
-          ['Апрель', '3'],
-          ['Май', '4'],
-          ['Июнь', '5'],
-          ['Июль', '6'],
-          ['Август', '7'],
-          ['Сентябрь', '8'],
-          ['Октябрь', '9'],
-          ['Ноябрь', '10'],
-          ['Декабрь', '11'],
-        ])))
+        //TODO придумать что-то получше
+        .addChoices(getFixedT(null, null, 'common:calendar')('month', {returnObjects: true}).list.map((month, index) => [month, index.toString()]))))
     .addSubcommand(s => s
       .setName('ignore')
-      .setDescription('Переключить вывод уведомлений напоминающих о регистрации')),
+      .setDescription(t('discord:command.birthday.ignore.description'))),
   async execute(interaction) {
     await birthday(interaction);
   },
-  async listener(_interaction) {},
-}
+  async listener() {},
+};
 
-const birthday = async (interaction) => {
+const birthday = async interaction => {
   if (interaction.options.getSubcommand() === 'set') {
     await set(interaction);
   } else if (interaction.options.getSubcommand() === 'remove') {
@@ -71,21 +59,21 @@ const birthday = async (interaction) => {
   } else if (interaction.options.getSubcommand() === 'ignore') {
     await ignore(interaction);
   }
-}
+};
 
-const set = async (interaction) => {
+const set = async interaction => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_BIRTHDAY_SET)) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Доступ к команде \"birthday set\" запрещен')
+      .setTitle(t('discord:embed.forbidden.title', {command: 'birthday set'}))
       .setTimestamp()
-      .setDescription('Запросите доступ у администратора сервера');
+      .setDescription(t('discord:embed.forbidden.description'));
     await notify('birthday', interaction, {embeds: [embed], ephemeral: true});
     await audit({
       guildId: interaction.guildId,
-      type: TYPES.INFO,
+      type: TYPES.WARNING,
       category: CATEGORIES.PERMISSION,
-      message: 'Доступ к команде birthday.set запрещен',
+      message: t('inner:info.forbidden', {command: 'birthday.set'}),
     });
     return;
   }
@@ -96,16 +84,20 @@ const set = async (interaction) => {
 
   const tmpDate = new Date(year, month - 1, day);
   const tmpDateStr = `${`${day}`.padStart(2, '0')}.${`${month}`.padStart(2, '0')}.${year}`;
-  logGuild(interaction.guildId, `[birthday.set]: tmpDate=${tmpDate}, tmpDateStr=${tmpDateStr}`);
+
   if (year < 1900 || tmpDate >= new Date() || tmpDate.toLocaleDateString('ru-RU') !== tmpDateStr) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Некорректная дата рождения. Попробуй еще разочек~')
-      .setDescription(
-        '\"Ответы кроются в вещах, которые мы считаем естественными. Кто же ожидал, что, если соединить телефон и микроволновку, получится машина времени?\"')
-      .setTimestamp()
+      .setTitle(t('discord:command.birthday.set.wrongData.title'))
+      .setDescription(t('discord:command.birthday.set.wrongData.description'))
+      .setTimestamp();
     await notify('birthday', interaction, {embeds: [embed]});
-    logGuild(interaction.guildId, `[birthday]: Дата дня рождения не установлена: ошибка в синтаксисе`);
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.birthday.wrongData'),
+    });
     return;
   }
 
@@ -115,29 +107,34 @@ const set = async (interaction) => {
     await db.set(interaction.user.id, date);
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
-      .setTitle('Жди поздравлений...')
-      .setDescription(`К качестве даты дня рождения установлен: **${tmpDate.toLocaleDateString('ru-RU')}**`)
-      .setTimestamp()
+      .setTitle(t('discord:command.birthday.set.completed.title'))
+      .setDescription(t('discord:command.birthday.set.completed.description', {date: tmpDate.toLocaleDateString('ru-RU')}))
+      .setTimestamp();
     await notify('birthday', interaction, {embeds: [embed]});
-    logGuild(interaction.guildId, `[birthday]: Дата дня рождения успешно установлена`);
-  } catch (e) {
-    await notifyError('birthday', e, interaction)
-  }
-}
-
-const remove = async (interaction) => {
-  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_BIRTHDAY_REMOVE)) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle('Доступ к команде \"birthday remove\" запрещен')
-      .setTimestamp()
-      .setDescription('Запросите доступ у администратора сервера');
-    await notify('birthday', interaction, {embeds: [embed], ephemeral: true});
     await audit({
       guildId: interaction.guildId,
       type: TYPES.INFO,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.birthday.set'),
+    });
+  } catch (e) {
+    await notifyError('birthday', e, interaction);
+  }
+};
+
+const remove = async interaction => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_BIRTHDAY_REMOVE)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle(t('discord:embed.forbidden.title', {command: 'birthday remove'}))
+      .setTimestamp()
+      .setDescription(t('discord:embed.forbidden.description'));
+    await notify('birthday', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
       category: CATEGORIES.PERMISSION,
-      message: 'Доступ к команде birthday.remove запрещен',
+      message: t('inner:info.forbidden', {command: 'birthday.remove'}),
     });
     return;
   }
@@ -146,29 +143,34 @@ const remove = async (interaction) => {
     await db.remove(interaction.user.id);
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
-      .setTitle('Больше не жди поздравлений')
-      .setDescription('Дата дня рождения удалена')
+      .setTitle(t('discord:command.birthday.remove.completed.title'))
+      .setDescription(t('discord:command.birthday.remove.completed.description'))
       .setTimestamp();
     await notify('birthday', interaction, {embeds: [embed]});
-    logGuild(interaction.guildId, `[birthday]: Дата дня рождения успешно удалена`);
-  } catch (e) {
-    await notifyError('birthday', e, interaction)
-  }
-}
-
-const show = async (interaction) => {
-  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_BIRTHDAY_SHOW)) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle('Доступ к команде \"birthday show\" запрещен')
-      .setTimestamp()
-      .setDescription('Запросите доступ у администратора сервера');
-    await notify('birthday', interaction, {embeds: [embed], ephemeral: true});
     await audit({
       guildId: interaction.guildId,
       type: TYPES.INFO,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.birthday.removed'),
+    });
+  } catch (e) {
+    await notifyError('birthday', e, interaction);
+  }
+};
+
+const show = async interaction => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_BIRTHDAY_SHOW)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle(t('discord:embed.forbidden.title', {command: 'birthday show'}))
+      .setTimestamp()
+      .setDescription(t('discord:embed.forbidden.description'));
+    await notify('birthday', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
       category: CATEGORIES.PERMISSION,
-      message: 'Доступ к команде birthday.show запрещен',
+      message: t('inner:info.forbidden', {command: 'birthday.show'}),
     });
     return;
   }
@@ -193,25 +195,30 @@ const show = async (interaction) => {
   const calendar = await createCalendar(interaction.guild, birthdays, monthDate, {month, year});
   try {
     await notify('birthday', interaction, {files: [calendar]});
-    logGuild(interaction.guildId, `[birthday]: Календарь дней рождений успешно выведен`);
-  } catch (e) {
-    await notifyError('birthday', e, interaction);
-  }
-}
-
-const ignore = async (interaction) => {
-  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_BIRTHDAY_IGNORE)) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle('Доступ к команде \"birthday ignore\" запрещен')
-      .setTimestamp()
-      .setDescription('Запросите доступ у администратора сервера');
-    await notify('birthday', interaction, {embeds: [embed], ephemeral: true});
     await audit({
       guildId: interaction.guildId,
       type: TYPES.INFO,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.birthday.showed'),
+    });
+  } catch (e) {
+    await notifyError('birthday', e, interaction);
+  }
+};
+
+const ignore = async interaction => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_BIRTHDAY_IGNORE)) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle(t('discord:embed.forbidden.title', {command: 'birthday ignore'}))
+      .setTimestamp()
+      .setDescription(t('discord:embed.forbidden.description'));
+    await notify('birthday', interaction, {embeds: [embed], ephemeral: true});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
       category: CATEGORIES.PERMISSION,
-      message: 'Доступ к команде birthday.ignore запрещен',
+      message: t('inner:info.forbidden', {command: 'birthday.ignore'}),
     });
     return;
   }
@@ -221,14 +228,21 @@ const ignore = async (interaction) => {
     await db.ignore(interaction.user.id, !(current?.ignored ?? false));
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
-      .setTitle(`Пользователь ${interaction.user.username}...`)
-      .setDescription(`...решил ${(!(current?.ignored ?? false))
-        ? ''
-        : 'НЕ'} игнорировать все напоминания о дате рождения`)
+      .setTitle(t('discord:command.birthday.ignore.completed.title', {username: interaction.user.username}))
+      .setDescription(t('discord:command.birthday.ignore.completed.description', {
+        expr: current?.ignored ?? false
+          ? 'НЕ'
+          : '',
+      }))
       .setTimestamp();
     await notify('birthday', interaction, {embeds: [embed]});
-    logGuild(interaction.guildId, `[birthday]: Состояние уведомлений о регистрации дня рождения успешно установлена`);
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.birthday.ignored'),
+    });
   } catch (e) {
-    await notifyError('birthday', e, interaction)
+    await notifyError('birthday', e, interaction);
   }
-}
+};

@@ -1,41 +1,41 @@
-const config = require('../../configs/config.js');
-const {logGuild} = require('../../utils/logger.js');
-const db = require('../../db/repositories/responses.js');
-const {SlashCommandBuilder} = require('@discordjs/builders');
-const {MessageEmbed, MessageActionRow, MessageButton} = require('discord.js');
-const {notify, notifyError} = require('../commands.js');
-const {escaping} = require('../../utils/string.js');
+const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {MessageActionRow, MessageButton, MessageEmbed} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {notify, notifyError} = require('../commands.js');
+const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
-const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
+const config = require('../../configs/config.js');
+const db = require('../../db/repositories/responses.js');
+const {escaping} = require('../../utils/string.js');
+const {t} = require('i18next');
 
 const {start, count} = {start: 0, count: 5};
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('response')
-    .setDescription('Манипулирование реакциями')
+    .setDescription(t('discord:command.response.description'))
     .addSubcommand(s => s
       .setName('set')
-      .setDescription('Добавление или изменение реакции')
+      .setDescription(t('discord:command.response.set.description'))
       .addStringOption(o => o
         .setName('regex')
-        .setDescription('Шаблон, определяющий на какое сообщение реагировать')
+        .setDescription(t('discord:command.response.set.option.regex.description'))
         .setRequired(true))
       .addStringOption(o => o
         .setName('react')
-        .setDescription('Текст реакции')
+        .setDescription(t('discord:command.response.set.option.react.description'))
         .setRequired(true)))
     .addSubcommand(s => s
       .setName('remove')
-      .setDescription('Удаление существующей реакции. Может удалять то, чего нет')
+      .setDescription(t('discord:command.response.remove.description'))
       .addStringOption(o => o
         .setName('regex')
-        .setDescription('Шаблон, определяющий на какое сообщение реагировать')
+        .setDescription(t('discord:command.response.remove.option.regex.description'))
         .setRequired(true)))
     .addSubcommand(s => s
       .setName('show')
-      .setDescription('Отображение существующий реакций в виде списка')),
+      .setDescription(t('discord:command.response.show.description'))),
   async execute(interaction) {
     await response(interaction);
   },
@@ -44,7 +44,7 @@ module.exports = {
   },
 };
 
-const response = async (interaction) => {
+const response = async interaction => {
   if (interaction.options.getSubcommand() === 'set') {
     await set(interaction);
   } else if (interaction.options.getSubcommand() === 'remove') {
@@ -54,37 +54,37 @@ const response = async (interaction) => {
   }
 };
 
-const set = async (interaction) => {
+const set = async interaction => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_RESPONSE_SET)) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Доступ к команде \"response set\" запрещен')
+      .setTitle(t('discord:embed.forbidden.title', {command: 'response set'}))
       .setTimestamp()
-      .setDescription('Запросите доступ у администратора сервера');
+      .setDescription(t('discord:embed.forbidden.description'));
     await notify('response', interaction, {embeds: [embed], ephemeral: true});
     await audit({
       guildId: interaction.guildId,
-      type: TYPES.INFO,
+      type: TYPES.WARNING,
       category: CATEGORIES.PERMISSION,
-      message: 'Доступ к команде response.set запрещен',
+      message: t('inner:info.forbidden', {command: 'response.set'}),
     });
     return;
   }
 
-  let {regex, react} = {
+  const {regex, react} = {
     regex: interaction.options.getString('regex'),
     react: interaction.options.getString('react'),
   };
 
   try {
     if (!regex || !react) {
-      await notifyError('response', `Regex or react is undefined: [regex: "${regex}", react: "${react}"]`, interaction);
+      await notifyError('response', t('discord:command.response.set.emptyResponse', {regex, react}), interaction);
     }
 
     try {
       'test'.match(regex);
     } catch (e) {
-      await notifyError('response', `Некорректное регулярное выражение: ${regex}`, interaction);
+      await notifyError('response', t('discord:command.response.set.wrongRegex', {regex}), interaction);
     }
 
     await db.set(interaction.guildId, {
@@ -93,68 +93,78 @@ const set = async (interaction) => {
     });
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
-      .setTitle('Я создал реакцию')
+      .setTitle(t('discord:command.response.set.completed.title'))
       .setTimestamp()
       .addField(escaping(regex), react);
 
     await notify('response', interaction, {embeds: [embed]});
-    logGuild(interaction.guildId, `[response]: Реакция успешно добавлена`);
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.response.set'),
+    });
   } catch (e) {
     await notifyError('response', e, interaction);
   }
 };
 
-const remove = async (interaction) => {
+const remove = async interaction => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_RESPONSE_REMOVE)) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Доступ к команде \"response remove\" запрещен')
+      .setTitle(t('discord:embed.forbidden.title', {command: 'response remove'}))
       .setTimestamp()
-      .setDescription('Запросите доступ у администратора сервера');
+      .setDescription(t('discord:embed.forbidden.description'));
     await notify('response', interaction, {embeds: [embed], ephemeral: true});
     await audit({
       guildId: interaction.guildId,
-      type: TYPES.INFO,
+      type: TYPES.WARNING,
       category: CATEGORIES.PERMISSION,
-      message: 'Доступ к команде response.remove запрещен',
+      message: t('inner:info.forbidden', {command: 'response.remove'}),
     });
     return;
   }
 
-  let regex = interaction.options.getString('regex');
+  const regex = interaction.options.getString('regex');
 
   try {
     if (!regex) {
-      await notifyError('response', `Regex is undefined: [regex: "${regex}"]`, interaction);
+      await notifyError('response', t('discord:command.response.remove.emptyRegex', {regex}), interaction);
     }
 
     await db.remove(interaction.guildId, regex);
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
-      .setTitle('Я уничтожил реакцию')
+      .setTitle(t('discord:command.response.remove.completed.title'))
       .setTimestamp()
       .setDescription(escaping(regex));
 
     await notify('response', interaction, {embeds: [embed]});
-    logGuild(interaction.guildId, `[response]: Реакция успешно удалена`);
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.response.removed'),
+    });
   } catch (e) {
     await notifyError('response', e, interaction);
   }
 };
 
-const show = async (interaction) => {
+const show = async interaction => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_RESPONSE_SHOW)) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Доступ к команде \"response show\" запрещен')
+      .setTitle(t('discord:embed.forbidden.title', {command: 'response show'}))
       .setTimestamp()
-      .setDescription('Запросите доступ у администратора сервера');
+      .setDescription(t('discord:embed.forbidden.description'));
     await notify('response', interaction, {embeds: [embed], ephemeral: true});
     await audit({
       guildId: interaction.guildId,
-      type: TYPES.INFO,
+      type: TYPES.WARNING,
       category: CATEGORIES.PERMISSION,
-      message: 'Доступ к команде response.show запрещен',
+      message: t('inner:info.forbidden', {command: 'response.show'}),
     });
     return;
   }
@@ -162,8 +172,13 @@ const show = async (interaction) => {
   const rules = await db.getAll(interaction.guildId);
   const embed = new MessageEmbed()
     .setColor('#000000')
-    .setTitle('Все реакции на текущий момент')
-    .setFooter(`${Math.min(start + 1, rules.length)} - ${Math.min(start + count, rules.length)} из ${rules.length} по ${count}`);
+    .setTitle(t('discord:command.response.show.completed.title'))
+    .setFooter(t('discord:command.response.show.completed.footer', {
+      countStart: Math.min(start + 1, rules.length),
+      countFinish: Math.min(start + count, rules.length),
+      total: rules.length,
+      step: count,
+    }));
 
   embed.setFields(rules
     .slice(start, count)
@@ -177,44 +192,51 @@ const show = async (interaction) => {
     .addComponents(
       new MessageButton()
         .setCustomId('first')
-        .setLabel('|<')
+        .setLabel(t('common:player.first'))
         .setStyle('PRIMARY')
         .setDisabled(start <= 0),
       new MessageButton()
         .setCustomId('previous')
-        .setLabel('<')
+        .setLabel(t('common:player.previous'))
         .setStyle('PRIMARY')
         .setDisabled(start <= 0),
       new MessageButton()
         .setCustomId('update')
-        .setLabel('Обновить')
+        .setLabel(t('common:player.update'))
         .setStyle('PRIMARY')
         .setDisabled(rules.length === 0),
       new MessageButton()
         .setCustomId('next')
-        .setLabel('>')
+        .setLabel(t('common:player.next'))
         .setStyle('PRIMARY')
         .setDisabled(start + count >= rules.length),
       new MessageButton()
         .setCustomId('last')
-        .setLabel('>|')
+        .setLabel(t('common:player.last'))
         .setStyle('PRIMARY')
         .setDisabled(start + count >= rules.length),
     );
 
   try {
     await notify('response', interaction, {embeds: [embed], components: [row]});
-    logGuild(interaction.guildId, `[response]: Список реакций успешно выведен`);
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.response.showed'),
+    });
   } catch (e) {
     await notifyError('response', e, interaction);
   }
 };
 
-const onResponse = async (interaction) => {
+const onResponse = async interaction => {
   const rules = await db.getAll(interaction.guildId);
-  let embed = interaction.message.embeds[0];
-  let row = interaction.message.components[0];
-  let {start, count} = calcPages(embed.footer.text);
+  const embed = interaction.message.embeds[0];
+  const row = interaction.message.components[0];
+  const pages = calcPages(embed.footer.text);
+  const count = pages.count;
+  let start = pages.start;
 
   if (interaction.customId === 'next') {
     start += count;
@@ -250,14 +272,20 @@ const onResponse = async (interaction) => {
     }
   });
 
-  embed.setFields(rules
+  embed
+    .setFields(rules
       .slice(start, start + count)
       .map(rule => ({
         name: escaping(rule.regex),
         value: rule.react,
       })))
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
-    .setFooter(`${start + 1} - ${Math.min(start + count, rules.length)} из ${rules.length} по ${count}`);
+    .setFooter(t('discord:command.response.show.completed.footer', {
+      countStart: Math.min(start + 1, rules.length),
+      countFinish: Math.min(start + count, rules.length),
+      total: rules.length,
+      step: count,
+    }));
 
   try {
     await interaction.update({embeds: [embed], components: [row]});
@@ -267,6 +295,6 @@ const onResponse = async (interaction) => {
 };
 
 function calcPages(footer) {
-  let array = footer.split(' ');
+  const array = footer.split(' ');
   return {start: array[0] - 1, count: parseInt(array[6])};
 }

@@ -17,6 +17,11 @@ module.exports.CATEGORIES = Object.freeze({
   PERMISSION: 'permission',
   API: 'api',
   COMMAND: 'command',
+  STATE_UPDATE: 'stateUpdate',
+  SECURITY: 'security',
+  RESPONSE: 'response',
+  PUBLICIST: 'publicist',
+  LISTENER: 'listener',
 });
 
 let audit = null;
@@ -35,7 +40,7 @@ module.exports.add = async ({guildId, type, category, message}) => {
     'INSERT INTO AUDIT (guild_id, type, category, message) VALUES ($1, $2, $3, $4)',
     [guildId, type, category, message],
   );
-}
+};
 
 /**
  * Удаляет все записи до события вычтенного из текущего времени и смещения
@@ -45,9 +50,9 @@ module.exports.add = async ({guildId, type, category, message}) => {
  * @example  "T1M"
  * @returns {Promise<void>}
  */
-module.exports.removeBeforeWithOffset = async (offset) => {
+module.exports.removeBeforeWithOffset = async offset => {
   audit = null;
   return await db().query(`DELETE
                            FROM AUDIT
                            WHERE created_at < (CURRENT_TIMESTAMP - INTERVAL 'P${offset}')`);
-}
+};

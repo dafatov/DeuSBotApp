@@ -1,10 +1,11 @@
+const {APPLICATIONS, getUnshown, shown} = require('../../db/repositories/changelog');
+const {escaping, isVersionUpdated} = require('../../utils/string');
 const {MessageEmbed} = require('discord.js');
 const config = require('../../configs/config');
-const {escaping, isVersionUpdated} = require('../../utils/string');
-const {getUnshown, shown, APPLICATIONS} = require('../../db/repositories/changelog');
+const {t} = require('i18next');
 
 module.exports = {
-  async content(_client) {
+  async content() {
     const changelogs = (await getUnshown())
       .sort((a, b) => isVersionUpdated(a.version, b.version)
         ? -1
@@ -33,7 +34,7 @@ module.exports = {
       },
     };
   },
-  async condition(_now) {
+  async condition() {
     return (await getUnshown()).length > 0;
   },
   async onPublished(messages, variables) {
@@ -45,14 +46,14 @@ module.exports = {
   },
 };
 
-const createDescription = (message) => {
+const createDescription = message => {
   message = JSON.parse(message);
 
   const getFeatures = () => message.features
-    .map(feature => `\t- ${escaping(feature)}`)
+    .map(feature => t('common:markItem', {item: escaping(feature)}))
     .join('\n');
   const getBugfixes = () => message.bugfixes
-    .map(bugfix => `\t- ${escaping(bugfix)}`)
+    .map(bugfix => t('common:markItem', {item: escaping(bugfix)}))
     .join('\n');
 
   const parts = [
@@ -69,10 +70,10 @@ const createDescription = (message) => {
 const createTitle = (version, application) => {
   switch (application) {
     case APPLICATIONS.DEUS_BOT:
-      return `DeuS обновился! Изменения в v${version}:`;
+      return t('discord:embed.publicist.changelog.title.deusBot', {version: version});
     case APPLICATIONS.DEUS_BOT_APP:
-      return `Сайт DeuS'а обновился! Изменения в v${version}:`;
+      return t('discord:embed.publicist.changelog.title.deusBotWeb', {version: version});
     default:
-      return `[Ошибка] Просьба связаться с администрацией`;
+      return t('discord:embed.publicist.changelog.title.error');
   }
 };

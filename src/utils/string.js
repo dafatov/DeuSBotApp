@@ -1,4 +1,6 @@
-module.exports.escaping = (str) => {
+const {t} = require('i18next');
+
+module.exports.escaping = str => {
   const symbols = ['\\', '_', '*', '~', '>', '<', '|'];
 
   symbols.forEach(s => {
@@ -8,15 +10,15 @@ module.exports.escaping = (str) => {
   return str;
 };
 
-module.exports.parseAnisonResponseOnAir = (onAir) => {
+module.exports.parseAnisonResponseOnAir = onAir => {
   const res = {};
-  const mark1 = `'_blank'>`;
-  const mark2 = `</a>`;
-  const mark3 = `</span>`;
+  const mark1 = '\'_blank\'>';
+  const mark2 = '</a>';
+  const mark3 = '</span>';
 
-  let iMark1 = onAir.indexOf(mark1);
-  let iMark2 = onAir.indexOf(mark2);
-  let iMark3 = onAir.indexOf(mark3);
+  const iMark1 = onAir.indexOf(mark1);
+  const iMark2 = onAir.indexOf(mark2);
+  const iMark3 = onAir.indexOf(mark3);
 
   res.source = onAir.substring(iMark1 + mark1.length, iMark2);
   res.title = onAir.substring(iMark2 + mark2.length + 8, iMark3);
@@ -28,7 +30,7 @@ module.exports.isVersionUpdated = (versionOld, versionNew) => {
   versionNew = versionNew.split('.').map(v => parseInt(v));
 
   if (versionOld.length !== versionNew.length) {
-    throw 'Version has wrong format';
+    throw t('inner:error.version');
   }
 
   if (versionOld[0] !== versionNew[0]) {

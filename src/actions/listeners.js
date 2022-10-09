@@ -1,18 +1,26 @@
-const {error} = require('../utils/logger.js');
+const {CATEGORIES, TYPES} = require('../db/repositories/audit');
+const {audit} = require('./auditor');
+const {stringify} = require('../utils/string');
+const {t} = require('i18next');
 
 let client;
 
-module.exports.init = async (c) => {
+module.exports.init = c => {
   client = c;
-}
+};
 
-module.exports.execute = async (interaction) => {
-  if (!interaction || !interaction.message || !interaction.message.interaction ||
-    !interaction.message.interaction.commandName) {
-    error('Interaction was lost in listener');
+module.exports.execute = async interaction => {
+  if (!interaction || !interaction.message || !interaction.message.interaction
+    || !interaction.message.interaction.commandName) {
+    await audit({
+      guildId: null,
+      type: TYPES.INFO,
+      category: CATEGORIES.LISTENER,
+      message: t('inner:audit.listener.lost'),
+    });
     return;
   }
-  let command = client.commands.get(interaction.message.interaction.commandName);
+  const command = client.commands.get(interaction.message.interaction.commandName);
 
   if (!command) {
     return;
@@ -20,6 +28,11 @@ module.exports.execute = async (interaction) => {
   try {
     await command.listener(interaction);
   } catch (e) {
-    error(e);
+    await audit({
+      guildId: null,
+      type: TYPES.ERROR,
+      category: CATEGORIES.LISTENER,
+      message: stringify(e),
+    });
   }
-}
+};

@@ -1,4 +1,6 @@
-module.exports.getStatusIcon = (nowPlaying) => {
+const {t} = require('i18next');
+
+module.exports.getStatusIcon = nowPlaying => {
   if (nowPlaying.isPause && nowPlaying.isLoop) {
     return 'pause-loop';
   } else if (!nowPlaying.isPause && nowPlaying.isLoop) {
@@ -8,6 +10,6 @@ module.exports.getStatusIcon = (nowPlaying) => {
   } else if (!nowPlaying.isPause && !nowPlaying.isLoop) {
     return 'play';
   } else {
-    throw 'Не корректное состояние плеера';
+    throw t('inner:error.playerStatus');
   }
-}
+};

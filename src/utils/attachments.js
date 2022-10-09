@@ -1,18 +1,18 @@
 const {createCanvas, loadImage} = require('canvas');
 const {MessageAttachment} = require('discord.js');
-const {getStatusIcon} = require('./resources');
-const {timeFormatMilliseconds} = require('./dateTime.js');
 const config = require('../configs/config.js');
-const {remained} = require('./calc');
+const {getStatusIcon} = require('./resources');
 const {hasLive} = require('../actions/player');
-const {localeMonth} = require('./dateTime');
+const {remained} = require('./calc');
+const {t} = require('i18next');
+const {timeFormatMilliseconds} = require('./dateTime.js');
 
-module.exports.createStatus = async (queue) => {
+module.exports.createStatus = async queue => {
   const canvas = createCanvas(510, 40);
   const context = canvas.getContext('2d');
 
-  let remainedTmp = `-${hasLive(queue)
-    ? '<Никогда>'
+  const remainedTmp = `-${hasLive(queue)
+    ? t('common:player.noRemained')
     : timeFormatMilliseconds(remained(queue))}`;
   context.font = '24px sans-serif';
 
@@ -29,19 +29,19 @@ module.exports.createStatus = async (queue) => {
   context.fillText(remainedTmp, 45, 28);
 
   return new MessageAttachment(canvas.toBuffer(), 'status.png');
-}
+};
 
 module.exports.createCalendar = async (guild, birthdays, monthDate, {month, year}) => {
   const {w, h} = {w: 1920, h: 1080};
   const canvas = createCanvas(w, h);
-  const context = canvas.getContext("2d");
+  const context = canvas.getContext('2d');
 
   const background = await loadImage('./res/backgrounds/cosmos.jpg');
   context.drawImage(background, 0, 0, w, h);
 
   context.fillStyle = config.colors.info;
   context.font = '72px sans-serif';
-  const title = `${localeMonth(month)} ${year}`;
+  const title = t('common:date', {month, year});
   context.fillText(title, (w - context.measureText(title).width) / 2, 23 * h / 160 - 40);
 
   for (let j = 0; j < 6; j++) {
@@ -66,7 +66,7 @@ module.exports.createCalendar = async (guild, birthdays, monthDate, {month, year
         const users = birthdays.map(b => ({u: b.user_id, d: new Date(b.date)}))
           .filter(b => b.d.getDate() === monthDate.getDate()
             && b.d.getMonth() === monthDate.getMonth())
-          .map(b => b.u)
+          .map(b => b.u);
         for (let k = 0; k < users.length; k++) {
           const avatar = await loadImage((await guild.members.fetch())
             .map(m => m.user)
@@ -86,4 +86,4 @@ module.exports.createCalendar = async (guild, birthdays, monthDate, {month, year
     }
   }
   return new MessageAttachment(canvas.toBuffer(), 'calendar.png');
-}
+};

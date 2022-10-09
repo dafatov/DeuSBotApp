@@ -1,51 +1,50 @@
-const {SlashCommandBuilder} = require('@discordjs/builders');
-const {Octokit} = require('@octokit/core');
-const config = require('../../configs/config');
-const {MessageEmbed} = require('discord.js');
-const {notifyError, notify} = require('../commands');
-const {logGuild} = require('../../utils/logger');
+const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {notify, notifyError} = require('../commands');
+const {MessageEmbed} = require('discord.js');
+const {Octokit} = require('@octokit/core');
+const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
-const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
+const config = require('../../configs/config');
+const {t} = require('i18next');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('issue')
-    .setDescription('Манипулирование пожеланиями')
+    .setDescription(t('discord:command.issue.description'))
     .addStringOption(o => o
       .setName('type')
-      .setDescription('Тип предложения')
+      .setDescription(t('discord:command.issue.option.type.description'))
       .setRequired(true)
-      .addChoice('Ошибка', 'bug')
-      .addChoice('Улучшение', 'enhancement')
-      .addChoice('Документация', 'documentation'))
+      .addChoice(t('discord:command.issue.option.type.choice.bug'), 'bug')
+      .addChoice(t('discord:command.issue.option.type.choice.enhancement'), 'enhancement')
+      .addChoice(t('discord:command.issue.option.type.choice.documentation'), 'documentation'))
     .addStringOption(o => o
       .setName('title')
-      .setDescription('Заголовок предложения')
+      .setDescription(t('discord:command.issue.option.title'))
       .setRequired(true))
     .addStringOption(o => o
       .setName('details')
-      .setDescription('Подробное описание предложения. Для ошибок в формате: как вышло, что ожидалось, что вышло')
+      .setDescription(t('discord:command.issue.option.details'))
       .setRequired(true)),
   async execute(interaction) {
     await issue(interaction);
   },
-  async listener(_interaction) {},
 };
 
-const issue = async (interaction) => {
+const issue = async interaction => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_ISSUE)) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Доступ к команде \"issue\" запрещен')
+      .setTitle(t('discord:embed.forbidden.title', {command: 'issue'}))
       .setTimestamp()
-      .setDescription('Запросите доступ у администратора сервера');
+      .setDescription(t('discord:embed.forbidden.description'));
     await notify('issue', interaction, {embeds: [embed], ephemeral: true});
     await audit({
       guildId: interaction.guildId,
-      type: TYPES.INFO,
+      type: TYPES.WARNING,
       category: CATEGORIES.PERMISSION,
-      message: 'Доступ к команде issue запрещен',
+      message: t('inner:info.forbidden', {command: 'issue'}),
     });
     return;
   }
@@ -68,14 +67,19 @@ const issue = async (interaction) => {
       if (response.status === 201) {
         const embed = new MessageEmbed()
           .setColor(config.colors.info)
-          .setTitle(`Заявка \"${data.title}\" создана`)
+          .setTitle(t('discord:command.issue.completed.title', {title: data.title}))
           .setDescription(data.details)
           .setURL(response.data.html_url)
           .setTimestamp();
         await notify('issue', interaction, {embeds: [embed]});
-        logGuild(interaction.guildId, '[issue]: Заявка на github успешно создана');
+        await audit({
+          guildId: interaction.guildId,
+          type: TYPES.INFO,
+          category: CATEGORIES.COMMAND,
+          message: t('inner:audit.command.issue'),
+        });
       } else {
-        throw 'Unknown result without catch';
+        throw t('inner:error.githubApi');
       }
     }).catch(e => {
       throw e;
@@ -83,4 +87,4 @@ const issue = async (interaction) => {
   } catch (e) {
     await notifyError('issue', e, interaction);
   }
-}
+};

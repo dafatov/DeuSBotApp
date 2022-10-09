@@ -1,7 +1,11 @@
-const db = require('../../db/repositories/birthday');
+// eslint-disable-next-line filenames/match-regex
+const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {MessageEmbed} = require('discord.js');
+const {audit} = require('../auditor');
 const config = require('../../configs/config');
-const {log, error} = require('../../utils/logger');
+const db = require('../../db/repositories/birthday');
+const {stringify} = require('../../utils/string');
+const {t} = require('i18next');
 
 module.exports = {
   async content(client) {
@@ -27,30 +31,36 @@ module.exports = {
           embeds: [
             new MessageEmbed()
               .setColor(config.colors.info)
-              .setTitle('Вам же не сложно?')
+              .setTitle(t('discord:embed.publicist.birthdayCollectData.title'))
               .setThumbnail('https://risovach.ru/upload/2016/11/mem/tobi-maguaer-plachet_130325677_orig_.jpg')
-              .setDescription(`
-            - Привет, привет, приветик~, упомянутые пользователи, Вам же несложно указать Вашу дату рождения?
-            \*Для того, чтобы сделать используйте команду **/birthday set <год> <месяц> <день>**
-            Если же Вы все таки твердолобы на достаточном уровне, то избежать попадания в этот список можно введя команду **/birthday ignore**\*
-          `)
-              .setTimestamp()
-          ]
-        }
-      }
-    }, {})))
+              .setDescription(t('discord:embed.publicist.birthdayCollectData.description'))
+              .setTimestamp(),
+          ],
+        },
+      };
+    }, {})));
   },
-  async condition(now) {
+  condition(now) {
     return now.getHours() % 6 === 0 && now.getMinutes() === 0;
   },
-  async onPublished(messages, _variables) {
+  async onPublished(messages) {
     try {
       setTimeout(async () => {
         await Promise.all(messages.map(m => m.delete()))
-          .then(() => log('Успешно удалены публикации уведомления о днях рождений'));
+          .then(() => audit({
+            guildId: null,
+            type: TYPES.INFO,
+            category: CATEGORIES.PUBLICIST,
+            message: t('inner:audit.publicist.birthdayCollectData.removed'),
+          }));
       }, 900000);
     } catch (e) {
-      error(e);
+      await audit({
+        guildId: null,
+        type: TYPES.ERROR,
+        category: CATEGORIES.PUBLICIST,
+        message: stringify(e),
+      });
     }
-  }
-}
+  },
+};

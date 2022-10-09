@@ -1,84 +1,98 @@
-const {SlashCommandBuilder} = require('@discordjs/builders');
+const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {MessageEmbed} = require('discord.js');
-const {logGuild} = require('../../utils/logger');
-const {notify} = require('../commands');
+const {SlashCommandBuilder} = require('@discordjs/builders');
+const {audit} = require('../auditor');
 const config = require('../../configs/config.js');
 const {escaping} = require('../../utils/string.js');
 const {getQueue} = require('../player');
-const {SCOPES, isForbidden} = require('../../db/repositories/permission');
-const {audit} = require('../auditor');
-const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
+const {notify} = require('../commands');
+const {t} = require('i18next');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('remove')
-    .setDescription('Удаляет композицию из очереди')
+    .setDescription(t('discord:command.remove.description'))
     .addIntegerOption(o => o
       .setName('target')
-      .setDescription('Номер в очереди целевой композиции')
+      .setDescription(t('discord:command.remove.option.target.description'))
       .setRequired(true)),
   async execute(interaction) {
     await module.exports.remove(interaction, true);
   },
-  async listener(_interaction) {},
-}
+};
 
-module.exports.remove = async (interaction, isExecute, targetIndex = interaction.options.getInteger("target") - 1) => {
+module.exports.remove = async (interaction, isExecute, targetIndex = interaction.options.getInteger('target') - 1) => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_REMOVE)) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Доступ к команде \"remove\" запрещен')
+      .setTitle(t('discord:embed.forbidden.title', {command: 'remove'}))
       .setTimestamp()
-      .setDescription('Запросите доступ у администратора сервера');
+      .setDescription(t('discord:embed.forbidden.description'));
     await notify('remove', interaction, {embeds: [embed], ephemeral: true});
     await audit({
       guildId: interaction.guildId,
-      type: TYPES.INFO,
+      type: TYPES.WARNING,
       category: CATEGORIES.PERMISSION,
-      message: 'Доступ к команде remove запрещен',
+      message: t('inner:info.forbidden', {command: 'remove'}),
     });
-    return {result: 'Доступ к команде запрещен'};
+    return {result: t('web:info.forbidden', {command: 'remove'})};
   }
 
   if (!getQueue(interaction.guildId).songs || getQueue(interaction.guildId).songs.length < 1) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Ты одинок что ли? Соло-игрок?')
-      .setDescription('Пытаться удалить то, чего нет, показывает все твое отчаяние. **Пуст плейлист. Пуст.**')
+      .setTitle(t('discord:embed.noPlaying.title'))
+      .setDescription(t('discord:embed.noPlaying.description'))
       .setTimestamp();
     if (isExecute) {
       await notify('remove', interaction, {embeds: [embed]});
     }
-    logGuild(interaction.guildId, `[remove]: Удалить композицию не вышло: плеер не играет`);
-    return {result: "Плеер не играет"};
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.remove.noPlaying'),
+    });
+    return {result: t('web:info.noPlaying')};
   }
 
   if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
-    && getQueue(interaction.guildId).connection.joinConfig.channelId !==
-    interaction.member.voice.channel.id) {
+    && getQueue(interaction.guildId).connection.joinConfig.channelId
+    !== interaction.member.voice.channel.id) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Канал не тот')
-      .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
+      .setTitle(t('discord:embed.unequalChannels.title'))
+      .setDescription(t('discord:embed.unequalChannels.description'))
       .setTimestamp();
     if (isExecute) {
       await notify('remove', interaction, {embeds: [embed]});
     }
-    logGuild(interaction.guildId, `[remove]: Удалить композицию не вышло: не совпадают каналы`);
-    return {result: "Не совпадают каналы"};
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.clear.unequalChannels'),
+    });
+    return {result: t('web:info.unequalChannels')};
   }
 
   if (targetIndex < 0 || targetIndex + 1 > getQueue(interaction.guildId).songs.length) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Ты это.. Вселенной ошибся, чел.')
-      .setDescription(`Типа знаешь вселенная расширяется, а твой мозг походу нет. Ну вышел ты за пределы размеров очереди.`)
+      .setTitle(t('discord:embed.unbound.title'))
+      .setDescription(t('discord:embed.unbound.description', {length: getQueue(interaction.guildId).songs.length}))
       .setTimestamp();
     if (isExecute) {
       await notify('remove', interaction, {embeds: [embed]});
     }
-    logGuild(interaction.guildId, `[remove]: Удалить композицию не вышло: выход за пределы очереди`);
-    return {result: "Выход за пределы очереди"};
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.remove.unbound'),
+    });
+    return {result: t('web:info.unbound')};
   }
 
   const target = getQueue(interaction.guildId).songs[targetIndex];
@@ -87,11 +101,16 @@ module.exports.remove = async (interaction, isExecute, targetIndex = interaction
   getQueue(interaction.guildId).remained -= target.length;
   const embed = new MessageEmbed()
     .setColor(config.colors.info)
-    .setTitle('Целевая композиция дезинтегрирована')
-    .setDescription(`Композиция **${escaping(target.title)}** была стерта из реальности очереди.`);
+    .setTitle(t('discord:command.remove.completed.title'))
+    .setDescription(t('discord:command.remove.completed.description', {title: escaping(target.title)}));
   if (isExecute) {
     await notify('remove', interaction, {embeds: [embed]});
   }
-  logGuild(interaction.guildId, `[remove]: Композиция была успешно удалена из очереди`);
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.INFO,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:audit.command.remove.completed'),
+  });
   return {isRemoved: target};
-} 
+};

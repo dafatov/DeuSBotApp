@@ -1,7 +1,9 @@
-const fs = require("fs");
-const {log} = require("../utils/logger");
+const {CATEGORIES, TYPES} = require('../db/repositories/audit');
+const {audit} = require('./auditor');
+const fs = require('fs');
+const {t} = require('i18next');
 
-let radios = new Map();
+const radios = new Map();
 
 module.exports.init = async () => {
   await Promise.all(fs.readdirSync('./src/actions/radios')
@@ -13,13 +15,18 @@ module.exports.init = async () => {
           channel: c,
           async getInfo() {
             return await radio.getInfo(c.id);
-          }
-        })
-      })
-    })
-  ).then(() => log('Успешно зарегистрированы радиостанции'));
-}
+          },
+        });
+      });
+    }),
+  ).then(() => audit({
+    guildId: null,
+    type: TYPES.INFO,
+    category: CATEGORIES.INIT,
+    message: t('inner:audit.init.radios'),
+  }));
+};
 
 module.exports.getRadios = () => {
   return radios;
-}
+};

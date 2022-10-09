@@ -1,91 +1,118 @@
-const {SlashCommandBuilder} = require('@discordjs/builders');
+const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {MessageEmbed} = require('discord.js');
-const {logGuild} = require('../../utils/logger');
-const {notify} = require('../commands');
+const {SlashCommandBuilder} = require('@discordjs/builders');
+const {audit} = require('../auditor');
 const config = require('../../configs/config.js');
 const {getQueue} = require('../player');
-const {SCOPES, isForbidden} = require('../../db/repositories/permission');
-const {audit} = require('../auditor');
-const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
+const {notify} = require('../commands');
+const {t} = require('i18next');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('loop')
-    .setDescription('Зациклить/отциклить проигрывание композиции'),
+    .setDescription(t('discord:command.loop.description')),
   async execute(interaction) {
     await module.exports.loop(interaction, true);
   },
-  async listener(_interaction) {},
 };
 
 module.exports.loop = async (interaction, isExecute) => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_LOOP)) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Доступ к команде \"loop\" запрещен')
+      .setTitle(t('discord:embed.forbidden.title', {command: 'loop'}))
       .setTimestamp()
-      .setDescription('Запросите доступ у администратора сервера');
+      .setDescription(t('discord:embed.forbidden.description'));
     await notify('loop', interaction, {embeds: [embed], ephemeral: true});
     await audit({
       guildId: interaction.guildId,
       type: TYPES.INFO,
       category: CATEGORIES.PERMISSION,
-      message: 'Доступ к команде loop запрещен',
+      message: t('inner:info.forbidden', {command: 'loop'}),
     });
-    return {result: 'Доступ к команде запрещен'};
+    return {result: t('web:info.forbidden', {command: 'loop'})};
   }
 
   if (!getQueue(interaction.guildId).nowPlaying.song || !getQueue(interaction.guildId).connection || !getQueue(interaction.guildId).player) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Так ничего и не играло')
-      .setDescription(`Как ты жалок... Зачем зацикливать, то чего нет? Или у тебя голоса в голове?`)
+      .setTitle(t('discord:embed.noPlaying.title'))
+      .setDescription(t('discord:embed.noPlaying.description'))
       .setTimestamp();
     if (isExecute) {
       await notify('loop', interaction, {embeds: [embed]});
     }
-    logGuild(interaction.guildId, `[loop]: Изменить состояние зацикленности не вышло: плеер не играет`);
-    return {result: "Плеер не играет"};
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.loop.noPlaying'),
+    });
+    return {result: t('web:info.noPlaying')};
   }
 
-  if (getQueue(interaction.guildId)?.connection?.joinConfig?.channelId !==
-    interaction.member.voice.channel.id) {
+  if (getQueue(interaction.guildId)?.connection?.joinConfig?.channelId
+    !== interaction.member.voice.channel.id) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Канал не тот')
-      .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь`)
+      .setTitle(t('discord:embed.unequalChannels.title'))
+      .setDescription(t('discord:embed.unequalChannels.description'))
       .setTimestamp();
     if (isExecute) {
       await notify('loop', interaction, {embeds: [embed]});
     }
-    logGuild(interaction.guildId, `[loop]: Изменить состояние зацикленности не вышло: не совпадают каналы`);
-    return {result: "Не совпадают каналы"};
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.loop.unequalChannels'),
+    });
+    return {result: t('web:info.unequalChannels')};
   }
 
   if (getQueue(interaction.guildId).nowPlaying.song.isLive) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Живая музыка')
-      .setDescription(`Зациклить то, что и так играет 24/7. Ты мой работодатель? Сорян, но не выйдет, а выйдет - уволюсь`)
+      .setTitle(t('discord:command.loop.live.title'))
+      .setDescription(t('discord:command.loop.live.description'))
       .setTimestamp();
     if (isExecute) {
       await notify('loop', interaction, {embeds: [embed]});
     }
-    logGuild(interaction.guildId, `[loop]: Изменить состояние зацикленности не вышло: играет стрим`);
-    return "Не совпадают каналы";
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.loop.live'),
+    });
+    return {result: t('web:info.live')};
   }
 
-  let isLoop = getQueue(interaction.guildId).nowPlaying.isLoop;
+  const isLoop = getQueue(interaction.guildId).nowPlaying.isLoop;
   getQueue(interaction.guildId).nowPlaying.isLoop = !isLoop;
   const embed = new MessageEmbed()
     .setColor(config.colors.info)
-    .setTitle(`Проигрывание ${isLoop ? 'отциклено' : 'зациклено'}`)
+    .setTitle(t('discord:command.loop.completed.title', {
+      status: isLoop
+        ? t('common:player.unloop')
+        : t('common:player.loop'),
+    }))
     .setDescription(`${isLoop
-      ? `しーん...`
-      : `オラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラオラ...`}`);
+      ? t('discord:command.loop.completed.description.unloop')
+      : t('discord:command.loop.completed.description.loop')}`);
   if (isExecute) {
     await notify('loop', interaction, {embeds: [embed]});
   }
-  logGuild(interaction.guildId, `[loop]: Композиция была успешна ${isLoop ? 'отциклена' : 'зациклена'}`);
-  return {isLoop: getQueue(interaction.guildId).nowPlaying.isLoop}
-}
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.INFO,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:audit.command.loop.completed', {
+      status: isLoop
+        ? t('common:player.unloop')
+        : t('common:player.loop'),
+    }),
+  });
+  return {isLoop: getQueue(interaction.guildId).nowPlaying.isLoop};
+};

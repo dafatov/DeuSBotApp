@@ -1,96 +1,111 @@
-const {SlashCommandBuilder} = require('@discordjs/builders');
+const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {timeFormatMilliseconds, timeFormatSeconds} = require('../../utils/dateTime');
 const {MessageEmbed} = require('discord.js');
-const {logGuild} = require('../../utils/logger');
-const {notify} = require('../commands');
+const {SlashCommandBuilder} = require('@discordjs/builders');
+const {audit} = require('../auditor');
 const config = require('../../configs/config.js');
-const {timeFormatSeconds, timeFormatMilliseconds} = require('../../utils/dateTime');
-const progressBar = require('string-progressbar');
-const {escaping} = require('../../utils/string.js');
 const {createStatus} = require('../../utils/attachments');
+const {escaping} = require('../../utils/string.js');
 const {getQueue} = require('../player');
 const {getRadios} = require('../radios');
-const {SCOPES, isForbidden} = require('../../db/repositories/permission');
-const {audit} = require('../auditor');
-const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
+const {notify} = require('../commands');
+const progressBar = require('string-progressbar');
+const {t} = require('i18next');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('np')
-    .setDescription('Отобразить текущую композицию'),
+    .setDescription(t('discord:command.np.description')),
   async execute(interaction) {
     await np(interaction);
   },
-  async listener(_interaction) {},
 };
 
-const np = async (interaction) => {
+const np = async interaction => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_NP)) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Доступ к команде \"np\" запрещен')
+      .setTitle(t('discord:embed.forbidden.title', {command: 'np'}))
       .setTimestamp()
-      .setDescription('Запросите доступ у администратора сервера');
+      .setDescription(t('discord:embed.forbidden.description'));
     await notify('np', interaction, {embeds: [embed], ephemeral: true});
     await audit({
       guildId: interaction.guildId,
       type: TYPES.INFO,
       category: CATEGORIES.PERMISSION,
-      message: 'Доступ к команде np запрещен',
+      message: t('inner:info.forbidden', {command: 'np'}),
     });
     return;
   }
 
-  let info = getQueue(interaction.guildId).nowPlaying;
+  const info = getQueue(interaction.guildId).nowPlaying;
 
   if (!getQueue(interaction.guildId).connection || !getQueue(interaction.guildId).player || !info.song) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Так ничего и не играло')
-      .setDescription(`Как ты жалок... Это же уже было когда ты пытался пропустить, верно?~
-                Теперь ты повторяешь это в при получении текущей композиции. Или это было в другом порядке?`)
+      .setTitle(t('discord:embed.noPlaying.title'))
+      .setDescription(t('discord:embed.noPlaying.description'))
       .setTimestamp();
     await notify('np', interaction, {embeds: [embed]});
-    logGuild(interaction.guildId, `[np]: Пропустить композицию не вышло: плеер не играет`);
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.np.noPlaying'),
+    });
     return;
   }
 
   if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
-    && getQueue(interaction.guildId).connection.joinConfig.channelId !==
-    interaction.member.voice.channel.id) {
+    && getQueue(interaction.guildId).connection.joinConfig.channelId
+    !== interaction.member.voice.channel.id) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle('Канал не тот')
-      .setDescription(`Мда.. шиза.. перепутать каналы это надо уметь...
-                Дежавю? Разве этого же не было в пропуске композиции? Или у этого времени другой порядок...`)
+      .setTitle(t('discord:embed.unequalChannels.title'))
+      .setDescription(t('discord:embed.unequalChannels.description'))
       .setTimestamp();
     await notify('np', interaction, {embeds: [embed]});
-    logGuild(interaction.guildId, `[np]: Пропустить композицию не вышло: не совпадают каналы`);
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.np.unequalChannels'),
+    });
     return;
   }
 
   const embed = new MessageEmbed()
     .setColor(config.colors.info)
     .setTitle(escaping(info.song.title))
-      .setURL(info.song.url)
-      .setThumbnail(info.song.preview)
-      .setTimestamp()
-      .setFooter(`Играет композиция от ${info.song.author.username}`, info.song.author.displayAvatarURL());
-    if (getQueue(interaction.guildId).nowPlaying.song.isLive) {
-        embed.setDescription(`<Стрим>
-                \u200B\n`);
-        if (getQueue(interaction.guildId).nowPlaying.song.type === 'radio') {
-            embed.setDescription(await getRadios().get(info.song.title).getInfo());
-        }
-    } else {
-      const barString = progressBar.filledBar(
-        getQueue(interaction.guildId).nowPlaying.song.length * 1000,
-        getQueue(interaction.guildId).nowPlaying.resource.playbackDuration,
-      );
-      embed.setDescription(`\`${timeFormatMilliseconds(getQueue(interaction.guildId).nowPlaying.resource.playbackDuration)}/${timeFormatSeconds(
-        getQueue(interaction.guildId).nowPlaying.song.length)}\`—_\`${getQueue(interaction.guildId).nowPlaying.song.author.username}\`_
-                ${barString[0]} [${Math.round(barString[1])}%]\n`);
+    .setURL(info.song.url)
+    .setThumbnail(info.song.preview)
+    .setTimestamp()
+    .setFooter(t('discord:command.np.completed.footer', {author: info.song.author.username}), info.song.author.displayAvatarURL());
+  if (getQueue(interaction.guildId).nowPlaying.song.isLive) {
+    embed.setDescription(t('discord:command.np.completed.description.live'));
+    if (getQueue(interaction.guildId).nowPlaying.song.type === 'radio') {
+      embed.setDescription(await getRadios().get(info.song.title).getInfo());
     }
-    const status = await createStatus(getQueue(interaction.guildId));
-    await notify('np', interaction, {files: [status], embeds: [embed]});
-    logGuild(interaction.guildId, `[np]: Успешно выведана текущая композиция`);
-}
+  } else {
+    const barString = progressBar.filledBar(
+      getQueue(interaction.guildId).nowPlaying.song.length * 1000,
+      getQueue(interaction.guildId).nowPlaying.resource.playbackDuration,
+    );
+    embed.setDescription(t('discord:command.np.completed.description.withBar', {
+      playbackDuration: timeFormatMilliseconds(getQueue(interaction.guildId).nowPlaying.resource.playbackDuration),
+      length: timeFormatSeconds(getQueue(interaction.guildId).nowPlaying.song.length),
+      author: getQueue(interaction.guildId).nowPlaying.song.author.username,
+      barString: barString[0],
+      percent: Math.round(barString[1]),
+    }));
+  }
+  const status = await createStatus(getQueue(interaction.guildId));
+  await notify('np', interaction, {files: [status], embeds: [embed]});
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.INFO,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:audit.command.np.completed'),
+  });
+};

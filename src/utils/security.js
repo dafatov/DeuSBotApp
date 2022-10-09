@@ -1,33 +1,39 @@
+const {CATEGORIES, TYPES} = require('../db/repositories/audit');
+const {getScopes, isForbidden} = require('../db/repositories/permission');
+const {audit} = require('../actions/auditor');
 const axios = require('axios');
 const {getQueue} = require('../actions/player');
-const {error} = require('./logger');
-const {isForbidden, getScopes} = require('../db/repositories/permission');
+const {stringify} = require('./string');
+const {t} = require('i18next');
 
 //TODO добавить throw exception, когда пользователя нет или токен устарел
-const authForUserId = (token) =>
+const authForUserId = token =>
   axios.get('https://discord.com/api/users/@me', {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': `Bearer ${token}`,
     },
   }).then(r => r.data.id)
-    .catch(e => error(e));
+    .catch(e => audit({
+      guildId: null,
+      type: TYPES.ERROR,
+      category: CATEGORIES.SECURITY,
+      message: stringify(e),
+    }));
 
-module.exports.authForScopes = (token) =>
+module.exports.authForScopes = token =>
   authForUserId(token)
     .then(userId => getScopes(userId));
 
 module.exports.authCheckForbidden = (token, scope) =>
   authForUserId(token)
-    .then(userId => new Promise(async (resolve, reject) => {
-      if (await isForbidden(userId, scope)) {
-        reject();
-      } else {
-        resolve();
-      }
-    }));
+    .then(userId => new Promise((resolve, reject) =>
+      isForbidden(userId, scope)
+        .then(isForbidden => isForbidden
+          ? reject()
+          : resolve())
+        .catch(() => reject())));
 
-//TODO добавить throw exception когда пользователь не в том канале
 module.exports.authForVoiceMember = (token, client) =>
   authForUserId(token)
     .then(userId => client.guilds.fetch()
@@ -35,7 +41,12 @@ module.exports.authForVoiceMember = (token, client) =>
         .then(guild => guild.members.fetch()
           .then(members => members.find(member => member.user.id === userId))))))
       .then(members => members.find(member => member.voice.channelId)))
-    .catch(e => error(e));
+    .catch(e => audit({
+      guildId: null,
+      type: TYPES.ERROR,
+      category: CATEGORIES.SECURITY,
+      message: stringify(e),
+    }));
 
 module.exports.authForNowPlaying = (token, client) =>
   this.authForVoiceMember(token, client)
@@ -51,20 +62,30 @@ module.exports.authForNowPlaying = (token, client) =>
         isLoop: queue.nowPlaying?.isLoop ?? false,
       }
       : {})
-    .catch(e => error(e));
+    .catch(e => audit({
+      guildId: null,
+      type: TYPES.ERROR,
+      category: CATEGORIES.SECURITY,
+      message: stringify(e),
+    }));
 
 module.exports.authForSongs = (token, client) =>
   this.authForVoiceMember(token, client)
     .then(member => member?.guild.id)
     .then(guildId => getQueue(guildId)?.songs ?? [])
-    .catch(e => error(e));
+    .catch(e => audit({
+      guildId: null,
+      type: TYPES.ERROR,
+      category: CATEGORIES.SECURITY,
+      message: stringify(e),
+    }));
 
 module.exports.generateInteraction = member => {
   return new Promise((resolve, reject) => {
     if (member) {
       resolve({user: member.user, guildId: member.guild.id, member});
     } else {
-      reject({result: 'Пользователь не в голосовом канале'});
+      reject({result: t('inner:server.status.wrongVoiceChannel')});
     }
   });
 };
@@ -74,7 +95,7 @@ module.exports.generateInteractionWithVoiceChannel = member => {
     if (member) {
       resolve({guildId: member.guild.id, member: {voice: {channel: {id: member.voice.channelId}}}});
     } else {
-      reject({result: 'Пользователь не в голосовом канале'});
+      reject({result: t('inner:server.status.wrongVoiceChannel')});
     }
   });
 };
