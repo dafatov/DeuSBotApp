@@ -17,7 +17,7 @@ module.exports.CATEGORIES = Object.freeze({
   PERMISSION: 'permission',
   API: 'api',
   COMMAND: 'command',
-  STATE_UPDATE: 'stateUpdate',
+  STATE_UPDATE: 'state_update',
   SECURITY: 'security',
   RESPONSE: 'response',
   PUBLICIST: 'publicist',

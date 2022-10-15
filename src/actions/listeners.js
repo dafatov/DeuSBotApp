@@ -10,8 +10,7 @@ module.exports.init = c => {
 };
 
 module.exports.execute = async interaction => {
-  if (!interaction || !interaction.message || !interaction.message.interaction
-    || !interaction.message.interaction.commandName) {
+  if (!interaction?.message?.interaction?.commandName) {
     await audit({
       guildId: null,
       type: TYPES.INFO,

@@ -141,9 +141,7 @@ const play = async (interaction, isExecute, login = interaction.options.getStrin
       max: audios.length - 1,
       replacement: false,
     })
-    .then(response => {
-      return {requestsLeft: response.requestsLeft, data: response.random.data};
-    })
+    .then(response => ({requestsLeft: response.requestsLeft, data: response.random.data}))
     .then(response => {
       audios = audios.filter((_audio, index) => response.data.includes(index));
       return response.requestsLeft;
@@ -207,7 +205,7 @@ const set = async interaction => {
 
   try {
     if (!login || !nickname) {
-      await notifyError('shikimori', t('discord:command.shikimori.set.emptyProfile', {login: login, nickname: nickname}), interaction);
+      await notifyError('shikimori', t('discord:command.shikimori.set.emptyProfile', {login, nickname}), interaction);
     }
 
     try {

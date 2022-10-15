@@ -38,7 +38,6 @@ module.exports = {
         .setName('month')
         .setDescription(t('common:calendar.month.name'))
         .setRequired(false)
-        //TODO придумать что-то получше
         .addChoices(getFixedT(null, null, 'common:calendar')('month', {returnObjects: true}).list.map((month, index) => [month, index.toString()]))))
     .addSubcommand(s => s
       .setName('ignore')
@@ -46,7 +45,6 @@ module.exports = {
   async execute(interaction) {
     await birthday(interaction);
   },
-  async listener() {},
 };
 
 const birthday = async interaction => {

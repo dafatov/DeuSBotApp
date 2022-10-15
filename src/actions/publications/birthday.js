@@ -34,5 +34,4 @@ module.exports = {
   condition(now) {
     return now.getHours() === 18 && now.getMinutes() === 0;
   },
-  async onPublished() {},
 };

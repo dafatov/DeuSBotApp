@@ -8,7 +8,9 @@ const config = require('../../configs/config.js');
 const {t} = require('i18next');
 
 module.exports = {
-  data: new SlashCommandBuilder().setName('ping').setDescription(t('discord:command.ping.description')),
+  data: new SlashCommandBuilder()
+    .setName('ping')
+    .setDescription(t('discord:command.ping.description')),
   async execute(interaction) {
     await ping(interaction);
   },

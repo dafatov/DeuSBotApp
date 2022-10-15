@@ -171,7 +171,7 @@ const show = async interaction => {
 
   const rules = await db.getAll(interaction.guildId);
   const embed = new MessageEmbed()
-    .setColor('#000000')
+    .setColor(config.colors.info)
     .setTitle(t('discord:command.response.show.completed.title'))
     .setFooter(t('discord:command.response.show.completed.footer', {
       countStart: Math.min(start + 1, rules.length),

@@ -210,7 +210,7 @@ module.exports.searchSongs = async (interaction, isExecute, audios, login) => {
     const remainedValue = remained(getQueue(interaction.guildId));
     getQueue(interaction.guildId).remained = (getQueue(interaction.guildId).remained ?? 0) + allLength;
     if (isExecute) {
-      embed.setTitle(t('discord:command.play.shikimori.title', {login: login}))
+      embed.setTitle(t('discord:command.play.shikimori.title', {login}))
         .setURL(`https://shikimori.one/${login}/list/anime/mylist/completed,watching/order-by/ranked`)
         .setDescription(t('discord:command.play.shikimori.description', {
           count: audios.length,

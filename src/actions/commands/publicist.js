@@ -44,7 +44,7 @@ const set = async interaction => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PUBLICIST_SET)) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.forbidden.title', {command: 'publicist'}))
+      .setTitle(t('discord:embed.forbidden.title', {command: 'publicist set'}))
       .setTimestamp()
       .setDescription(t('discord:embed.forbidden.description'));
     await notify('publicist', interaction, {embeds: [embed], ephemeral: true});
@@ -52,7 +52,7 @@ const set = async interaction => {
       guildId: interaction.guildId,
       type: TYPES.WARNING,
       category: CATEGORIES.PERMISSION,
-      message: t('inner:info.forbidden', {command: 'publicist'}),
+      message: t('inner:info.forbidden', {command: 'publicist.set'}),
     });
     return;
   }
@@ -82,7 +82,7 @@ const remove = async interaction => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PUBLICIST_REMOVE)) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.forbidden.title', {command: 'publicist'}))
+      .setTitle(t('discord:embed.forbidden.title', {command: 'publicist remove'}))
       .setTimestamp()
       .setDescription(t('discord:embed.forbidden.description'));
     await notify('publicist', interaction, {embeds: [embed], ephemeral: true});
@@ -90,7 +90,7 @@ const remove = async interaction => {
       guildId: interaction.guildId,
       type: TYPES.WARNING,
       category: CATEGORIES.PERMISSION,
-      message: t('inner:info.forbidden', {command: 'publicist'}),
+      message: t('inner:info.forbidden', {command: 'publicist.remove'}),
     });
     return;
   }
@@ -118,7 +118,7 @@ const show = async interaction => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PUBLICIST_SHOW)) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.forbidden.title', {command: 'publicist'}))
+      .setTitle(t('discord:embed.forbidden.title', {command: 'publicist show'}))
       .setTimestamp()
       .setDescription(t('discord:embed.forbidden.description'));
     await notify('publicist', interaction, {embeds: [embed], ephemeral: true});
@@ -126,7 +126,7 @@ const show = async interaction => {
       guildId: interaction.guildId,
       type: TYPES.WARNING,
       category: CATEGORIES.PERMISSION,
-      message: t('inner:info.forbidden', {command: 'publicist'}),
+      message: t('inner:info.forbidden', {command: 'publicist.show'}),
     });
     return;
   }
@@ -136,7 +136,7 @@ const show = async interaction => {
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
       .setTitle(t('discord:command.publicist.show.completed.title', {name: interaction.guild.name}))
-      .setDescription(t('discord:command.publicist.show.completed.description', {name: interaction.guild.channels.cache.get(channelId)?.name}))
+      .setDescription(t('discord:command.publicist.show.completed.description', {name: interaction.guild.channels.resolve(channelId)?.name}))
       .setTimestamp();
     await notify('publicist', interaction, {embeds: [embed]});
     await audit({
