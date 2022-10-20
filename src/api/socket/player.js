@@ -1,16 +1,16 @@
-const {authForNowPlaying, authForSongs, authForVoiceMember, generateInteraction, generateInteractionWithVoiceChannel} = require('../utils/security');
-const {clear} = require('../actions/commands/clear');
-const {getAll} = require('../db/repositories/users');
-const {getRadios} = require('../actions/radios');
-const {loop} = require('../actions/commands/loop');
-const {move} = require('../actions/commands/move');
-const {pause} = require('../actions/commands/pause');
-const {play} = require('../actions/commands/play');
-const {radio} = require('../actions/commands/radio');
-const {remove} = require('../actions/commands/remove');
-const {shikimoriPlay} = require('../actions/commands/shikimori');
-const {shuffle} = require('../actions/commands/shuffle');
-const {skip} = require('../actions/commands/skip');
+const {authForNowPlaying, authForSongs, authForVoiceMember, generateInteraction, generateInteractionWithVoiceChannel} = require('../../utils/security');
+const {clear} = require('../../actions/commands/clear');
+const {getAll} = require('../../db/repositories/users');
+const {getRadios} = require('../../actions/radios');
+const {loop} = require('../../actions/commands/loop');
+const {move} = require('../../actions/commands/move');
+const {pause} = require('../../actions/commands/pause');
+const {play} = require('../../actions/commands/play');
+const {radio} = require('../../actions/commands/radio');
+const {remove} = require('../../actions/commands/remove');
+const {shikimoriPlay} = require('../../actions/commands/shikimori');
+const {shuffle} = require('../../actions/commands/shuffle');
+const {skip} = require('../../actions/commands/skip');
 
 module.exports = {
   execute(params) {

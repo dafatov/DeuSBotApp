@@ -132,7 +132,11 @@
       "published": "Успешно опубликована новость \"{{publication}}\""
     },
     "response": "Сообщение \"{{message}}\" спровоцировало реакцию: {{regex}}:{{react}}",
-    "pattern": "[Log][{{type}}][{{category}}][{{guildId}}]: {{message}}"
+    "pattern": "[Log][{{type}}][{{category}}][{{guildId}}]: {{message}}",
+    "locale": {
+      "missing": "В веб приложении используются отсутствующие локализованные строки с ключами: [{{keys}}]",
+      "get": "Веб приложение запросил следующий файл локализации: {{ns}}:{{lng}}"
+    }
   },
   "error": {
     "invalidScope": "Не корректное разрешение ({{userId}}, {{isWhiteList}}, {{scopes}})",

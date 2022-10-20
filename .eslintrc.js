@@ -20,11 +20,11 @@ module.exports = {
     'requireConfigFile': false,
     'sourceType': 'module',
   },
-  'plugins': ['i18next', 'import', 'sort-imports-requires', 'filenames', 'arguments'],
+  'plugins': ['i18next', 'import', 'sort-imports-requires', 'filenames', 'arguments', 'no-loops'],
   'rules': {
     'arrow-parens': ['error', 'as-needed'],
     'filenames/match-exported': 2,
-    'filenames/match-regex': 2,
+    'filenames/match-regex': [2, '^[a-z_][a-zA-Z]+$', true],
     'filenames/no-index': 2,
     'func-style': ['error', 'declaration', {'allowArrowFunctions': true}],
     'indent': [
@@ -45,6 +45,7 @@ module.exports = {
     'no-duplicate-imports': 'error',
     //'no-magic-numbers': 'error',
     'no-lonely-if': 'error',
+    'no-loops/no-loops': 2,
     'no-multi-assign': 'error',
     'no-multi-spaces': 'error',
     'no-multi-str': 'error',

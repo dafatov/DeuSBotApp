@@ -1,7 +1,7 @@
-const {SCOPES} = require('../db/repositories/permission');
-const {authCheckForbidden} = require('../utils/security');
-const {getAll} = require('../db/repositories/audit');
-const {getGuilds} = require('../actions/auditor');
+const {SCOPES} = require('../../db/repositories/permission');
+const {authCheckForbidden} = require('../../utils/security');
+const {getAll} = require('../../db/repositories/audit');
+const {getGuilds} = require('../../actions/auditor');
 const {t} = require('i18next');
 
 module.exports = {

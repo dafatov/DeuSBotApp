@@ -84,9 +84,7 @@ module.exports.setPatch = async patch => {
     const toAdd = patch.updated
       .concat(patch.created.filter(permission => !patch.updated.some(item => permission.user_id === item.user_id)))
       .filter(permission => !patch.deleted.some(item => permission.user_id === item.user_id));
-    for (const permission of toAdd) {
-      await add(permission.user_id, permission.isWhiteList, permission.scopes);
-    }
+    await Promise.all(toAdd.map(permission => add(permission.user_id, permission.isWhiteList, permission.scopes)));
   });
 };
 

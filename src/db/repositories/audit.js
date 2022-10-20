@@ -22,6 +22,7 @@ module.exports.CATEGORIES = Object.freeze({
   RESPONSE: 'response',
   PUBLICIST: 'publicist',
   LISTENER: 'listener',
+  LOCALE: 'locale',
 });
 
 let audit = null;

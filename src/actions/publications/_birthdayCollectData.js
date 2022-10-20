@@ -1,4 +1,3 @@
-// eslint-disable-next-line filenames/match-regex
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {MessageEmbed} = require('discord.js');
 const {audit} = require('../auditor');

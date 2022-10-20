@@ -1,5 +1,5 @@
-const {SCOPES, getAll, setPatch} = require('../db/repositories/permission');
-const {authCheckForbidden, authForScopes} = require('../utils/security');
+const {SCOPES, getAll, setPatch} = require('../../db/repositories/permission');
+const {authCheckForbidden, authForScopes} = require('../../utils/security');
 const {t} = require('i18next');
 
 module.exports = {
