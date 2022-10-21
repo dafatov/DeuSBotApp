@@ -14,14 +14,7 @@ const {remained} = require('../../utils/calc.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {audit} = require('../auditor');
 const {TYPES, CATEGORIES} = require('../../db/repositories/audit');
-
-const options = {
-    requestOptions: {
-        headers: {
-            cookie: process.env.COOKIE,
-        },
-    },
-};
+const {options} = require('../player');
 
 module.exports = {
     data: new SlashCommandBuilder()

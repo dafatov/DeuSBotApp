@@ -3,11 +3,20 @@ const ytdl = require('ytdl-core');
 const {timeFormatSeconds, timeFormatMilliseconds} = require('../utils/dateTime.js');
 const {log, error, logGuild} = require('../utils/logger.js');
 const {join} = require('./commands/join.js');
-const config = require("../configs/config.js");
-const {MessageEmbed} = require("discord.js");
-const {notify} = require("./commands");
+const config = require('../configs/config.js');
+const {MessageEmbed} = require('discord.js');
+const {notify} = require('./commands');
 
 let client;
+
+module.exports.options = {
+  requestOptions: {
+    headers: {
+      Cookie: process.env.YOUTUBE_COOKIE,
+      'x-youtube-identity-token': process.env.YOUTUBE_ID_TOKEN,
+    },
+  },
+};
 
 module.exports.init = (c) => {
   client = c;
@@ -15,8 +24,8 @@ module.exports.init = (c) => {
   client.guilds.cache.forEach(async guild => {
     client.queue.set(guild.id, {songs: [], nowPlaying: {}});
   });
-  log(`Успешно зарегистрированы плееры для гильдий: [${client.guilds.cache.map(g => g.name).sort().join(', ')}]`)
-}
+  log(`Успешно зарегистрированы плееры для гильдий: [${client.guilds.cache.map(g => g.name).sort().join(', ')}]`);
+};
 
 module.exports.getQueue = (guildId) => {
   return guildId ? client?.queue.get(guildId) : null;
@@ -162,14 +171,10 @@ const createPlayer = async (interaction, guildId) => {
 const createAudioStream = (song) => {
   if (song.type === 'youtube') {
     return ytdl(song.url, {
-      requestOptions: {
-        headers: {
-          cookie: process.env.COOKIE,
-        },
-      },
+      ...this.options,
       filter: 'audioonly',
       quality: 'highestaudio',
-      highWaterMark: 1 << 25
+      highWaterMark: 1 << 25,
     })
   } else if (song.type === 'radio') {
     return song.url;
