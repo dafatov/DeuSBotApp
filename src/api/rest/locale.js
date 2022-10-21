@@ -11,7 +11,7 @@ module.exports = {
           guildId: null,
           type: TYPES.INFO,
           category: CATEGORIES.LOCALE,
-          message: t('inner:audit.locale.get', {lng: req.params.lng, ns: req.params.ns}),
+          message: t('inner:audit.locale.get', {ns: req.params.ns, lng: req.params.lng}),
         }).then(() => res.json(getResourceBundle(req.params.lng, req.params.ns)));
       } catch (e) {
         await audit({
@@ -34,7 +34,7 @@ module.exports = {
           guildId: null,
           type: TYPES.WARNING,
           category: CATEGORIES.LOCALE,
-          message: t('inner:audit.locale.missing', {keys: Object.keys(request.body)}),
+          message: t('inner:audit.locale.missing', {key: Object.keys(request.body)}),
         }).then(() => response.status(200));
       } catch (e) {
         await audit({

@@ -1,4 +1,3 @@
-// eslint-disable-next-line filenames/match-regex
 const MAX_ARGUMENTS = 5;
 const INDENT = 2;
 
@@ -24,7 +23,7 @@ module.exports = {
   'rules': {
     'arrow-parens': ['error', 'as-needed'],
     'filenames/match-exported': 2,
-    'filenames/match-regex': [2, '^[a-z_][a-zA-Z]+$', true],
+    'filenames/match-regex': [2, '^[a-z_.][a-zA-Z]+$', true],
     'filenames/no-index': 2,
     'func-style': ['error', 'declaration', {'allowArrowFunctions': true}],
     'indent': [
@@ -45,7 +44,7 @@ module.exports = {
     'no-duplicate-imports': 'error',
     //'no-magic-numbers': 'error',
     'no-lonely-if': 'error',
-    'no-loops/no-loops': 2,
+    'no-loops/no-loops': 1,
     'no-multi-assign': 'error',
     'no-multi-spaces': 'error',
     'no-multi-str': 'error',
