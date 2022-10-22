@@ -14,6 +14,7 @@ module.exports = {
     let data = [];
 
     let page = 0;
+    // eslint-disable-next-line no-loops/no-loops
     do {
       data = [
         ...data,

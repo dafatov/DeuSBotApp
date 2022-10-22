@@ -20,6 +20,7 @@ module.exports = {
       const radios = getRadios();
       let localG = g;
 
+      // eslint-disable-next-line no-loops/no-loops
       for (let i = 0; i < Math.ceil(radios.size / 25); i++) {
         const choices = [...radios.keys()].sort().map(k => [k.toString(), k.toString()]).splice(25 * i, 25);
 

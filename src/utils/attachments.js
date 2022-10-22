@@ -44,7 +44,9 @@ module.exports.createCalendar = async (guild, birthdays, monthDate, {month, year
   const title = t('common:date', {month, year});
   context.fillText(title, (w - context.measureText(title).width) / 2, 23 * h / 160 - 40);
 
+  // eslint-disable-next-line no-loops/no-loops
   for (let j = 0; j < 6; j++) {
+    // eslint-disable-next-line no-loops/no-loops
     for (let i = 0; i < 7; i++) {
       const {x, y} = {x: (24 * i + 31) * w / 224, y: (24 * j + 27) * h / 192};
 
@@ -67,20 +69,20 @@ module.exports.createCalendar = async (guild, birthdays, monthDate, {month, year
           .filter(b => b.d.getDate() === monthDate.getDate()
             && b.d.getMonth() === monthDate.getMonth())
           .map(b => b.u);
-        for (let k = 0; k < users.length; k++) {
+        await Promise.all(users.map(async (user, index) => {
           const avatar = await loadImage((await guild.members.fetch())
             .map(m => m.user)
-            .find(u => u.id === users[k])
+            .find(u => u.id === user)
             .displayAvatarURL({format: 'jpg'}));
 
           context.save();
           context.beginPath();
-          context.arc(x + 29, y + 54 * k + 29, 25, 0, Math.PI * 2, true);
+          context.arc(x + 29, y + 54 * index + 29, 25, 0, Math.PI * 2, true);
           context.closePath();
           context.clip();
-          context.drawImage(avatar, x + 4, y + 54 * k + 4, 50, 50);
+          context.drawImage(avatar, x + 4, y + 54 * index + 4, 50, 50);
           context.restore();
-        }
+        }));
       }
       monthDate.setDate(monthDate.getDate() + 1);
     }

@@ -128,6 +128,7 @@ const play = async (interaction, isExecute, login = interaction.options.getStrin
 
   let audios = [];
   animes.forEach(anime => {
+    // eslint-disable-next-line no-loops/no-loops
     for (let j = 0; j < anime.episodes / 12; j++) {
       audios.push(`${anime.target_title} +opening ${j + 1} +full`);
       audios.push(`${anime.target_title} +ending ${j + 1} +full`);

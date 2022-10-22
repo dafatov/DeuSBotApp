@@ -97,6 +97,7 @@ module.exports.play = async (interaction, isExecute, audio = interaction.options
             throw t('inner:error.youtubeApi');
           }
           let w = 0;
+          // eslint-disable-next-line no-loops/no-loops
           while (w < 10) {
             await ytdl.getBasicInfo(r.items[w].url, options).then(async i => {
               added = await notifySong(interaction, addQueue(interaction, i), isExecute);
@@ -195,6 +196,7 @@ module.exports.searchSongs = async (interaction, isExecute, audios, login) => {
     }
 
     let w = 0;
+    // eslint-disable-next-line no-loops/no-loops
     while (w < 10) {
       await ytdl.getBasicInfo(r.items[w].url, options).then(i => {
         allLength += parseInt(addQueue(interaction, i).length);

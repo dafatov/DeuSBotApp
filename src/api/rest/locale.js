@@ -34,7 +34,7 @@ module.exports = {
           guildId: null,
           type: TYPES.WARNING,
           category: CATEGORIES.LOCALE,
-          message: t('inner:audit.locale.missing', {key: Object.keys(request.body)}),
+          message: t('inner:audit.locale.missing', {key: Object.keys(request.body).map(key => request.params.ns + ':' + key)}),
         }).then(() => response.status(200));
       } catch (e) {
         await audit({
