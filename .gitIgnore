@@ -31,4 +31,5 @@ todo.txt
 /raw
 /scripts
 /*.env
-/pgsql/
+/pgsql
+/i18Scanner

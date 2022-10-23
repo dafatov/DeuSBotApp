@@ -23,7 +23,7 @@ module.exports = {
   'rules': {
     'arrow-parens': ['error', 'as-needed'],
     'filenames/match-exported': 2,
-    'filenames/match-regex': [2, '^[a-z_.][a-zA-Z]+$', true],
+    'filenames/match-regex': [2, '^[a-z_.][a-zA-Z0-9]+$', true],
     'filenames/no-index': 2,
     'func-style': ['error', 'declaration', {'allowArrowFunctions': true}],
     'indent': [

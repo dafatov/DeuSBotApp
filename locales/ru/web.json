@@ -1,13 +1,130 @@
 {
   "about": "Данный бот (Deus v{{version}}) был разработан DemetriouS (aka dafatov) в рамках частного проекта специально для дискорд сервера на чистом энтузиазме",
   "aboutWeb": "Сайт бота: {{url}}",
+  "app": {
+    "access": {
+      "error": {
+        "noConnection": "Нет связи с сервером"
+      },
+      "table": {
+        "scopes": {
+          "allAvailable": "Все права доступны",
+          "title": "Права доступа"
+        },
+        "user": {
+          "title": "Пользователь"
+        }
+      },
+      "warning": {
+        "selfRemoving": "Нельзя удалить самого себя или роли для управления данной вкладкой"
+      }
+    },
+    "administration": {
+      "access": "Доступ",
+      "audit": "Аудит"
+    },
+    "audit": {
+      "selectScopes": {
+        "description": "Учтите, что список в режиме {{mode}} списка",
+        "title": "Добавление прав доступа"
+      },
+      "selectUsers": {
+        "description": "__STRING_NOT_TRANSLATED__",
+        "title": "Добавление пользователей"
+      },
+      "table": {
+        "category": {
+          "title": "Категория"
+        },
+        "createdAt": {
+          "title": "Дата/время"
+        },
+        "guild": {
+          "title": "Сервер"
+        },
+        "message": {
+          "title": "Сообщение"
+        },
+        "type": {
+          "title": "Тип"
+        }
+      }
+    },
+    "auth": {
+      "warning": {
+        "noAuth": "Пожалуйста пройдите авторизацию"
+      }
+    },
+    "bar": {
+      "administration": "Администрирование",
+      "login": "Войти через Дискорд",
+      "logout": "Выйти",
+      "main": "DeuS",
+      "player": "Плеер"
+    },
+    "control": {
+      "header": {
+        "impacts": "Воздействия",
+        "injections": "Инъекции"
+      },
+      "success": {
+        "cleared": "Успешно очищена очередь",
+        "played": {
+          "radios": "Добавлено: \"{{data.info?.title}}\"",
+          "skikimori": "Добавлено: {{data.count}} песен профиля \"{{data.login}}\"",
+          "youtube": "Добавлено: \"{{title}}\""
+        },
+        "shuffled": "Успешно перемешана очередь"
+      }
+    },
+    "forbidden": {
+      "description": "Страница не доступна текущему пользователю. Для получения доступа обратитесь к администратору",
+      "title": "Ошибка 403"
+    },
+    "injection": {
+      "radio": {
+        "description": "В форме ниже можно выбрать радиостанцию",
+        "station": "Радиостанция",
+        "title": "Добавление потоковой радиостанции",
+        "tooltip": "Радио"
+      },
+      "shikimori": {
+        "description": "В форме ниже можно выбрать профиль shikimori и количество случайных генерируемых композиций",
+        "title": "Добавление op/ed из листа shikimori",
+        "tooltip": "Shikimori",
+        "user": "Пользователь"
+      },
+      "youtube": {
+        "description": "__STRING_NOT_TRANSLATED__",
+        "linkOrSearch": "Ссылка или поисковой запрос",
+        "title": "Добавление композиций с youtube`а",
+        "tooltip": "YouTube"
+      }
+    },
+    "notFound": {
+      "description": "Страницы с адресом {{location.pathname}} не существует",
+      "title": "Ошибка 404"
+    },
+    "nowPlaying": {
+      "success": {
+        "looped": "Успешно {{action}} композиция",
+        "moved": "Успешно перемещена на \"{{target}}\" позицию композиция: \"{{title}}\"",
+        "paused": "Успешно {{action}} композиция",
+        "removed": "Успешно удалена композиция: \"{{title}}\"",
+        "skipped": "Успешно пропущена композиция"
+      }
+    },
+    "queue": {
+      "loading": "Идет загрузка..."
+    }
+  },
   "info": {
     "forbidden": "Доступ к команде {{command}} запрещен",
-    "noPlaying": "Плеер не играет",
-    "unequalChannels": "Не совпадают каналы",
     "live": "Играет стрим",
+    "noPlaying": "Плеер не играет",
     "unbound": "Выход за пределы очереди",
-    "wrongShikimoriProfile": "Найти профиль не удалось",
-    "unboundCount": "Некорректное количество выбранных композиций"
+    "unboundCount": "Некорректное количество выбранных композиций",
+    "unequalChannels": "Не совпадают каналы",
+    "wrongShikimoriProfile": "Найти профиль не удалось"
   }
 }
