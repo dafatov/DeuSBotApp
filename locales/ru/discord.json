@@ -128,7 +128,7 @@
       "completed": {
         "description": {
           "live": "<Стрим>\n                \\u200B\\n",
-          "withBar": "\\`{{playbackDuration}}/{{length}}\\`—_\\`{{author}}\\`_\n                {{barString}} [{{percent}}%]\\n"
+          "withBar": "{{playbackDuration}}/{{length}}—_{{author}}_\n{{barString}} [{{percent}}%]"
         },
         "footer": "Играет композиция от {{author}}"
       },
@@ -207,7 +207,7 @@
       "completed": {
         "description": {
           "live": "<Стрим>\n            \\u200B\\n",
-          "withBar": "\\`{{playbackDuration}}/{{totalDuration}}\\`—_\\`{{author}}\\`_\n            {{barString}} [{{percent}}%]\\n"
+          "withBar": "{{playbackDuration}}/{{length}}—_{{author}}_\n{{barString}} [{{percent}}%]"
         },
         "footer": "{{countStart}} - {{countFinish}} из {{total}} по {{step}}"
       },

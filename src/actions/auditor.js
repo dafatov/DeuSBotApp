@@ -46,6 +46,13 @@ module.exports.audit = async ({guildId, type, category, message}) => {
       message: message,
     }));
   }
+  if (process.env.LOGGING === 'DEBUG') {
+    // eslint-disable-next-line no-console
+    console.log(new Error(message).stack
+      .split('\n')
+      .splice(3)
+      .join('\n'));
+  }
 };
 
 module.exports.getGuilds = client =>
