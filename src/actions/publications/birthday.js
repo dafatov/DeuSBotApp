@@ -24,7 +24,13 @@ module.exports = {
               .setColor(config.colors.info)
               .setTitle(t('discord:embed.publicist.birthday.title'))
               .setThumbnail('https://i.ibb.co/8m1FGzr/maxresdefault.png')
-              .setDescription(t('discord:embed.publicist.birthday.description'))
+              .setDescription(t(
+                'discord:embed.publicist.birthday.description', {
+                  ending: users.length > 1
+                    ? 'ят'
+                    : 'ит',
+                  users: users.map(user => user.username),
+                }))
               .setTimestamp(),
           ],
         },
