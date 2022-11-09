@@ -36,7 +36,7 @@ module.exports = {
           .map(user => user.id)
           .includes(event.issue.labels
             .find(label => label.name
-              .startsWith('<@')).name
+              .startsWith('<@'))?.name
             .slice(2, -1)))
         .sort((a, b) => new Date(a.created_at).getTime() < new Date(b.created_at).getTime()
           ? -1
