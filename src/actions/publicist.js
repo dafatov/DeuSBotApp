@@ -18,22 +18,31 @@ module.exports.init = async c => {
         const publication = require(`./publications/${f}`);
         return (async function loop() {
           if (await publication.condition(new Date())) {
-            const content = await publication.content(client);
+            try {
+              const content = await publication.content(client);
 
-            if (content) {
-              await publish(content).then(messages => {
-                publication.onPublished(messages, content?.variables);
-                return messages;
-              }).then(async messages => {
-                const guilds = await Promise.all(messages.map(m => m.guild));
-                if (guilds.length > 0) {
-                  await Promise.all(guilds.map(guild => audit({
-                    guildId: guild.id,
-                    type: TYPES.INFO,
-                    category: CATEGORIES.PUBLICIST,
-                    message: t('inner:audit.publicist.published', {publication: f.split('.')[0]}),
-                  })));
-                }
+              if (content) {
+                await publish(content).then(messages => {
+                  publication.onPublished(messages, content?.variables);
+                  return messages;
+                }).then(async messages => {
+                  const guilds = await Promise.all(messages.map(m => m.guild));
+                  if (guilds.length > 0) {
+                    await Promise.all(guilds.map(guild => audit({
+                      guildId: guild.id,
+                      type: TYPES.INFO,
+                      category: CATEGORIES.PUBLICIST,
+                      message: t('inner:audit.publicist.published', {publication: f.split('.')[0]}),
+                    })));
+                  }
+                });
+              }
+            } catch (error) {
+              await audit({
+                guildId: null,
+                type: TYPES.ERROR,
+                category: CATEGORIES.PUBLICIST,
+                message: stringify(error),
               });
             }
           }
