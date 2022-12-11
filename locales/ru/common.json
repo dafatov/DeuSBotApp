@@ -60,7 +60,7 @@
     }
   },
   "date": "$t(common:calendar.month.list.{{month}}) {{year}}",
-  "markItem": "\\t- {{item}}",
+  "markItem": "\t- {{item}}",
   "player": {
     "beginNow": "<Сейчас>",
     "first": "|<",
