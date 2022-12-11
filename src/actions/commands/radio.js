@@ -2,9 +2,11 @@ const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {getQueue, hasLive, playPlayer} = require('../player');
 const {timeFormatMilliseconds, timeFormatSeconds} = require('../../utils/dateTime');
+const {DISCORD_OPTIONS_MAX} = require('../../utils/constants');
 const {MessageEmbed} = require('discord.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
+const {chunk} = require('../../utils/array');
 const config = require('../../configs/config.js');
 const {escaping} = require('../../utils/string');
 const {getRadios} = require('../radios');
@@ -17,15 +19,14 @@ module.exports = {
     .setName('radio')
     .setDescription(t('discord:command.radio.description'))
     .addSubcommandGroup(g => {
-      const radios = getRadios();
-      let localG = g;
+      const radios = chunk([...getRadios().keys()].sort(), DISCORD_OPTIONS_MAX);
 
-      // eslint-disable-next-line no-loops/no-loops
-      for (let i = 0; i < Math.ceil(radios.size / 25); i++) {
-        const choices = [...radios.keys()].sort().map(k => [k.toString(), k.toString()]).splice(25 * i, 25);
+      radios.forEach((radiosChunk, index) => {
+        const choices = radiosChunk
+          .map(radio => [radio.toString(), radio.toString()]);
 
-        localG = localG.addSubcommand(s => s
-          .setName((i + 1).toString())
+        g.addSubcommand(s => s
+          .setName((index + 1).toString())
           .setDescription(t('discord:command.radio.page.radioStation.description', {
             pageStart: choices[0][0][0],
             pageEnd: choices[choices.length - 1][0][0],
@@ -35,13 +36,15 @@ module.exports = {
             .setDescription(t('discord:command.radio.page.radioStation.option.station.description'))
             .setRequired(true)
             .addChoices(choices)));
-      }
-      g.setName('page');
-      g.setDescription(t('discord:command.radio.page.description'));
-      return localG;
+      });
+
+      g.setName('page')
+        .setDescription(t('discord:command.radio.page.description'));
+
+      return g;
     }),
   async execute(interaction) {
-    await module.exports.radio(interaction, true);
+    await this.radio(interaction, true);
   },
 };
 

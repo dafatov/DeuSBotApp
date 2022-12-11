@@ -183,7 +183,7 @@ const createPlayer = async (interaction, guildId) => {
             ),
           });
 
-          if (p === 0 || this.getQueue(guildId).nowPlaying.song.isLive) {
+          if (p === 0 || this.getQueue(guildId).nowPlaying.song?.isLive) {
             timerId = setTimeout(async () => {
               if (this.getQueue(guildId).nowPlaying.song) {
                 await audit({

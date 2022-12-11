@@ -207,7 +207,7 @@
       "completed": {
         "description": {
           "live": "<Стрим>\n            \\u200B\\n",
-          "withBar": "{{playbackDuration}}/{{length}}—_{{author}}_\n{{barString}} [{{percent}}%]"
+          "withBar": "{{playbackDuration}}/{{totalDuration}}—_{{author}}_\n{{barString}} [{{percent}}%]"
         },
         "footer": "{{countStart}} - {{countFinish}} из {{total}} по {{step}}"
       },
@@ -418,11 +418,8 @@
   },
   "presence": "/help для помощи",
   "radio": {
-    "anisonFm": {
-      "info": "\n    Источник: **{{source}}**\n    Композиция: **{{song}}**\n    Осталось: **{{duration}}**\n  "
-    },
     "radioRecord": {
-      "info": "\n    Источник: **{{artist}}**\n    Композиция: **{{song}}**\n    _Радио может не работать в связи с некорректным API сайта, предоставляющего радио-потоки. Бот НЕ может повлиять на достоверность API_\n  "
+      "info": "\nИсточник: **{{artist}}**\nКомпозиция: **{{song}}**"
     }
   }
 }
