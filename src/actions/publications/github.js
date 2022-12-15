@@ -1,6 +1,9 @@
+const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {MessageEmbed} = require('discord.js');
 const {Octokit} = require('@octokit/core');
+const {audit} = require('../auditor');
 const config = require('../../configs/config');
+const {stringify} = require('../../utils/string');
 const {t} = require('i18next');
 const variablesDb = require('../../db/repositories/variables');
 
@@ -30,50 +33,59 @@ module.exports = {
     } while (data.length >= PER_PAGE * page);
 
     return (await ((await client.guilds.fetch()).reduce(async (accumulator, guild) => {
-      const users = (await (await guild.fetch()).members.fetch()).map(m => m.user);
-      const events = data
-        .filter(event => users
-          .map(user => user.id)
-          .includes(event.issue.labels
-            .find(label => label.name
-              .startsWith('<@'))?.name
-            .slice(2, -1)))
-        .sort((a, b) => new Date(a.created_at).getTime() < new Date(b.created_at).getTime()
-          ? -1
-          : 1)
-        .slice(0, 10);
-      const notifyingUsers = events
-        .map(event => event.issue.labels
-          .map(label => label.name)
-          .find(name => name
-            .startsWith('<@')))
-        .filter((name, index, array) => array
-          .indexOf(name) === index);
+      try {
+        const users = (await (await guild.fetch()).members.fetch()).map(m => m.user);
+        const events = data
+          .filter(event => users
+            .map(user => user.id)
+            .includes(event.issue.labels
+              .find(label => label.name
+                .startsWith('<@'))?.name
+              .slice(2, -1)))
+          .sort((a, b) => new Date(a.created_at).getTime() < new Date(b.created_at).getTime()
+            ? -1
+            : 1)
+          .slice(0, 10);
+        const notifyingUsers = events
+          .map(event => event.issue.labels
+            .map(label => label.name)
+            .find(name => name
+              .startsWith('<@')))
+          .filter((name, index, array) => array
+            .indexOf(name) === index);
 
-      if (events.length <= 0) {
-        return accumulator;
+        if (events.length <= 0) {
+          return accumulator;
+        }
+
+        return {
+          //Без await не работает, так как функция в которой все происходит async
+          ...(await accumulator),
+          [(await guild.fetch()).id]: {
+            content: notifyingUsers.join(''),
+            embeds: events.map(event =>
+              new MessageEmbed()
+                .setColor(config.colors.info)
+                .setTitle(t('discord:embed.publicist.github.title', {state: getStateLocale(event)}))
+                .setDescription(t('discord:embed.publicist.github.description', {
+                  issue: event.issue,
+                  author: event.issue.labels.find(label => label.name.startsWith('<@')).name,
+                }))
+                .setTimestamp(new Date(event.created_at)),
+            ),
+          },
+          variables: {
+            lastIssueEvent: events[events.length - 1]?.created_at,
+          },
+        };
+      } catch (error) {
+        await audit({
+          guildId: null,
+          type: TYPES.ERROR,
+          category: CATEGORIES.PUBLICIST,
+          message: stringify(error),
+        });
       }
-
-      return {
-        //Без await не работает, так как функция в которой все происходит async
-        ...(await accumulator),
-        [(await guild.fetch()).id]: {
-          content: notifyingUsers.join(''),
-          embeds: events.map(event =>
-            new MessageEmbed()
-              .setColor(config.colors.info)
-              .setTitle(t('discord:embed.publicist.github.title', {state: getStateLocale(event)}))
-              .setDescription(t('discord:embed.publicist.github.description', {
-                issue: event.issue,
-                author: event.issue.labels.find(label => label.name.startsWith('<@')).name,
-              }))
-              .setTimestamp(new Date(event.created_at)),
-          ),
-        },
-        variables: {
-          lastIssueEvent: events[events.length - 1]?.created_at,
-        },
-      };
     }, {})));
   },
   condition(now) {
