@@ -203,8 +203,7 @@ const show = async interaction => {
       new MessageButton()
         .setCustomId('update')
         .setLabel(t('common:player.update'))
-        .setStyle('PRIMARY')
-        .setDisabled(rules.length === 0),
+        .setStyle('PRIMARY'),
       new MessageButton()
         .setCustomId('next')
         .setLabel(t('common:player.next'))
@@ -245,13 +244,13 @@ const onResponse = async interaction => {
     start -= count;
   }
   if (interaction.customId === 'update') {
-    start = Math.min(start, rules.length - 1);
+    start = Math.min(start, count * Math.floor(Math.max(0, rules.length - 1) / count));
   }
   if (interaction.customId === 'first') {
     start = 0;
   }
   if (interaction.customId === 'last') {
-    start = count * Math.floor(rules.length / count);
+    start = count * Math.floor((rules.length - 1) / count);
   }
 
   row.components.forEach(b => {
@@ -260,9 +259,6 @@ const onResponse = async interaction => {
     }
     if (b.customId === 'previous') {
       b.setDisabled(start <= 0);
-    }
-    if (b.customId === 'update') {
-      b.setDisabled(rules.length === 0);
     }
     if (b.customId === 'first') {
       b.setDisabled(start <= 0);
@@ -294,7 +290,7 @@ const onResponse = async interaction => {
   }
 };
 
-function calcPages(footer) {
+const calcPages = footer => {
   const array = footer.split(' ');
-  return {start: array[0] - 1, count: parseInt(array[6])};
-}
+  return {start: Math.max(array[0], 1) - 1, count: parseInt(array[6])};
+};

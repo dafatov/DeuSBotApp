@@ -75,9 +75,11 @@ module.exports = {
 
 const getThumbnail = categories => {
   if (categories.includes('Epic Games')) {
-    return 'https://w7.pngwing.com/pngs/531/238/png-transparent-epic-games-gears-of-war-exile-fortnite-unreal-engine-4-unreal-tournament-epic-games-emblem-logo-video-game-thumbnail.png';
+    return 'https://i.pinimg.com/originals/e9/96/f5/e996f5f48828a892b8e5b06e2ae58703.png';
   } else if (categories.includes('Steam')) {
-    return 'https://n7.nextpng.com/sticker-png/244/323/sticker-png-steam-gift-card-video-game-valve-corporation-gift-miscellaneous-game-logo-video-game-thumbnail.png';
+    return 'https://www.seaon9.com/image/cache/catalog/Card%20Logo/steam5-1100x1100.png';
+  } else if (categories.includes('GOG')) {
+    return 'https://frostbuy.ru/wp-content/uploads/2022/04/gog-galaxy_32083-1024x1024-1-1024x1024-1-1024x1024-1.png';
   } else {
     return 'https://static10.tgstat.ru/channels/_0/0c/0c75b8bf567806a342839cb1a406f4f8.jpg';
   }

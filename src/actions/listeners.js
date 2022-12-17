@@ -10,20 +10,20 @@ module.exports.init = c => {
 };
 
 module.exports.execute = async interaction => {
-  if (!interaction?.message?.interaction?.commandName) {
+  const commandName = interaction?.message?.interaction?.commandName;
+  const command = client.commands.get(commandName?.split(' ')?.[0]);
+
+  if (!command) {
     await audit({
       guildId: null,
       type: TYPES.INFO,
       category: CATEGORIES.LISTENER,
-      message: t('inner:audit.listener.lost'),
+      message: t('inner:audit.listener.lost', {commandName}),
     });
-    return;
-  }
-  const command = client.commands.get(interaction.message.interaction.commandName);
 
-  if (!command) {
     return;
   }
+
   try {
     await command.listener(interaction);
   } catch (e) {
