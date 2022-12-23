@@ -75,11 +75,11 @@ module.exports = {
 
 const getThumbnail = categories => {
   if (categories.includes('Epic Games')) {
-    return 'https://i.pinimg.com/originals/e9/96/f5/e996f5f48828a892b8e5b06e2ae58703.png';
+    return 'https://img.icons8.com/nolan/512/epic-games.png';
   } else if (categories.includes('Steam')) {
-    return 'https://www.seaon9.com/image/cache/catalog/Card%20Logo/steam5-1100x1100.png';
+    return 'https://workinnet.ru/wp-content/uploads/2022/06/steam_logo-1024x1024.png';
   } else if (categories.includes('GOG')) {
-    return 'https://frostbuy.ru/wp-content/uploads/2022/04/gog-galaxy_32083-1024x1024-1-1024x1024-1-1024x1024-1.png';
+    return 'https://i.imgur.com/BLhrDmX.png';
   } else {
     return 'https://static10.tgstat.ru/channels/_0/0c/0c75b8bf567806a342839cb1a406f4f8.jpg';
   }
