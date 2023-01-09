@@ -416,7 +416,7 @@
       "title": "Канал не тот"
     }
   },
-  "presence": "/help для помощи",
+  "presence": "/help | v{{version}}",
   "radio": {
     "radioRecord": {
       "info": "\nИсточник: **{{artist}}**\nКомпозиция: **{{song}}**"
