@@ -42,3 +42,25 @@ module.exports.padEnum = (item, enumeration) => {
   const max = Math.max(...Object.values(enumeration).map(e => e.length));
   return item.padStart(max, ' ');
 };
+
+module.exports.spell = (number, wordForms) => {
+  number = Math.abs(number);
+
+  if (Number.isInteger(number)) {
+    const options = [2, 0, 1, 1, 1, 2];
+
+    return `${number} ${wordForms[(number % 100 > 4 && number % 100 < 20)
+      ? 2
+      : options[(number % 10 < 5)
+        ? number % 10
+        : 5]]}`;
+  }
+
+  return `${number} ${wordForms[1]}`;
+};
+
+module.exports.toFirstUpperCase = string => {
+  if (!string) return string;
+
+  return string[0].toUpperCase() + string.slice(1);
+};

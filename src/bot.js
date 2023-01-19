@@ -19,7 +19,6 @@ client.once('ready', async () => {
 
   await require('./actions/db.js').init();
   await require('./actions/auditor.js').init();
-  await require('./actions/responses.js').init(client);
   await require('./actions/radios.js').init();
   await require('./actions/commands.js').init(client);
   await require('./actions/listeners.js').init(client);
@@ -45,16 +44,10 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-client.on('messageCreate', async message => {
-  if (message.author.bot) {
-    return;
-  }
+client.on('messageCreate', message =>
+  require('./events/messageCreate').execute(client, message));
 
-  await require('./actions/responses.js').execute(message);
-});
-
-client.on('voiceStateUpdate', async (_oldState, newState) => {
-  await require('./actions/voiceStateUpdate').voiceStateUpdate(newState, client);
-});
+client.on('voiceStateUpdate', (oldState, newState) =>
+  require('./events/voiceStateUpdate').execute(client, oldState, newState));
 
 locale.init().then(() => client.login(process.env.DISCORD_TOKEN));

@@ -24,6 +24,7 @@ module.exports.CATEGORIES = Object.freeze({
   LISTENER: 'listener',
   LOCALE: 'locale',
   RADIO: 'radio',
+  MESSAGE_CREATE: 'message_create',
 });
 
 let audit = null;

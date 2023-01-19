@@ -1,7 +1,8 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
-const {MessageActionRow, MessageButton, MessageEmbed} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {executePagination, getPagination, getPaginationPages} = require('../../utils/components');
 const {notify, notifyError} = require('../commands.js');
+const {MessageEmbed} = require('discord.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const config = require('../../configs/config.js');
@@ -173,6 +174,8 @@ const show = async interaction => {
   const embed = new MessageEmbed()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.response.show.completed.title'))
+    .setTimestamp()
+    .setFields(getRulesFields(rules))
     .setFooter(t('discord:command.response.show.completed.footer', {
       countStart: Math.min(start + 1, rules.length),
       countFinish: Math.min(start + count, rules.length),
@@ -180,41 +183,7 @@ const show = async interaction => {
       step: count,
     }));
 
-  embed.setFields(rules
-    .slice(start, count)
-    .map(rule => ({
-      name: escaping(rule.regex),
-      value: rule.react,
-    })),
-  );
-
-  const row = new MessageActionRow()
-    .addComponents(
-      new MessageButton()
-        .setCustomId('first')
-        .setLabel(t('common:player.first'))
-        .setStyle('PRIMARY')
-        .setDisabled(start <= 0),
-      new MessageButton()
-        .setCustomId('previous')
-        .setLabel(t('common:player.previous'))
-        .setStyle('PRIMARY')
-        .setDisabled(start <= 0),
-      new MessageButton()
-        .setCustomId('update')
-        .setLabel(t('common:player.update'))
-        .setStyle('PRIMARY'),
-      new MessageButton()
-        .setCustomId('next')
-        .setLabel(t('common:player.next'))
-        .setStyle('PRIMARY')
-        .setDisabled(start + count >= rules.length),
-      new MessageButton()
-        .setCustomId('last')
-        .setLabel(t('common:player.last'))
-        .setStyle('PRIMARY')
-        .setDisabled(start + count >= rules.length),
-    );
+  const row = getPagination(start, count, rules.length);
 
   try {
     await notify('response', interaction, {embeds: [embed], components: [row]});
@@ -233,48 +202,12 @@ const onResponse = async interaction => {
   const rules = await db.getAll(interaction.guildId);
   const embed = interaction.message.embeds[0];
   const row = interaction.message.components[0];
-  const pages = calcPages(embed.footer.text);
+  const pages = getPaginationPages(embed.footer.text);
   const count = pages.count;
-  let start = pages.start;
-
-  if (interaction.customId === 'next') {
-    start += count;
-  }
-  if (interaction.customId === 'previous') {
-    start -= count;
-  }
-  if (interaction.customId === 'update') {
-    start = Math.min(start, count * Math.floor(Math.max(0, rules.length - 1) / count));
-  }
-  if (interaction.customId === 'first') {
-    start = 0;
-  }
-  if (interaction.customId === 'last') {
-    start = count * Math.floor((rules.length - 1) / count);
-  }
-
-  row.components.forEach(b => {
-    if (b.customId === 'next') {
-      b.setDisabled(start + count >= rules.length);
-    }
-    if (b.customId === 'previous') {
-      b.setDisabled(start <= 0);
-    }
-    if (b.customId === 'first') {
-      b.setDisabled(start <= 0);
-    }
-    if (b.customId === 'last') {
-      b.setDisabled(start + count >= rules.length);
-    }
-  });
+  const start = executePagination(interaction, pages, rules.length);
 
   embed
-    .setFields(rules
-      .slice(start, start + count)
-      .map(rule => ({
-        name: escaping(rule.regex),
-        value: rule.react,
-      })))
+    .setFields(getRulesFields(rules))
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
     .setFooter(t('discord:command.response.show.completed.footer', {
       countStart: Math.min(start + 1, rules.length),
@@ -290,7 +223,9 @@ const onResponse = async interaction => {
   }
 };
 
-const calcPages = footer => {
-  const array = footer.split(' ');
-  return {start: Math.max(array[0], 1) - 1, count: parseInt(array[6])};
-};
+const getRulesFields = rules => rules
+  .slice(start, count)
+  .map(rule => ({
+    name: escaping(rule.regex),
+    value: rule.react,
+  }));

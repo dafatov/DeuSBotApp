@@ -8,6 +8,7 @@ const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const {createCalendar} = require('../../utils/attachments');
 const db = require('../../db/repositories/birthday');
+const {toFirstUpperCase} = require('../../utils/string');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -18,15 +19,15 @@ module.exports = {
       .setDescription(t('discord:command.birthday.set.description'))
       .addIntegerOption(i => i
         .setName('year')
-        .setDescription(t('common:calendar.year.name'))
+        .setDescription(toFirstUpperCase(t('common:time.years.name.1')))
         .setRequired(true))
       .addIntegerOption(i => i
         .setName('month')
-        .setDescription(t('common:calendar.month.name'))
+        .setDescription(toFirstUpperCase(t('common:time.months.name.1')))
         .setRequired(true))
       .addIntegerOption(i => i
         .setName('day')
-        .setDescription(t('common:calendar.day.name'))
+        .setDescription(toFirstUpperCase(t('common:time.days.name.1')))
         .setRequired(true)))
     .addSubcommand(s => s
       .setName('remove')
@@ -36,9 +37,9 @@ module.exports = {
       .setDescription(t('discord:command.birthday.show.description'))
       .addStringOption(s => s
         .setName('month')
-        .setDescription(t('common:calendar.month.name'))
+        .setDescription(toFirstUpperCase(t('common:time.months.name.1')))
         .setRequired(false)
-        .addChoices(getFixedT(null, null, 'common:calendar')('month', {returnObjects: true}).list.map((month, index) => [month, index.toString()]))))
+        .addChoices(getFixedT(null, null, 'common:time')('months', {returnObjects: true}).list.map((month, index) => [month, index.toString()]))))
     .addSubcommand(s => s
       .setName('ignore')
       .setDescription(t('discord:command.birthday.ignore.description'))),

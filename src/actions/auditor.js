@@ -1,12 +1,12 @@
 const {CATEGORIES, TYPES, add, getAll, removeBeforeWithOffset} = require('../db/repositories/audit');
-const {padEnum, stringify} = require('../utils/string');
+const {getFixedT, t} = require('i18next');
+const {padEnum, spell, stringify} = require('../utils/string');
 const {bigIntReplacer} = require('../utils/jsonMapping');
-const {t} = require('i18next');
 
 module.exports.init = async () => {
   await (async function loop() {
     if (condition()) {
-      const interval = {value: '1M', description: t('common:calendar.month.numeral.monthWithCount_one', {count: 1})};
+      const interval = {value: '1M', description: spell(1, Object.values(getFixedT(null, null, 'common:time')('months', {returnObjects: true}).name))};
 
       await removeBeforeWithOffset(interval.value).then(response => {
         if (response?.rowCount > 0) {

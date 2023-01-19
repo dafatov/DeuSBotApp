@@ -31,6 +31,9 @@ module.exports.SCOPES = Object.freeze({
   COMMAND_SHIKIMORI_REMOVE: 'command.shikimori.remove',
   COMMAND_SHUFFLE: 'command.shuffle',
   COMMAND_SKIP: 'command.skip',
+  COMMAND_STATISTICS_SESSION: 'command.statistics.session',
+  COMMAND_STATISTICS_MESSAGES: 'command.statistics.messages',
+  COMMAND_STATISTICS_VOICES: 'command.statistics.voices',
 
   API_CHANGELOG_CHANGELOG: 'api.changelog.changelog',
   API_CHANGELOG_PUBLISH: 'api.changelog.publish',

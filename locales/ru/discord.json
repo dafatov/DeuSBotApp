@@ -354,6 +354,30 @@
         "title": "Текущая композиция уничтожена"
       },
       "description": "Пропустить текущую композицию"
+    },
+    "statistics": {
+      "description": "Отображение статистики пользователей",
+      "messages": {
+        "completed": {
+          "footer": "{{countStart}} - {{countFinish}} из {{total}} по {{step}}",
+          "title": "Количество опубликованных сообщений"
+        },
+        "description": "Отображение количества сообщений, написанных каждым пользователем"
+      },
+      "session": {
+        "completed": {
+          "footer": "{{countStart}} - {{countFinish}} из {{total}} по {{step}}",
+          "title": "Последняя активная сессия"
+        },
+        "description": "Отображение последней активной сессии в голосовом канале на сервере"
+      },
+      "voices": {
+        "completed": {
+          "footer": "{{countStart}} - {{countFinish}} из {{total}} по {{step}}",
+          "title": "Время, проведенное в голосовых каналах"
+        },
+        "description": "Отображение времени проведенного в голосовых каналах"
+      }
     }
   },
   "embed": {

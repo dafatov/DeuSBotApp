@@ -1,10 +1,10 @@
-const {CATEGORIES, TYPES} = require('../db/repositories/audit');
+const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {VoiceConnectionStatus} = require('@discordjs/voice');
-const {audit} = require('./auditor');
-const player = require('./player');
+const {audit} = require('../../actions/auditor');
+const player = require('../../actions/player');
 const {t} = require('i18next');
 
-module.exports.voiceStateUpdate = async (newState, client) => {
+module.exports.execute = async ({client, newState}) => {
   if (!player.getQueue(newState.guild.id)?.voiceChannel
     || !player.getQueue(newState.guild.id).connection
     || player.getQueue(newState.guild.id).connection._state.status === VoiceConnectionStatus.Destroyed) {
@@ -19,7 +19,7 @@ module.exports.voiceStateUpdate = async (newState, client) => {
     player.clearQueue(newState.guild.id);
     player.clearConnection(newState.guild.id);
     await audit({
-      guildId: null,
+      guildId: newState.guild.id,
       type: TYPES.INFO,
       category: CATEGORIES.STATE_UPDATE,
       message: t('inner:audit.voiceStateUpdate.botLeaved'),
