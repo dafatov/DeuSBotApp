@@ -1,8 +1,9 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
-const {MessageActionRow, MessageButton, MessageEmbed} = require('discord.js');
+const {Control, Pagination} = require('../../utils/components');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {notify, notifyError} = require('../commands');
 const {timeFormatMilliseconds, timeFormatSeconds} = require('../../utils/dateTime.js');
+const {MessageEmbed} = require('discord.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const config = require('../../configs/config.js');
@@ -10,10 +11,7 @@ const {createStatus} = require('../../utils/attachments');
 const {escaping} = require('../../utils/string.js');
 const {getQueue} = require('../player');
 const {getRadios} = require('../radios');
-const {loop} = require('./loop');
-const {pause} = require('./pause');
 const progressBar = require('string-progressbar');
-const {skip} = require('./skip');
 const {t} = require('i18next');
 
 const {start, count} = {start: 0, count: 5};
@@ -48,14 +46,16 @@ const queue = async interaction => {
   }
 
   const songs = getQueue(interaction.guildId).songs;
+  const pagination = Pagination.getComponent(start, count, songs.length);
 
   if (!getQueue(interaction.guildId).nowPlaying.song) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
       .setTitle(t('discord:embed.noPlaying.title'))
       .setDescription(t('discord:embed.noPlaying.description'))
-      .setTimestamp();
-    await notify('queue', interaction, {embeds: [embed]});
+      .setTimestamp()
+      .setFooter(Pagination.getFooter(start, count, songs.length));
+    await notify('queue', interaction, {embeds: [embed], components: [pagination]});
     await audit({
       guildId: interaction.guildId,
       type: TYPES.WARNING,
@@ -65,89 +65,20 @@ const queue = async interaction => {
     return;
   }
 
+  const control = Control.getComponent(interaction);
+  const status = await createStatus(getQueue(interaction.guildId));
   const embed = new MessageEmbed()
     .setColor(config.colors.info)
-    .setFooter(t(
-      'discord:command.queue.completed.footer', {
-        countStart: Math.min(start + 1, songs.length),
-        countFinish: Math.min(start + count, songs.length),
-        total: songs.length,
-        step: count,
-      },
-    ));
-
-  embed.setFields(songs
-    .slice(start, count)
-    .map((song, i) => ({
-      name: `${String(start + i + 1).padStart(String(songs.length).length, '0')}). ${escaping(song.title)}`,
-      value: `\`${song.isLive
-        ? t('common:player.stream')
-        : timeFormatSeconds(song.length)}\`—_\`${song.author.username}\`_`,
-    })));
-
-  embed.setTitle(escaping(getQueue(interaction.guildId).nowPlaying.song.title))
+    .setTitle(escaping(getQueue(interaction.guildId).nowPlaying.song.title))
+    .setDescription(await getDescription(interaction))
+    .setTimestamp()
     .setURL(getQueue(interaction.guildId).nowPlaying.song.url)
     .setThumbnail(getQueue(interaction.guildId).nowPlaying.song.preview)
-    .setTimestamp();
-  await setDescription(interaction, embed);
+    .setFields(getSongsFields(songs, start, count))
+    .setFooter(Pagination.getFooter(start, count, songs.length));
 
-  const row = new MessageActionRow()
-    .addComponents(
-      new MessageButton()
-        .setCustomId('first')
-        .setLabel(t('common:player.first'))
-        .setStyle('PRIMARY')
-        .setDisabled(start <= 0),
-      new MessageButton()
-        .setCustomId('previous')
-        .setLabel(t('common:player.previous'))
-        .setStyle('PRIMARY')
-        .setDisabled(start <= 0),
-      new MessageButton()
-        .setCustomId('update')
-        .setLabel(t('common:player.update'))
-        .setStyle('PRIMARY'),
-      new MessageButton()
-        .setCustomId('next')
-        .setLabel(t('common:player.next'))
-        .setStyle('PRIMARY')
-        .setDisabled(start + count >= songs.length),
-      new MessageButton()
-        .setCustomId('last')
-        .setLabel(t('common:player.last'))
-        .setStyle('PRIMARY')
-        .setDisabled(start + count >= songs.length),
-    );
-
-  const control = new MessageActionRow()
-    .addComponents(
-      new MessageButton()
-        .setCustomId('pause')
-        .setLabel(getQueue(interaction.guildId).nowPlaying?.isPause
-          ? t('common:player.toResume')
-          : t('common:player.toPause'))
-        .setStyle(getQueue(interaction.guildId).nowPlaying?.isPause
-          ? 'SUCCESS'
-          : 'DANGER')
-        .setDisabled(getQueue(interaction.guildId).nowPlaying?.song.isLive),
-      new MessageButton()
-        .setCustomId('skip')
-        .setLabel(t('common:player.skip'))
-        .setStyle('PRIMARY'),
-      new MessageButton()
-        .setCustomId('loop')
-        .setLabel(getQueue(interaction.guildId).nowPlaying?.isLoop
-          ? t('common:player.toUnloop')
-          : t('common:player.toLoop'))
-        .setStyle(getQueue(interaction.guildId).nowPlaying?.isLoop
-          ? 'DANGER'
-          : 'SUCCESS')
-        .setDisabled(getQueue(interaction.guildId).nowPlaying?.song.isLive),
-    );
-
-  const status = await createStatus(getQueue(interaction.guildId));
   try {
-    await notify('queue', interaction, {files: [status], embeds: [embed], components: [row, control]});
+    await notify('queue', interaction, {files: [status], embeds: [embed], components: [pagination, control]});
     await audit({
       guildId: interaction.guildId,
       type: TYPES.INFO,
@@ -161,48 +92,27 @@ const queue = async interaction => {
 
 const onQueue = async interaction => {
   const songs = getQueue(interaction.guildId).songs;
-
   const embed = interaction.message.embeds[0];
-  const row = interaction.message.components[0];
-  const control = interaction.message.components[1];
-  const pages = calcPages(embed.footer.text);
-  const count = pages.count;
-  let start = pages.start;
+  const pagination = interaction.message.components[0];
+  const pages = Pagination.getPages(embed.footer.text);
+  const start = Pagination.update(interaction, pages, songs.length);
+  const control = songs.length > 0 || getQueue(interaction.guildId).nowPlaying.song
+    ? Control.getComponent(interaction)
+    : interaction.message.components[1];
 
-  if (interaction.customId === 'next') {
-    start += count;
-  }
-  if (interaction.customId === 'previous') {
-    start -= count;
-  }
-  if (interaction.customId === 'update') {
-    start = Math.min(start, count * Math.floor(Math.max(0, songs.length - 1) / count));
-  }
-  if (interaction.customId === 'first') {
-    start = 0;
-  }
-  if (interaction.customId === 'last') {
-    start = count * Math.floor((songs.length - 1) / count);
+  if (control) {
+    await Control.update(interaction, control);
   }
 
-  if (interaction.customId === 'pause') {
-    await pause(interaction);
-  }
-  if (interaction.customId === 'skip') {
-    await skip(interaction);
-  }
-  if (interaction.customId === 'loop') {
-    await loop(interaction);
-  }
-
-  if (songs.length === 0 && !getQueue(interaction.guildId).nowPlaying.song) {
+  if (songs.length <= 0 && !getQueue(interaction.guildId).nowPlaying.song) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
       .setTitle(t('discord:embed.noPlaying.title'))
       .setDescription(t('discord:embed.noPlaying.description'))
-      .setTimestamp();
+      .setTimestamp()
+      .setFooter(Pagination.getFooter(start, pages.count, songs.length));
     await interaction.message.removeAttachments();
-    await interaction.update({embeds: [embed], components: []});
+    await interaction.update({embeds: [embed], components: [pagination]});
     await audit({
       guildId: interaction.guildId,
       type: TYPES.WARNING,
@@ -212,95 +122,52 @@ const onQueue = async interaction => {
     return;
   }
 
-  row.components.forEach(b => {
-    if (b.customId === 'next') {
-      b.setDisabled(start + count >= songs.length);
-    }
-    if (b.customId === 'previous') {
-      b.setDisabled(start <= 0);
-    }
-    if (b.customId === 'first') {
-      b.setDisabled(start <= 0);
-    }
-    if (b.customId === 'last') {
-      b.setDisabled(start + count >= songs.length);
-    }
-  });
-  control.components.forEach(b => {
-    if (b.customId === 'pause') {
-      b.setLabel(getQueue(interaction.guildId).nowPlaying?.isPause
-        ? t('common:player.toResume')
-        : t('common:player.toPause'));
-      b.setStyle(getQueue(interaction.guildId).nowPlaying?.isPause
-        ? 'SUCCESS'
-        : 'DANGER');
-      b.setDisabled(getQueue(interaction.guildId).nowPlaying?.song.isLive);
-    }
-    if (b.customId === 'loop') {
-      b.setLabel(getQueue(interaction.guildId).nowPlaying?.isLoop
-        ? t('common:player.toUnloop')
-        : t('common:player.toLoop'));
-      b.setStyle(getQueue(interaction.guildId).nowPlaying?.isLoop
-        ? 'DANGER'
-        : 'SUCCESS');
-      b.setDisabled(getQueue(interaction.guildId).nowPlaying?.song.isLive);
-    }
-  });
-
-  embed.setTitle(escaping(getQueue(interaction.guildId).nowPlaying.song.title))
+  embed
+    .setTitle(escaping(getQueue(interaction.guildId).nowPlaying.song.title))
+    .setDescription(await getDescription(interaction, embed))
     .setURL(getQueue(interaction.guildId).nowPlaying.song.url)
     .setThumbnail(getQueue(interaction.guildId).nowPlaying.song.preview)
-    .setTimestamp()
-    .setFields(songs
-      .slice(start, start + count)
-      .map((song, i) => ({
-        name: `${String(start + i + 1).padStart(String(songs.length).length, '0')}). ${escaping(song.title)}`,
-        value: `\`${song.isLive
-          ? t('common:player.stream')
-          : timeFormatSeconds(song.length)}\`—_\`${song.author.username}\`_`,
-      })))
+    .setFields(getSongsFields(songs, start, pages.count))
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
-    .setFooter(t(
-      'discord:command.queue.completed.footer', {
-        countStart: Math.min(start + 1, songs.length),
-        countFinish: Math.min(start + count, songs.length),
-        total: songs.length,
-        step: count,
-      },
-    ));
-  await setDescription(interaction, embed);
+    .setFooter(Pagination.getFooter(start, pages.count, songs.length));
 
   const status = await createStatus(getQueue(interaction.guildId));
   try {
     await interaction.message.removeAttachments();
-    await interaction.update({files: [status], embeds: [embed], components: [row, control]});
+    await interaction.update({files: [status], embeds: [embed], components: [pagination, control]});
   } catch (e) {
     await notifyError('queue', e, interaction);
   }
 };
 
-const calcPages = footer => {
-  const array = footer.split(' ');
-  return {start: Math.max(array[0], 1) - 1, count: parseInt(array[6])};
-};
-
-const setDescription = async (interaction, embed) => {
+const getDescription = async interaction => {
   if (getQueue(interaction.guildId).nowPlaying.song.isLive) {
-    embed.setDescription(t('discord:command.queue.completed.description.live'));
     if (getQueue(interaction.guildId).nowPlaying.song.type === 'radio') {
-      embed.setDescription(await getRadios().get(getQueue(interaction.guildId).nowPlaying.song.title).getInfo());
+      return await getRadios().get(getQueue(interaction.guildId).nowPlaying.song.title).getInfo();
     }
+
+    return t('discord:command.queue.completed.description.live');
   } else {
     const barString = progressBar.filledBar(
       getQueue(interaction.guildId).nowPlaying.song.length * 1000,
       getQueue(interaction.guildId).nowPlaying.resource.playbackDuration,
     );
-    embed.setDescription(t('discord:command.queue.completed.description.withBar', {
+
+    return t('discord:command.queue.completed.description.withBar', {
       playbackDuration: timeFormatMilliseconds(getQueue(interaction.guildId).nowPlaying.resource.playbackDuration),
       totalDuration: timeFormatSeconds(getQueue(interaction.guildId).nowPlaying.song.length),
       author: getQueue(interaction.guildId).nowPlaying.song.author.username,
       barString: barString[0],
       percent: Math.round(barString[1]),
-    }));
+    });
   }
 };
+
+const getSongsFields = (songs, start, count) => songs
+  .slice(start, start + count)
+  .map((song, i) => ({
+    name: `${String(start + i + 1).padStart(String(songs.length).length, '0')}). ${escaping(song.title)}`,
+    value: `\`${song.isLive
+      ? t('common:player.stream')
+      : timeFormatSeconds(song.length)}\`—_\`${song.author.username}\`_`,
+  }));

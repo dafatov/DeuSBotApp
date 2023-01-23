@@ -22,7 +22,7 @@ module.exports = {
             .setDescription(createDescription(changelog.message))
             .setTimestamp()
             .setFooter(
-              'Copyright (c) 2021-2022 dafatov',
+              `Copyright (c) 2021-${new Date().getFullYear()} dafatov`,
               'https://e7.pngegg.com/pngimages/330/725/png-clipart-computer-icons-public-key-certificate-organization-test-certificate-miscellaneous-company.png',
             ),
         ),

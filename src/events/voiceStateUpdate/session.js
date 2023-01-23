@@ -13,7 +13,7 @@ module.exports.execute = async ({oldState, newState}) => {
     } else if (newState.channelId === null) {
       await finish(oldState.id, oldState.guild.id)
         .then(result => result.rows[0])
-        .then(session => update(newState.id, {
+        .then(session => update(newState.id, newState.guild.id, {
           voiceDuration: {
             begin: session.begin,
             finish: session.finish,

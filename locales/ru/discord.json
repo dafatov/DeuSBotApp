@@ -208,8 +208,7 @@
         "description": {
           "live": "<Стрим>\n            \\u200B\\n",
           "withBar": "{{playbackDuration}}/{{totalDuration}}—_{{author}}_\n{{barString}} [{{percent}}%]"
-        },
-        "footer": "{{countStart}} - {{countFinish}} из {{total}} по {{step}}"
+        }
       },
       "description": "Отображение очереди композиций на воспроизведение"
     },
@@ -275,7 +274,6 @@
       },
       "show": {
         "completed": {
-          "footer": "{{countStart}} - {{countFinish}} из {{total}} по {{step}}",
           "title": "Все реакции на текущий момент"
         },
         "description": "Отображение существующий реакций в виде списка"
@@ -359,21 +357,18 @@
       "description": "Отображение статистики пользователей",
       "messages": {
         "completed": {
-          "footer": "{{countStart}} - {{countFinish}} из {{total}} по {{step}}",
           "title": "Количество опубликованных сообщений"
         },
         "description": "Отображение количества сообщений, написанных каждым пользователем"
       },
       "session": {
         "completed": {
-          "footer": "{{countStart}} - {{countFinish}} из {{total}} по {{step}}",
           "title": "Последняя активная сессия"
         },
         "description": "Отображение последней активной сессии в голосовом канале на сервере"
       },
       "voices": {
         "completed": {
-          "footer": "{{countStart}} - {{countFinish}} из {{total}} по {{step}}",
           "title": "Время, проведенное в голосовых каналах"
         },
         "description": "Отображение времени проведенного в голосовых каналах"

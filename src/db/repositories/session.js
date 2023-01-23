@@ -11,14 +11,14 @@ module.exports.getAll = async () => {
   return session;
 };
 
-module.exports.begin = (userId, guildId) => transaction(async () => {
+module.exports.begin = async (userId, guildId) => await transaction(async () => {
   await remove(userId, guildId);
   await db.query('INSERT INTO SESSION (user_id, guild_id, begin, finish) VALUES ($1, $2, DEFAULT, null)', [userId, guildId]);
 });
 
-module.exports.finish = async (userId, guildId) => {
+module.exports.finish = (userId, guildId) => {
   session = null;
-  return await db.query('UPDATE SESSION SET FINISH = DEFAULT WHERE user_id=$1 AND guild_id=$2 RETURNING *', [userId, guildId]);
+  return db.query('UPDATE SESSION SET FINISH = DEFAULT WHERE user_id=$1 AND guild_id=$2 RETURNING *', [userId, guildId]);
 };
 
 const remove = async (userId, guildId) => {

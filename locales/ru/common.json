@@ -33,15 +33,19 @@
   },
   "date": "$t(common:time.months.list.{{month}}) {{year}}",
   "markItem": "\t- {{item}}",
+  "pagination": {
+    "first": "|<",
+    "footer": "{{start}} - {{finish}} из {{total}} по {{step}}",
+    "last": ">|",
+    "next": ">",
+    "previous": "<",
+    "update": "Обновить"
+  },
   "player": {
     "beginNow": "<Сейчас>",
-    "first": "|<",
-    "last": ">|",
     "loop": "зациклена",
-    "next": ">",
     "noRemained": "<Никогда>",
     "paused": "приостановлено",
-    "previous": "<",
     "resumed": "возобновлено",
     "skip": "Пропустить",
     "stream": "<Стрим>",
@@ -49,8 +53,7 @@
     "toPause": "Приостановить",
     "toResume": "Возобновить",
     "toUnloop": "Отциклить",
-    "unloop": "отциклена",
-    "update": "Обновить"
+    "unloop": "отциклена"
   },
   "time": {
     "days": {

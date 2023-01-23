@@ -1,8 +1,8 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
-const {executePagination, getPagination, getPaginationPages} = require('../../utils/components');
 const {notify, notifyError} = require('../commands.js');
 const {MessageEmbed} = require('discord.js');
+const {Pagination} = require('../../utils/components');
 const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const config = require('../../configs/config.js');
@@ -41,7 +41,7 @@ module.exports = {
     await response(interaction);
   },
   async listener(interaction) {
-    await onResponse(interaction);
+    await onShow(interaction);
   },
 };
 
@@ -171,22 +171,16 @@ const show = async interaction => {
   }
 
   const rules = await db.getAll(interaction.guildId);
+  const pagination = Pagination.getComponent(start, count, rules.length);
   const embed = new MessageEmbed()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.response.show.completed.title'))
     .setTimestamp()
-    .setFields(getRulesFields(rules))
-    .setFooter(t('discord:command.response.show.completed.footer', {
-      countStart: Math.min(start + 1, rules.length),
-      countFinish: Math.min(start + count, rules.length),
-      total: rules.length,
-      step: count,
-    }));
-
-  const row = getPagination(start, count, rules.length);
+    .setFields(getRulesFields(rules, start, count))
+    .setFooter(Pagination.getFooter(start, count, rules.length));
 
   try {
-    await notify('response', interaction, {embeds: [embed], components: [row]});
+    await notify('response', interaction, {embeds: [embed], components: [pagination]});
     await audit({
       guildId: interaction.guildId,
       type: TYPES.INFO,
@@ -198,32 +192,26 @@ const show = async interaction => {
   }
 };
 
-const onResponse = async interaction => {
+const onShow = async interaction => {
   const rules = await db.getAll(interaction.guildId);
   const embed = interaction.message.embeds[0];
-  const row = interaction.message.components[0];
-  const pages = getPaginationPages(embed.footer.text);
-  const count = pages.count;
-  const start = executePagination(interaction, pages, rules.length);
+  const pagination = interaction.message.components[0];
+  const pages = Pagination.getPages(embed.footer.text);
+  const start = Pagination.update(interaction, pages, rules.length);
 
   embed
     .setFields(getRulesFields(rules))
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
-    .setFooter(t('discord:command.response.show.completed.footer', {
-      countStart: Math.min(start + 1, rules.length),
-      countFinish: Math.min(start + count, rules.length),
-      total: rules.length,
-      step: count,
-    }));
+    .setFooter(Pagination.getFooter(start, pages.count, rules.length));
 
   try {
-    await interaction.update({embeds: [embed], components: [row]});
+    await interaction.update({embeds: [embed], components: [pagination]});
   } catch (e) {
     await notifyError('response', e, interaction);
   }
 };
 
-const getRulesFields = rules => rules
+const getRulesFields = (rules, start, count) => rules
   .slice(start, count)
   .map(rule => ({
     name: escaping(rule.regex),
