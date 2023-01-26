@@ -8,12 +8,12 @@ module.exports.execute = async ({oldState, newState}) => {
   if (oldState.channelId !== newState.channelId) {
     if (oldState.channelId === null) {
       if (newState.channelId !== null) {
-        await begin(newState.id, newState.guild.id);
+        await begin(newState.member.user.id, newState.guild.id);
       }
     } else if (newState.channelId === null) {
-      await finish(oldState.id, oldState.guild.id)
+      await finish(oldState.member.user.id, oldState.guild.id)
         .then(result => result.rows[0])
-        .then(session => update(newState.id, newState.guild.id, {
+        .then(session => update(newState.member.user.id, newState.guild.id, {
           voiceDuration: {
             begin: session.begin,
             finish: session.finish,
