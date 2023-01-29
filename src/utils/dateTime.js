@@ -14,7 +14,7 @@ module.exports.timeFormatMilliseconds = ms => {
 };
 
 module.exports.localePostgresInterval = postgresInterval => {
-  if (Object.keys(postgresInterval).length < 1) {
+  if (!postgresInterval || Object.keys(postgresInterval).length < 1) {
     return '0';
   }
 

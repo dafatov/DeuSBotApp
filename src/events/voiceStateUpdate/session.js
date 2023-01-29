@@ -11,22 +11,23 @@ module.exports.execute = async ({oldState, newState}) => {
         await begin(newState.member.user.id, newState.guild.id);
       }
     } else if (newState.channelId === null) {
-      const session = await finish(oldState.member.user.id, oldState.guild.id)
-        .then(result => result.rows[0]);
-
-      if (session?.begin) {
-        await update(newState.member.user.id, newState.guild.id, {
-          voiceDuration: {
-            begin: session.begin,
-            finish: session.finish,
-          },
+      await finish(oldState.member.user.id, oldState.guild.id)
+        .then(result => result.rows[0])
+        .then(session => {
+          if (session?.begin) {
+            return update(newState.member.user.id, newState.guild.id, {
+              voiceDuration: {
+                begin: session.begin,
+                finish: session.finish,
+              },
+            });
+          }
         }).catch(e => audit({
           guildId: newState.guild.id,
           type: TYPES.ERROR,
           category: CATEGORIES.STATE_UPDATE,
           message: stringify(e),
         }));
-      }
     }
   }
 };

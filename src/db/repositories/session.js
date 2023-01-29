@@ -5,7 +5,7 @@ let session;
 
 module.exports.getAll = async () => {
   if (!session) {
-    const response = await db.query('SELECT * FROM SESSION');
+    const response = await db.query('SELECT *, finish - begin as duration FROM SESSION');
     session = response.rows || [];
   }
   return session;

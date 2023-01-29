@@ -9,7 +9,6 @@ const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const {getAll: getAllSessions} = require('../../db/repositories/session');
 const {getAll: getAllStatistics} = require('../../db/repositories/statistics');
-const {getMemberName} = require('../../utils/discord');
 const {t} = require('i18next');
 
 const {start, count} = {start: 0, count: 5};
@@ -79,8 +78,8 @@ const session = async interaction => {
   const embed = new MessageEmbed()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.statistics.session.completed.title'))
+    .setDescription(getSessionsDescription(sessions, start, count))
     .setTimestamp()
-    .setFields(await getSessionsFields(interaction, sessions, start, count))
     .setFooter(Pagination.getFooter(start, count, sessions.length));
 
   try {
@@ -104,7 +103,7 @@ const onSession = async interaction => {
   const start = Pagination.update(interaction, pages, sessions.length);
 
   embed
-    .setFields(await getSessionsFields(interaction, sessions, start, pages.count))
+    .setDescription(getSessionsDescription(sessions, start, pages.count))
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
     .setFooter(Pagination.getFooter(start, pages.count, sessions.length));
 
@@ -137,8 +136,8 @@ const messages = async interaction => {
   const embed = new MessageEmbed()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.statistics.messages.completed.title'))
+    .setDescription(getMessagesDescription(messages, start, count))
     .setTimestamp()
-    .setFields(await getMessagesFields(interaction, messages, start, count))
     .setFooter(Pagination.getFooter(start, count, messages.length));
 
   try {
@@ -162,7 +161,7 @@ const onMessages = async interaction => {
   const start = Pagination.update(interaction, pages, messages.length);
 
   embed
-    .setFields(await getMessagesFields(interaction, messages, start, pages.count))
+    .setDescription(getMessagesDescription(messages, start, pages.count))
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
     .setFooter(Pagination.getFooter(start, pages.count, messages.length));
 
@@ -195,8 +194,8 @@ const voices = async interaction => {
   const embed = new MessageEmbed()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.statistics.voices.completed.title'))
+    .setDescription(getVoicesDescription(voices, start, count))
     .setTimestamp()
-    .setFields(await getVoicesFields(interaction, voices, start, count))
     .setFooter(Pagination.getFooter(start, count, voices.length));
 
   try {
@@ -220,7 +219,7 @@ const onVoices = async interaction => {
   const start = Pagination.update(interaction, pages, voices.length);
 
   embed
-    .setFields(await getVoicesFields(interaction, voices, start, pages.count))
+    .setDescription(getVoicesDescription(voices, start, pages.count))
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
     .setFooter(Pagination.getFooter(start, pages.count, voices.length));
 
@@ -246,37 +245,34 @@ const getSessions = guildId => getAllSessions()
       }
     }));
 
-const getSessionsFields = (interaction, sessions, start, count) => Promise.all(sessions
+const getSessionsDescription = (sessions, start, count) => sessions
   .slice(start, start + count)
-  .map(async session => ({
-    name: await getMemberName(interaction, session.user_id),
-    value: `<t:${Math.floor(session.begin.getTime() / 1000)}>\n${session.finish
-      ? `<t:${Math.floor(session.finish / 1000)}>`
-      : `\`${t('common:player.beginNow')}\``}`,
-  })));
+  .map(session => `<@${session.user_id}>\n${getSessionValue(session)}`)
+  .join('\n\n');
+
+const getSessionValue = session =>
+  `<t:${Math.floor(session.begin.getTime() / 1000)}>\n${session.finish
+    ? `<t:${Math.floor(session.finish / 1000)}>\n\`${localePostgresInterval(session.duration)}\``
+    : `\`${t('common:player.beginNow')}\``}`;
 
 const getMessages = guildId => getAllStatistics()
   .then(statistics => statistics
     .filter(statistic => statistic.guild_id === guildId)
-    .sort((a, b) => b.message_count - a.message_count)
-    .map(statistic => ({userId: statistic.user_id, messageCount: statistic.message_count})));
+    .map(statistic => ({userId: statistic.user_id, messageCount: statistic.message_count}))
+    .sort((a, b) => b.messageCount - a.messageCount));
 
-const getMessagesFields = (interaction, messages, start, count) => Promise.all(messages
+const getMessagesDescription = (messages, start, count) => messages
   .slice(start, start + count)
-  .map(async message => ({
-    name: await getMemberName(interaction, message.userId),
-    value: message.messageCount.toString(),
-  })));
+  .map(message => `<@${message.userId}>\n${message.messageCount.toString()}`)
+  .join('\n\n');
 
 const getVoices = guildId => getAllStatistics()
   .then(statistics => statistics
     .filter(statistic => statistic.guild_id === guildId)
-    .sort((a, b) => comparePostgresInterval(a.voice_duration, b.voice_duration, true))
-    .map(statistic => ({userId: statistic.user_id, voiceDuration: statistic.voice_duration})));
+    .map(statistic => ({userId: statistic.user_id, voiceDuration: statistic.voice_duration}))
+    .sort((a, b) => comparePostgresInterval(a.voiceDuration, b.voiceDuration, true)));
 
-const getVoicesFields = (interaction, voices, start, count) => Promise.all(voices
+const getVoicesDescription = (voices, start, count) => voices
   .slice(start, start + count)
-  .map(async voice => ({
-    name: await getMemberName(interaction, voice.userId),
-    value: localePostgresInterval(voice.voiceDuration),
-  })));
+  .map(voice => `<@${voice.userId}>\n${localePostgresInterval(voice.voiceDuration)}`)
+  .join('\n\n');

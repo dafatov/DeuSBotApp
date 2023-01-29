@@ -10,13 +10,13 @@ module.exports.execute = async ({message}) => {
   }
 
   try {
-    db.getAll(message.guildId).then(rules => rules.forEach(async e => {
+    await Promise.all(db.getAll(message.guildId).then(rules => rules.map(async e => {
       if (!e.regex || !e.react) {
         throw t('inner:error.response', {regex: e.regex, react: e.react});
       }
 
       if (message.content.match(e.regex)) {
-        message.reply(`${e.react}`);
+        await message.reply(`${e.react}`);
         await audit({
           guildId: message.guild.id,
           type: TYPES.INFO,
@@ -26,7 +26,7 @@ module.exports.execute = async ({message}) => {
       }
     })).catch(e => {
       throw e;
-    });
+    }));
   } catch (e) {
     await audit({
       guildId: null,
