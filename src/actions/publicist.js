@@ -23,7 +23,7 @@ module.exports.init = async c => {
 
               if (content) {
                 await publish(content).then(messages => {
-                  publication.onPublished(messages, content?.variables);
+                  publication.onPublished?.(messages, content?.variables);
                   return messages;
                 }).then(async messages => {
                   const guilds = await Promise.all(messages.map(m => m.guild));

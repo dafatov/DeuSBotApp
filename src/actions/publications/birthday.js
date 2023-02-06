@@ -11,31 +11,33 @@ module.exports = {
       return;
     }
 
-    return (await ((await client.guilds.fetch()).reduce(async (object, guild) => {
-      const users = (await (await guild.fetch()).members.fetch({user: todayBirthdays.map(b => b.userId)})).map(m => m.user);
-
-      return {
-        //Без await не работает, так как функция в которой все происходит async
-        ...(await object),
-        [(await guild.fetch()).id]: {
-          content: users.map(user => `<@${user.id}>`).join(', '),
-          embeds: [
-            new MessageEmbed()
-              .setColor(config.colors.info)
-              .setTitle(t('discord:embed.publicist.birthday.title'))
-              .setThumbnail('https://i.ibb.co/8m1FGzr/maxresdefault.png')
-              .setDescription(t(
-                'discord:embed.publicist.birthday.description', {
-                  ending: users.length > 1
-                    ? 'ят'
-                    : 'ит',
-                  users: users.map(user => user.username),
-                }))
-              .setTimestamp(),
-          ],
-        },
-      };
-    }, {})));
+    return client.guilds.fetch()
+      .then(guilds => guilds.reduce((acc, guild) => guild.fetch()
+        .then(guild => guild.members.fetch({user: todayBirthdays.map(b => b.userId)}))
+        .then(members => members.map(member => member.user))
+        .then(users => guild.fetch()
+          .then(guild => ({
+            ...acc,
+            [guild.id]: {
+              content: '@here',
+              embeds: [
+                new MessageEmbed()
+                  .setColor(config.colors.info)
+                  .setTitle(t('discord:embed.publicist.birthday.title'))
+                  .setThumbnail('https://i.ibb.co/8m1FGzr/maxresdefault.png')
+                  .setDescription(t(
+                    'discord:embed.publicist.birthday.description', {
+                      ending: users.length > 1
+                        ? 'ят'
+                        : 'ит',
+                      users: users.map(user => `<@${user.id}>`),
+                    }))
+                  .setTimestamp(),
+              ],
+            }
+          }))
+        )
+      ), {});
   },
   condition(now) {
     return now.getHours() === 18 && now.getMinutes() === 0;
