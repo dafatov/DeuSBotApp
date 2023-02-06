@@ -60,7 +60,9 @@ module.exports.spell = (number, wordForms) => {
 };
 
 module.exports.toFirstUpperCase = string => {
-  if (!string) return string;
+  if (!string || string.length < 1) {
+    return string;
+  }
 
   return string[0].toUpperCase() + string.slice(1);
 };

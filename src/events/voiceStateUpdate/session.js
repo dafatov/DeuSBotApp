@@ -15,7 +15,7 @@ module.exports.execute = async ({oldState, newState}) => {
         .then(result => result.rows[0])
         .then(session => {
           if (session?.begin) {
-            return update(newState.member.user.id, newState.guild.id, {
+            return update(session.user_id, session.guild_id, {
               voiceDuration: {
                 begin: session.begin,
                 finish: session.finish,

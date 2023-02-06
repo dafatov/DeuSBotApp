@@ -1,6 +1,6 @@
 module.exports = {
   input: [
-    'src/**/*.{js,jsx}'
+    'src/**/*.{js,jsx}',
   ],
   output: './',
   options: {
@@ -17,7 +17,7 @@ module.exports = {
     resource: {
       savePath: './i18Scanner/{{lng}}/{{ns}}.json',
       jsonIndent: 2,
-      lineEnding: '\n'
+      lineEnding: '\n',
     },
     nsSeparator: ':',
     keySeparator: '.',
@@ -27,6 +27,6 @@ module.exports = {
     },
     plural: false,
     sort: true,
-    context: false
-  }
+    context: false,
+  },
 };
