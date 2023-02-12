@@ -9,7 +9,7 @@ module.exports = {
     'es6': true,
     'node': true,
   },
-  'extends': ['eslint:recommended', 'plugin:i18next/recommended', 'plugin:import/recommended'],
+  'extends': ['eslint:recommended', 'plugin:i18next/recommended', 'plugin:import/recommended', 'plugin:jest/recommended', 'plugin:jest-formatting/recommended'],
   'parser': '@babel/eslint-parser',
   'parserOptions': {
     'allowImportExportEverywhere': false,
@@ -19,11 +19,11 @@ module.exports = {
     'requireConfigFile': false,
     'sourceType': 'module',
   },
-  'plugins': ['i18next', 'import', 'sort-imports-requires', 'filenames', 'arguments', 'no-loops'],
+  'plugins': ['i18next', 'import', 'sort-imports-requires', 'filenames', 'arguments', 'no-loops', 'jest', 'jest-formatting'],
   'rules': {
     'arrow-parens': ['error', 'as-needed'],
     'filenames/match-exported': 2,
-    'filenames/match-regex': [2, '^[a-z_.][a-zA-Z0-9]+$', true],
+    'filenames/match-regex': [2, '^[a-z_.][a-zA-Z0-9]+(.test)?$', true],
     'filenames/no-index': 2,
     'func-style': ['error', 'declaration', {'allowArrowFunctions': true}],
     'indent': [
@@ -73,5 +73,11 @@ module.exports = {
     ],
     'sort-imports-requires/sort-imports': 'error',
     'sort-imports-requires/sort-requires': 'error',
+    'jest/no-disabled-tests': 'warn',
+    'jest/no-focused-tests': 'error',
+    'jest/no-identical-title': 'error',
+    'jest/prefer-to-have-length': 'warn',
+    'jest/valid-expect': 'error',
+    'jest-formatting/padding-around-all': 2
   },
 };
