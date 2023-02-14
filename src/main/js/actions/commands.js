@@ -16,10 +16,17 @@ module.exports.init = async client => {
     .filter(f => f.endsWith('.js'))
     .forEach(f => {
       const command = require(`./commands/${f}`);
+      /* TODO: Временное решение пока все команды не мигрируют на функцию
+       * Целевое решение:
+       * command.data = await command.data();
+       */
+      command.data = typeof command.data === 'function'
+        ? command.data()
+        : command.data;
       client.commands.set(command.data.name, command);
     });
 
-  if (!client.commands || client.commands.size <= 0) {
+  if (client.commands.size <= 0) {
     return;
   }
 
@@ -54,7 +61,7 @@ module.exports.updateCommands = async client => {
 module.exports.execute = async interaction => {
   const command = interaction.client.commands.get(interaction.commandName);
 
-  if (!command) {
+  if (typeof command?.execute !== 'function') {
     return;
   }
 
@@ -98,6 +105,21 @@ module.exports.notify = async (commandName, interaction, content) => {
     });
     interaction.message?.send(content);
   }
+};
+
+module.exports.notifyForbidden = async (commandName, interaction) => {
+  const embed = new MessageEmbed()
+    .setColor(config.colors.warning)
+    .setTitle(t('discord:embed.forbidden.title', {command: commandName}))
+    .setTimestamp()
+    .setDescription(t('discord:embed.forbidden.description'));
+  await this.notify(commandName, interaction, {embeds: [embed], ephemeral: true});
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.INFO,
+    category: CATEGORIES.PERMISSION,
+    message: t('inner:info.forbidden', {command: commandName}),
+  });
 };
 
 module.exports.notifyError = async (commandName, e, interaction) => {

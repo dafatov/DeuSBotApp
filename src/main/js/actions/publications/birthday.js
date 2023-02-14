@@ -1,19 +1,20 @@
 const {MessageEmbed} = require('discord.js');
 const config = require('../../configs/config');
 const db = require('../../db/repositories/birthday');
+const {isExactlyTime} = require('../../utils/dateTime');
 const {t} = require('i18next');
 
 module.exports = {
-  async content(client) {
-    const todayBirthdays = await db.getTodayBirthdays();
+  content: async client => {
+    const todayBirthdayUserIds = await db.getTodayBirthdayUserIds();
 
-    if (todayBirthdays.length <= 0) {
+    if (todayBirthdayUserIds.length <= 0) {
       return;
     }
 
     return client.guilds.fetch()
       .then(guilds => guilds.reduce((accPromise, guild) => guild.fetch()
-        .then(guild => guild.members.fetch({user: todayBirthdays.map(b => b.userId)})
+        .then(guild => guild.members.fetch({user: todayBirthdayUserIds})
           .then(members => members.map(member => member.user))
           .then(users => accPromise
             .then(acc => ({
@@ -37,7 +38,5 @@ module.exports = {
               },
             })))), Promise.resolve({})));
   },
-  condition(now) {
-    return now.getHours() === 18 && now.getMinutes() === 0;
-  },
+  condition: now => isExactlyTime(now, 18, 0),
 };

@@ -66,3 +66,5 @@ module.exports.toFirstUpperCase = string => {
 
   return string[0].toUpperCase() + string.slice(1);
 };
+
+module.exports.getCommandName = path => path.split('\\').slice(-1)[0].replace('.js', '');

@@ -49,7 +49,7 @@
     "help": {
       "completed": {
         "description": "$t(web:about, {\"version\": \"{{version}}\"})\n\n$t(web:aboutWeb, {\"url\": \"{{url}}\"})",
-        "footer": "Copyright (c) 2021 dafatov",
+        "footer": "Copyright (c) 2021-{{currentYear}} dafatov",
         "title": "Информация по **{{source}}**"
       },
       "description": "Детальное описание тонкостей работы некоторых команд",
@@ -438,7 +438,8 @@
   "presence": "/help | v{{version}}",
   "radio": {
     "radioRecord": {
-      "info": "\nИсточник: **{{artist}}**\nКомпозиция: **{{song}}**"
+      "info": "\nИсточник: **{{artist}}**\nКомпозиция: **{{song}}**",
+      "error":  "\nПроизошла ошибка при получении данных. Просьба сообщить о проблеме"
     }
   }
 }
