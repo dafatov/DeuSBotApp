@@ -11,6 +11,10 @@ module.exports = {
         ? -1
         : 1);
 
+    if (changelogs.length <= 0) {
+      return;
+    }
+
     return {
       default: {
         content: null,
@@ -38,10 +42,14 @@ module.exports = {
     return (await getUnshown()).length > 0;
   },
   async onPublished(messages, variables) {
-    await Promise.all(messages.map(m =>
+    if (!messages || !variables?.shownChangelogs) {
+      return;
+    }
+
+    await Promise.all(messages?.map(m =>
       m.react('👍').then(() => m.react('👎')),
     ));
-    await Promise.all(variables.shownChangelogs.map(changelog =>
+    await Promise.all(variables?.shownChangelogs?.map(changelog =>
       shown(changelog.version, changelog.application)));
   },
 };

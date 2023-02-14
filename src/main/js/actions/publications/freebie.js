@@ -10,14 +10,13 @@ const variablesDb = require('../../db/repositories/variables');
 const RSS_URL = 'https://freesteam.ru/feed/';
 
 module.exports = {
-  async content() {
+  content: async () => {
     try {
       const rss = await new Parser({customFields: {}}).parseURL(RSS_URL);
       const lastFreebie = (await variablesDb.getAll())?.lastFreebie;
       const freebies = rss.items
         .filter(f => new Date(f.isoDate).getTime() > (new Date(lastFreebie ?? 0).getTime()))
-        .sort((a, b) => new Date(a.isoDate).getTime() - new Date(b.isoDate).getTime())
-        .slice(0, 10);
+        .sort((a, b) => new Date(a.isoDate).getTime() - new Date(b.isoDate).getTime());
 
       if (freebies.length <= 0) {
         return;
@@ -48,10 +47,10 @@ module.exports = {
       });
     }
   },
-  condition(now) {
+  condition: now => {
     return now.getMinutes() % 5 === 0;
   },
-  async onPublished(messages, variables) {
+  onPublished: async (messages, variables) => {
     if (variables?.lastFreebie) {
       await variablesDb.set('lastFreebie', variables.lastFreebie);
     }

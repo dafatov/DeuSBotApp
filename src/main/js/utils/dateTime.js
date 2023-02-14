@@ -43,3 +43,11 @@ module.exports.comparePostgresInterval = (a, b, isDescending = false) => {
 
   return 0;
 };
+
+module.exports.isExactlyTime = (now, hours, minutes) => {
+  const targetDate = new Date();
+
+  targetDate.setUTCHours(hours, minutes);
+
+  return now.getUTCHours() === targetDate.getUTCHours() && now.getUTCMinutes() === targetDate.getUTCMinutes();
+};
