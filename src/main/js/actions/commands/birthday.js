@@ -39,7 +39,8 @@ module.exports = {
         .setName('month')
         .setDescription(toFirstUpperCase(t('common:time.months.name.1')))
         .setRequired(false)
-        .addChoices(getFixedT(null, null, 'common:time')('months', {returnObjects: true}).list.map((month, index) => [month, index.toString()]))))
+        .addChoices(...getFixedT(null, null, 'common:time')('months', {returnObjects: true}).list
+          .map((month, index) => ({name: month, value: index.toString()})))))
     .addSubcommand(s => s
       .setName('ignore')
       .setDescription(t('discord:command.birthday.ignore.description'))),

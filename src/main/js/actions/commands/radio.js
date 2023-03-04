@@ -23,19 +23,19 @@ module.exports = {
 
       radios.forEach((radiosChunk, index) => {
         const choices = radiosChunk
-          .map(radio => [radio.toString(), radio.toString()]);
+          .map(radio => ({name: radio.toString(), value: radio.toString()}));
 
         g.addSubcommand(s => s
           .setName((index + 1).toString())
           .setDescription(t('discord:command.radio.page.radioStation.description', {
-            pageStart: choices[0][0][0],
-            pageEnd: choices[choices.length - 1][0][0],
+            pageStart: choices[0].name[0],
+            pageEnd: choices[choices.length - 1].name[0],
           }))
           .addStringOption(s => s
             .setName('station')
             .setDescription(t('discord:command.radio.page.radioStation.option.station.description'))
             .setRequired(true)
-            .addChoices(choices)));
+            .addChoices(...choices)));
       });
 
       g.setName('page')

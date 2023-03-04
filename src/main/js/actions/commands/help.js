@@ -18,7 +18,7 @@ module.exports = {
       .setName('command')
       .setDescription(t('discord:command.help.option.command.description'))
       .setRequired(false)
-      .addChoices([...helps.keys()].map(k => [k, k]))),
+      .addChoices(...[...helps.keys()].map(k => ({name: k, value: k})))),
   async execute(interaction) {
     await help(interaction);
   },
