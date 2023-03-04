@@ -16,9 +16,11 @@ module.exports = {
       .setName('type')
       .setDescription(t('discord:command.issue.option.type.description'))
       .setRequired(true)
-      .addChoice(t('discord:command.issue.option.type.choice.bug'), 'bug')
-      .addChoice(t('discord:command.issue.option.type.choice.enhancement'), 'enhancement')
-      .addChoice(t('discord:command.issue.option.type.choice.documentation'), 'documentation'))
+      .addChoices(
+        {name: t('discord:command.issue.option.type.choice.bug'), value: 'bug'},
+        {name: t('discord:command.issue.option.type.choice.enhancement'), value: 'enhancement'},
+        {name: t('discord:command.issue.option.type.choice.documentation'), value: 'documentation'},
+      ))
     .addStringOption(o => o
       .setName('title')
       .setDescription(t('discord:command.issue.option.title'))
