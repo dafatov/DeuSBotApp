@@ -1,85 +1,49 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {getQueue, skip} = require('../player');
+const {notify, notifyForbidden, notifyNoPlaying, notifyUnequalChannels} = require('../commands');
 const {MessageEmbed} = require('discord.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const config = require('../../configs/config.js');
 const {escaping} = require('../../utils/string.js');
-const {notify} = require('../commands');
-const player = require('../player');
+const {getCommandName} = require('../../utils/string');
 const {t} = require('i18next');
 
 module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('skip')
+  data: () => new SlashCommandBuilder()
+    .setName(getCommandName(__filename))
     .setDescription(t('discord:command.skip.description')),
-  async execute(interaction) {
-    await module.exports.skip(interaction, true);
-  },
+  execute: interaction => module.exports.skip(interaction, true),
 };
 
 module.exports.skip = async (interaction, isExecute) => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_SKIP)) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.forbidden.title', {command: 'skip'}))
-      .setTimestamp()
-      .setDescription(t('discord:embed.forbidden.description'));
-    await notify('response', interaction, {embeds: [embed], ephemeral: true});
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.WARNING,
-      category: CATEGORIES.PERMISSION,
-      message: t('inner:info.forbidden', {command: 'skip'}),
-    });
-    return {result: t('web:info.forbidden', {command: 'skip'})};
+    await notifyForbidden(getCommandName(__filename), interaction);
+    return {result: t('web:info.forbidden', {command: getCommandName(__filename)})};
   }
 
-  if (!player.getQueue(interaction.guildId).nowPlaying.song || !player.getQueue(interaction.guildId).connection
-    || !player.getQueue(interaction.guildId).player) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.noPlaying.title'))
-      .setDescription(t('discord:embed.noPlaying.description'))
-      .setTimestamp();
-    if (isExecute) {
-      await notify('skip', interaction, {embeds: [embed]});
-    }
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.WARNING,
-      category: CATEGORIES.COMMAND,
-      message: t('inner:audit.command.remove.noPlaying'),
-    });
+  if (!getQueue(interaction.guildId).nowPlaying?.song || !getQueue(interaction.guildId).connection
+    || !getQueue(interaction.guildId).player) {
+    await notifyNoPlaying(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.noPlaying')};
   }
 
-  if (player.getQueue(interaction.guildId)?.connection?.joinConfig?.channelId
-    !== interaction.member.voice.channel.id) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.unequalChannels.title'))
-      .setDescription(t('discord:embed.unequalChannels.description'))
-      .setTimestamp();
-    if (isExecute) {
-      await notify('skip', interaction, {embeds: [embed]});
-    }
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.WARNING,
-      category: CATEGORIES.COMMAND,
-      message: t('inner:audit.command.clear.unequalChannels'),
-    });
+  if (getQueue(interaction.guildId).connection?.joinConfig.channelId
+    !== interaction.member.voice.channel?.id) {
+    await notifyUnequalChannels(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.unequalChannels')};
   }
 
-  const skipped = await player.skip(interaction.guildId);
-  const embed = new MessageEmbed()
-    .setColor(config.colors.info)
-    .setTitle(t('discord:command.skip.completed.title'))
-    .setDescription(t('discord:command.skip.completed.description', {title: escaping(skipped.title)}));
+  const skipped = await skip(interaction.guildId);
+
   if (isExecute) {
-    await notify('skip', interaction, {embeds: [embed]});
+    const embed = new MessageEmbed()
+      .setColor(config.colors.info)
+      .setTitle(t('discord:command.skip.completed.title'))
+      .setDescription(t('discord:command.skip.completed.description', {title: escaping(skipped.title)}))
+      .setTimestamp();
+    await notify(getCommandName(__filename), interaction, {embeds: [embed]});
   }
   await audit({
     guildId: interaction.guildId,

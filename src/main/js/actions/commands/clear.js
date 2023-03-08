@@ -1,85 +1,48 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {clearQueue, getQueue} = require('../player');
+const {notify, notifyForbidden, notifyNoPlaying, notifyUnequalChannels} = require('../commands');
 const {MessageEmbed} = require('discord.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const config = require('../../configs/config.js');
-const {notify} = require('../commands');
+const {getCommandName} = require('../../utils/string');
 const {t} = require('i18next');
 
 module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('clear')
+  data: () => new SlashCommandBuilder()
+    .setName(getCommandName(__filename))
     .setDescription(t('discord:command.clear.description')),
-  async execute(interaction) {
-    await module.exports.clear(interaction, true);
-  },
+  execute: interaction => module.exports.clear(interaction, true),
 };
 
 module.exports.clear = async (interaction, isExecute) => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_CLEAR)) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.forbidden.title', {command: 'clear'}))
-      .setTimestamp()
-      .setDescription(t('discord:embed.forbidden.description'));
-    await notify('clear', interaction, {embeds: [embed], ephemeral: true});
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.WARNING,
-      category: CATEGORIES.PERMISSION,
-      message: t('inner:info.forbidden', {command: 'clear'}),
-    });
-    return {result: t('web:info.forbidden', {command: 'clear'})};
+    await notifyForbidden(getCommandName(__filename), interaction);
+    return {result: t('web:info.forbidden', {command: getCommandName(__filename)})};
   }
 
   if (!getQueue(interaction.guildId).connection || !getQueue(interaction.guildId).player
-    || getQueue(interaction.guildId).songs.length === 0) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.noPlaying.title'))
-      .setDescription(t('discord:embed.noPlaying.description'))
-      .setTimestamp();
-    if (isExecute) {
-      await notify('clear', interaction, {embeds: [embed]});
-    }
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.WARNING,
-      category: CATEGORIES.COMMAND,
-      message: t('inner:audit.command.clear.noPlaying'),
-    });
+    || !getQueue(interaction.guildId).songs?.length) {
+    await notifyNoPlaying(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.noPlaying')};
   }
 
-  if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
-    && getQueue(interaction.guildId).connection.joinConfig.channelId
-    !== interaction.member.voice.channel.id) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.unequalChannels.title'))
-      .setDescription(t('discord:embed.unequalChannels.description'))
-      .setTimestamp();
-    if (isExecute) {
-      await notify('clear', interaction, {embeds: [embed]});
-    }
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.WARNING,
-      category: CATEGORIES.COMMAND,
-      message: t('inner:audit.command.clear.unequalChannels'),
-    });
+  if (getQueue(interaction.guildId).connection?.joinConfig.channelId
+    !== interaction.member.voice.channel?.id) {
+    await notifyUnequalChannels(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.unequalChannels')};
   }
 
   clearQueue(interaction.guildId);
-  const embed = new MessageEmbed()
-    .setColor(config.colors.info)
-    .setTitle(t('discord:command.clear.completed.title'))
-    .setDescription(t('discord:command.clear.completed.description'));
+
   if (isExecute) {
-    await notify('clear', interaction, {embeds: [embed]});
+    const embed = new MessageEmbed()
+      .setColor(config.colors.info)
+      .setTitle(t('discord:command.clear.completed.title'))
+      .setDescription(t('discord:command.clear.completed.description'))
+      .setTimestamp();
+    await notify(getCommandName(__filename), interaction, {embeds: [embed]});
   }
   await audit({
     guildId: interaction.guildId,

@@ -59,9 +59,15 @@ module.exports.updateCommands = async client => {
 };
 
 module.exports.execute = async interaction => {
-  const command = interaction.client.commands.get(interaction.commandName);
+  const commandName = interaction.commandName;
+  const command = interaction.client.commands.get(commandName);
 
   if (typeof command?.execute !== 'function') {
+    return;
+  }
+
+  if (JSON.parse(process.env.RESTRICTED_COMMANDS ?? '[]').includes(commandName)) {
+    this.notifyRestricted(commandName, interaction);
     return;
   }
 
@@ -119,6 +125,55 @@ module.exports.notifyForbidden = async (commandName, interaction) => {
     type: TYPES.INFO,
     category: CATEGORIES.PERMISSION,
     message: t('inner:info.forbidden', {command: commandName}),
+  });
+};
+
+module.exports.notifyRestricted = async (commandName, interaction) => {
+  const embed = new MessageEmbed()
+    .setColor(config.colors.warning)
+    .setTitle(t('discord:embed.restricted.title', {command: commandName}))
+    .setTimestamp()
+    .setDescription(t('discord:embed.restricted.description'));
+  await this.notify(commandName, interaction, {embeds: [embed], ephemeral: true});
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.INFO,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:info.restricted', {command: commandName}),
+  });
+};
+
+module.exports.notifyNoPlaying = async (commandName, interaction, isExecute) => {
+  if (isExecute) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle(t('discord:embed.noPlaying.title'))
+      .setDescription(t('discord:embed.noPlaying.description'))
+      .setTimestamp();
+    await this.notify(commandName, interaction, {embeds: [embed]});
+  }
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.WARNING,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:info.noPlaying', {command: commandName}),
+  });
+};
+
+module.exports.notifyUnequalChannels = async (commandName, interaction, isExecute) => {
+  if (isExecute) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle(t('discord:embed.unequalChannels.title'))
+      .setDescription(t('discord:embed.unequalChannels.description'))
+      .setTimestamp();
+    await this.notify(commandName, interaction, {embeds: [embed]});
+  }
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.WARNING,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:info.unequalChannels', {command: commandName}),
   });
 };
 

@@ -225,7 +225,10 @@ module.exports.searchSongs = async (interaction, isExecute, audios, login) => {
         }))
         .setThumbnail('https://i.ibb.co/PGFbnkS/Afk-W8-Fi-E-400x400.png')
         .setTimestamp()
-        .setFooter(t('inner:audit.command.play.shikimori', {username: interaction.user.username}), interaction.user.displayAvatarURL());
+        .setFooter({
+          text: t('inner:audit.command.play.shikimori', {username: interaction.user.username}),
+          iconURL: interaction.user.displayAvatarURL()
+        });
       await interaction.editReply({embeds: [embed]});
     }
     await playPlayer(interaction, isExecute);
@@ -252,7 +255,10 @@ const notifySong = async (interaction, info, isExecute) => {
     }))
     .setThumbnail(info.preview)
     .setTimestamp()
-    .setFooter(t('discord:command.play.song.footer', {username: interaction.user.username}), interaction.user.displayAvatarURL());
+    .setFooter({
+      text: t('discord:command.play.song.footer', {username: interaction.user.username}),
+      iconURL: interaction.user.displayAvatarURL()
+    });
   if (isExecute) {
     await notify('play', interaction, {embeds: [embed]});
   }
@@ -283,7 +289,10 @@ const notifyPlaylist = async (interaction, info, isExecute) => {
     }))
     .setThumbnail(info.preview)
     .setTimestamp()
-    .setFooter(t('discord:command.play.playlist.footer', {username: interaction.user.username}), interaction.user.displayAvatarURL());
+    .setFooter({
+      text: t('discord:command.play.playlist.footer', {username: interaction.user.username}),
+      iconURL: interaction.user.displayAvatarURL()
+    });
   if (isExecute) {
     await notify('play', interaction, {embeds: [embed]});
   }

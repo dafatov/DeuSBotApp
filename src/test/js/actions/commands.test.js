@@ -56,6 +56,20 @@ describe('execute', () => {
     expect(auditMocked.audit).toHaveBeenCalled();
   });
 
+  test('restricted', async () => {
+    interaction.client.commands = {
+      get: jest.fn().mockReturnValueOnce({execute: jest.fn()}),
+    };
+    jest.spyOn(commands, 'notifyRestricted').mockReturnValueOnce();
+    process.env.RESTRICTED_COMMANDS = '["play"]';
+
+    await commands.execute(interaction);
+
+    expect(interaction.deferReply).not.toHaveBeenCalled();
+    expect(commands.notifyRestricted).toHaveBeenCalledWith('play', interaction);
+    expect(auditMocked.audit).not.toHaveBeenCalled();
+  });
+
   test.each([
     {command: undefined},
     {command: {}},

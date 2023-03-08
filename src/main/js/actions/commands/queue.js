@@ -54,7 +54,7 @@ const queue = async interaction => {
       .setTitle(t('discord:embed.noPlaying.title'))
       .setDescription(t('discord:embed.noPlaying.description'))
       .setTimestamp()
-      .setFooter(Pagination.getFooter(start, count, songs.length));
+      .setFooter({text: Pagination.getFooter(start, count, songs.length)});
     await notify('queue', interaction, {embeds: [embed], components: [pagination]});
     await audit({
       guildId: interaction.guildId,
@@ -75,7 +75,7 @@ const queue = async interaction => {
     .setURL(getQueue(interaction.guildId).nowPlaying.song.url)
     .setThumbnail(getQueue(interaction.guildId).nowPlaying.song.preview)
     .setFields(getSongsFields(songs, start, count))
-    .setFooter(Pagination.getFooter(start, count, songs.length));
+    .setFooter({text: Pagination.getFooter(start, count, songs.length)});
 
   try {
     await notify('queue', interaction, {files: [status], embeds: [embed], components: [pagination, control]});
@@ -110,7 +110,7 @@ const onQueue = async interaction => {
       .setTitle(t('discord:embed.noPlaying.title'))
       .setDescription(t('discord:embed.noPlaying.description'))
       .setTimestamp()
-      .setFooter(Pagination.getFooter(start, pages.count, songs.length));
+      .setFooter({text: Pagination.getFooter(start, pages.count, songs.length)});
     await interaction.message.removeAttachments();
     await interaction.update({embeds: [embed], components: [pagination]});
     await audit({
@@ -129,7 +129,7 @@ const onQueue = async interaction => {
     .setThumbnail(getQueue(interaction.guildId).nowPlaying.song.preview)
     .setFields(getSongsFields(songs, start, pages.count))
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
-    .setFooter(Pagination.getFooter(start, pages.count, songs.length));
+    .setFooter({text: Pagination.getFooter(start, pages.count, songs.length)});
 
   const status = await createStatus(getQueue(interaction.guildId));
   try {

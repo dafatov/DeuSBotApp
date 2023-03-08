@@ -2,7 +2,6 @@ const {MessageEmbed} = require('discord.js');
 
 module.exports = {
   'default': {
-    'content': null,
     'embeds': [
       new MessageEmbed({
         'color': 16777040,

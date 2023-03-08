@@ -23,6 +23,7 @@ describe('execute', () => {
 
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.help');
     expect(commandsMocked.notifyForbidden).toHaveBeenCalledWith('help', interaction);
+    expect(auditMocked.audit).not.toHaveBeenCalled();
   });
 
   test.each([
