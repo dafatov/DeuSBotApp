@@ -22,6 +22,7 @@ describe('execute', () => {
 
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.ping');
     expect(commandsMocked.notifyForbidden).toHaveBeenCalledWith('ping', interaction);
+    expect(auditMocked.audit).not.toHaveBeenCalled();
   });
 
   test('success', async () => {

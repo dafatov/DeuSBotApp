@@ -2,8 +2,21 @@ const client = require('./client');
 
 module.exports = {
   client,
-  deferReply: jest.fn(),
+  commandName: 'play',
+  deferReply: jest.fn().mockResolvedValue(),
   guildId: '301783183828189184',
+  member: {
+    voice: {
+      channel: {
+        id: '343847059612237824',
+        guildId: '301783183828189184',
+        guild: {
+          voiceAdapterCreator: {},
+        },
+        name: 'Осенний кринж',
+      },
+    },
+  },
   options: {
     getString: jest.fn(),
   },

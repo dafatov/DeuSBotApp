@@ -1,42 +1,30 @@
 ﻿const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
-const {VoiceConnectionStatus, joinVoiceChannel} = require('@discordjs/voice');
-const {notify, notifyError} = require('../commands.js');
+const {createConnection, getQueue} = require('../player');
+const {notify, notifyForbidden} = require('../commands');
 const {MessageEmbed} = require('discord.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
+const {VoiceConnectionStatus} = require('@discordjs/voice');
 const {audit} = require('../auditor');
 const config = require('../../configs/config.js');
-const player = require('../player.js');
+const {getCommandName} = require('../../utils/string');
 const {t} = require('i18next');
 
 module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('join')
-    .setDescription(t('discord:command.issue.description')),
-  async execute(interaction) {
-    await module.exports.join(interaction, true);
-  },
+  data: () => new SlashCommandBuilder()
+    .setName(getCommandName(__filename))
+    .setDescription(t('discord:command.join.description')),
+  execute: interaction => module.exports.join(interaction, true),
 };
 
 module.exports.join = async (interaction, isExecute) => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_JOIN)) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.forbidden.title', {command: 'join'}))
-      .setTimestamp()
-      .setDescription(t('discord:embed.forbidden.description'));
-    await notify('join', interaction, {embeds: [embed], ephemeral: true});
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.INFO,
-      category: CATEGORIES.PERMISSION,
-      message: t('inner:info.forbidden', {command: 'join'}),
-    });
+    await notifyForbidden(getCommandName(__filename), interaction);
     return;
   }
 
-  if (player.getQueue(interaction.guildId)?.connection && player.getQueue(interaction.guildId)?.connection?._state.status
-    !== VoiceConnectionStatus.Destroyed) {//TODO добавить возможность перетягивать бота с канала на канал, возможно, этой командой
+  if (getQueue(interaction.guildId)?.connection
+    && getQueue(interaction.guildId)?.connection?._state.status !== VoiceConnectionStatus.Destroyed) {
     return;
   }
 
@@ -48,7 +36,7 @@ module.exports.join = async (interaction, isExecute) => {
       .setTitle(t('discord:command.join.noVoiceChannel.title'))
       .setDescription(t('discord:command.join.noVoiceChannel.description'))
       .setTimestamp();
-    await notify('join', interaction, {embeds: [embed]});
+    await notify(getCommandName(__filename), interaction, {embeds: [embed]});
     await audit({
       guildId: interaction.guildId,
       type: TYPES.WARNING,
@@ -58,27 +46,20 @@ module.exports.join = async (interaction, isExecute) => {
     return;
   }
 
-  try {
-    player.getQueue(interaction.guildId).connection = joinVoiceChannel({
-      channelId: voiceChannel.id,
-      guildId: voiceChannel.guildId,
-      adapterCreator: voiceChannel.guild.voiceAdapterCreator,
-    });
-    player.getQueue(interaction.guildId).voiceChannel = voiceChannel;
+  createConnection(interaction, voiceChannel);
+
+  if (isExecute) {
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
       .setTitle(t('discord:command.join.completed.title'))
-      .setDescription(t('discord:command.join.completed.description', {name: voiceChannel.name}));
-    if (isExecute) {
-      await notify('join', interaction, {embeds: [embed]});
-    }
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.INFO,
-      category: CATEGORIES.COMMAND,
-      message: t('inner:audit.command.join.completed', {name: voiceChannel.name}),
-    });
-  } catch (e) {
-    await notifyError('join', e, interaction);
+      .setDescription(t('discord:command.join.completed.description', {name: voiceChannel.name}))
+      .setTimestamp();
+    await notify(getCommandName(__filename), interaction, {embeds: [embed]});
   }
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.INFO,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:audit.command.join.completed', {name: voiceChannel.name}),
+  });
 };

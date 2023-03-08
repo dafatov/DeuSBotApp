@@ -24,7 +24,6 @@ module.exports = {
 
       return {
         default: {
-          content: null,
           embeds: freebies.map(f =>
             new MessageEmbed()
               .setColor(config.colors.info)

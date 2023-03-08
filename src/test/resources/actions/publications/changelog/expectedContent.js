@@ -2,8 +2,6 @@ const {MessageEmbed} = require('discord.js');
 
 module.exports = {
   'default': {
-    'components': [],
-    'content': null,
     'embeds': [
       new MessageEmbed({
         'color': 16777040,
@@ -58,7 +56,6 @@ module.exports = {
         'title': 'DeuS обновился! Изменения в v0.0.144:',
       }),
     ],
-    'files': [],
   },
   'variables': {
     'shownChangelogs': [

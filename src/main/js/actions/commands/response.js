@@ -177,7 +177,7 @@ const show = async interaction => {
     .setTitle(t('discord:command.response.show.completed.title'))
     .setTimestamp()
     .setFields(getRulesFields(rules, start, count))
-    .setFooter(Pagination.getFooter(start, count, rules.length));
+    .setFooter({text: Pagination.getFooter(start, count, rules.length)});
 
   try {
     await notify('response', interaction, {embeds: [embed], components: [pagination]});
@@ -202,7 +202,7 @@ const onShow = async interaction => {
   embed
     .setFields(getRulesFields(rules))
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
-    .setFooter(Pagination.getFooter(start, pages.count, rules.length));
+    .setFooter({text: Pagination.getFooter(start, pages.count, rules.length)});
 
   try {
     await interaction.update({embeds: [embed], components: [pagination]});

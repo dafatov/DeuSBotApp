@@ -117,7 +117,10 @@ module.exports.radio = async (interaction, isExecute, stationKey = interaction.o
     }))
     .setThumbnail(info.preview)
     .setTimestamp()
-    .setFooter(t('discord:command.radio.completed.footer', {username: interaction.user.username}), interaction.user.displayAvatarURL());
+    .setFooter({
+      text: t('discord:command.radio.completed.footer', {username: interaction.user.username}),
+      iconURL: interaction.user.displayAvatarURL()
+    });
   if (isExecute) {
     await notify('radio', interaction, {embeds: [embed]});
   }

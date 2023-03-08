@@ -81,7 +81,10 @@ const np = async interaction => {
     .setURL(info.song.url)
     .setThumbnail(info.song.preview)
     .setTimestamp()
-    .setFooter(t('discord:command.np.completed.footer', {author: info.song.author.username}), info.song.author.displayAvatarURL());
+    .setFooter({
+      text: t('discord:command.np.completed.footer', {author: info.song.author.username}),
+      iconURL: info.song.author.displayAvatarURL()
+    });
   if (getQueue(interaction.guildId).nowPlaying.song.isLive) {
     embed.setDescription(t('discord:command.np.completed.description.live'));
     if (getQueue(interaction.guildId).nowPlaying.song.type === 'radio') {

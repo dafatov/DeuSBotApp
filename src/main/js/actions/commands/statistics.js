@@ -80,7 +80,7 @@ const session = async interaction => {
     .setTitle(t('discord:command.statistics.session.completed.title'))
     .setDescription(getSessionsDescription(sessions, start, count))
     .setTimestamp()
-    .setFooter(Pagination.getFooter(start, count, sessions.length));
+    .setFooter({text: Pagination.getFooter(start, count, sessions.length)});
 
   try {
     await notify('statistics', interaction, {embeds: [embed], components: [pagination]});
@@ -105,7 +105,7 @@ const onSession = async interaction => {
   embed
     .setDescription(getSessionsDescription(sessions, start, pages.count))
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
-    .setFooter(Pagination.getFooter(start, pages.count, sessions.length));
+    .setFooter({text: Pagination.getFooter(start, pages.count, sessions.length)});
 
   try {
     await interaction.update({embeds: [embed], components: [pagination]});
@@ -138,7 +138,7 @@ const messages = async interaction => {
     .setTitle(t('discord:command.statistics.messages.completed.title'))
     .setDescription(getMessagesDescription(messages, start, count))
     .setTimestamp()
-    .setFooter(Pagination.getFooter(start, count, messages.length));
+    .setFooter({text: Pagination.getFooter(start, count, messages.length)});
 
   try {
     await notify('statistics', interaction, {embeds: [embed], components: [pagination]});
@@ -163,7 +163,7 @@ const onMessages = async interaction => {
   embed
     .setDescription(getMessagesDescription(messages, start, pages.count))
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
-    .setFooter(Pagination.getFooter(start, pages.count, messages.length));
+    .setFooter({text: Pagination.getFooter(start, pages.count, messages.length)});
 
   try {
     await interaction.update({embeds: [embed], components: [pagination]});
@@ -196,7 +196,7 @@ const voices = async interaction => {
     .setTitle(t('discord:command.statistics.voices.completed.title'))
     .setDescription(getVoicesDescription(voices, start, count))
     .setTimestamp()
-    .setFooter(Pagination.getFooter(start, count, voices.length));
+    .setFooter({text: Pagination.getFooter(start, count, voices.length)});
 
   try {
     await notify('statistics', interaction, {embeds: [embed], components: [pagination]});
@@ -221,7 +221,7 @@ const onVoices = async interaction => {
   embed
     .setDescription(getVoicesDescription(voices, start, pages.count))
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
-    .setFooter(Pagination.getFooter(start, pages.count, voices.length));
+    .setFooter({text: Pagination.getFooter(start, pages.count, voices.length)});
 
   try {
     await interaction.update({embeds: [embed], components: [pagination]});

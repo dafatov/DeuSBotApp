@@ -1,4 +1,4 @@
-const {AudioPlayerStatus, NoSubscriberBehavior, createAudioPlayer, createAudioResource} = require('@discordjs/voice');
+const {AudioPlayerStatus, NoSubscriberBehavior, createAudioPlayer, createAudioResource, joinVoiceChannel} = require('@discordjs/voice');
 const {CATEGORIES, TYPES} = require('../db/repositories/audit');
 const {timeFormatMilliseconds, timeFormatSeconds} = require('../utils/dateTime.js');
 const {MessageEmbed} = require('discord.js');
@@ -98,6 +98,15 @@ module.exports.playPlayer = async (interaction, isExecute) => {
     this.getQueue(interaction.guildId).nowPlaying.song = this.getQueue(interaction.guildId).songs[0];
     await play(interaction.guildId, false);
   }
+};
+
+module.exports.createConnection = (interaction, voiceChannel) => {
+  this.getQueue(interaction.guildId).connection = joinVoiceChannel({
+    channelId: voiceChannel.id,
+    guildId: voiceChannel.guildId,
+    adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+  });
+  this.getQueue(interaction.guildId).voiceChannel = voiceChannel;
 };
 
 const createPlayer = async (interaction, guildId) => {

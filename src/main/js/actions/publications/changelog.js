@@ -5,7 +5,7 @@ const config = require('../../configs/config');
 const {t} = require('i18next');
 
 module.exports = {
-  async content() {
+  content: async () => {
     const changelogs = (await getUnshown())
       .sort((a, b) => isVersionUpdated(a.version, b.version)
         ? -1
@@ -17,7 +17,6 @@ module.exports = {
 
     return {
       default: {
-        content: null,
         embeds: changelogs.map(changelog =>
           new MessageEmbed()
             .setColor(config.colors.info)
@@ -25,23 +24,19 @@ module.exports = {
             .setThumbnail('https://i.ibb.co/dK5VJcd/ancient.png')
             .setDescription(createDescription(changelog.message))
             .setTimestamp()
-            .setFooter(
-              `Copyright (c) 2021-${new Date().getFullYear()} dafatov`,
-              'https://e7.pngegg.com/pngimages/330/725/png-clipart-computer-icons-public-key-certificate-organization-test-certificate-miscellaneous-company.png',
-            ),
+            .setFooter({
+              text: `Copyright (c) 2021-${new Date().getFullYear()} dafatov`,
+              iconURL: 'https://e7.pngegg.com/pngimages/330/725/png-clipart-computer-icons-public-key-certificate-organization-test-certificate-miscellaneous-company.png',
+            }),
         ),
-        files: [],
-        components: [],
       },
       variables: {
         shownChangelogs: changelogs,
       },
     };
   },
-  async condition() {
-    return (await getUnshown()).length > 0;
-  },
-  async onPublished(messages, variables) {
+  condition: () => getUnshown().then(unshowns => unshowns.length > 0),
+  onPublished: async (messages, variables) => {
     if (!messages || !variables?.shownChangelogs) {
       return;
     }
