@@ -72,7 +72,7 @@ module.exports.play = async (interaction, isExecute, audio = interaction.options
     await ytpl.getPlaylistID(audio).then(async a => {
       await ytpl(a, {limit: Infinity, ...options}).then(async p => {
         added = await playPlaylist(interaction, p, isExecute);
-        await playPlayer(interaction, isExecute);
+        await playPlayer(interaction);
       }).catch(async e => {
         if (isExecute) {
           await notifyError('play', e, interaction);
@@ -83,7 +83,7 @@ module.exports.play = async (interaction, isExecute, audio = interaction.options
       if (ytdl.validateURL(audio)) {
         await ytdl.getBasicInfo(audio, options).then(async i => {
           added = await notifySong(interaction, addQueue(interaction, i), isExecute);
-          await playPlayer(interaction, isExecute);
+          await playPlayer(interaction);
         }).catch(err => {
           throw err;
         });
@@ -101,7 +101,7 @@ module.exports.play = async (interaction, isExecute, audio = interaction.options
           while (w < 10) {
             await ytdl.getBasicInfo(r.items[w].url, options).then(async i => {
               added = await notifySong(interaction, addQueue(interaction, i), isExecute);
-              await playPlayer(interaction, isExecute);
+              await playPlayer(interaction);
               w = 11;
             }).catch(() => {
               w++;
@@ -231,7 +231,7 @@ module.exports.searchSongs = async (interaction, isExecute, audios, login) => {
         });
       await interaction.editReply({embeds: [embed]});
     }
-    await playPlayer(interaction, isExecute);
+    await playPlayer(interaction);
   });
 };
 

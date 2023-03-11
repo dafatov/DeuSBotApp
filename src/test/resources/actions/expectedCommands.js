@@ -179,11 +179,6 @@ module.exports = [
     ],
   },
   {
-    'description': 'Пригласить бота к текущему голосовому каналу',
-    'name': 'join',
-    'options': [],
-  },
-  {
     'description': 'Зациклить/отциклить проигрывание композиции',
     'name': 'loop',
     'options': [],

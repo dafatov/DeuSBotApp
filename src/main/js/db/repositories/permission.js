@@ -10,7 +10,6 @@ module.exports.SCOPES = Object.freeze({
   COMMAND_CLEAR: 'command.clear',
   COMMAND_HELP: 'command.help',
   COMMAND_ISSUE: 'command.issue',
-  COMMAND_JOIN: 'command.join',
   COMMAND_LOOP: 'command.loop',
   COMMAND_MOVE: 'command.move',
   COMMAND_NP: 'command.np',

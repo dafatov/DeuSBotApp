@@ -1,10 +1,9 @@
-const {AudioPlayerStatus, NoSubscriberBehavior, createAudioPlayer, createAudioResource, joinVoiceChannel} = require('@discordjs/voice');
+const {AudioPlayerStatus, NoSubscriberBehavior, VoiceConnectionStatus, createAudioPlayer, createAudioResource, joinVoiceChannel} = require('@discordjs/voice');
 const {CATEGORIES, TYPES} = require('../db/repositories/audit');
 const {timeFormatMilliseconds, timeFormatSeconds} = require('../utils/dateTime.js');
 const {MessageEmbed} = require('discord.js');
 const {audit} = require('./auditor');
 const config = require('../configs/config.js');
-const {join} = require('./commands/join.js');
 const {notify} = require('./commands');
 const {stringify} = require('../utils/string');
 const {t} = require('i18next');
@@ -83,8 +82,8 @@ module.exports.hasLive = queue => {
   return (queue.nowPlaying?.song?.isLive ?? false) || (queue.songs?.filter(s => s.isLive).length ?? 0) > 0;
 };
 
-module.exports.playPlayer = async (interaction, isExecute) => {
-  await join(interaction, isExecute);
+module.exports.playPlayer = async interaction => {
+  this.createConnection(interaction);
 
   await createPlayer(interaction, interaction.guildId);
 
@@ -100,7 +99,14 @@ module.exports.playPlayer = async (interaction, isExecute) => {
   }
 };
 
-module.exports.createConnection = (interaction, voiceChannel) => {
+module.exports.createConnection = interaction => {
+  if (this.getQueue(interaction.guildId)?.connection
+    && this.getQueue(interaction.guildId)?.connection?._state.status !== VoiceConnectionStatus.Destroyed) {
+    return;
+  }
+
+  const voiceChannel = interaction.member.voice.channel;
+
   this.getQueue(interaction.guildId).connection = joinVoiceChannel({
     channelId: voiceChannel.id,
     guildId: voiceChannel.guildId,
