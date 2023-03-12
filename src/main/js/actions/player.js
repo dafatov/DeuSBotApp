@@ -64,6 +64,11 @@ module.exports.skip = async guildId => {
   return skipped;
 };
 
+module.exports.loop = guildId => {
+  this.getQueue(guildId).nowPlaying.isLoop = !this.getQueue(guildId).nowPlaying.isLoop;
+  return this.getQueue(guildId).nowPlaying.isLoop;
+};
+
 module.exports.clearNowPlaying = guildId => {
   this.getQueue(guildId).nowPlaying = {};
 };

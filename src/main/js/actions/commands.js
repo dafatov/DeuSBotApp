@@ -177,6 +177,23 @@ module.exports.notifyUnequalChannels = async (commandName, interaction, isExecut
   });
 };
 
+module.exports.notifyIsLive = async (commandName, interaction, isExecute) => {
+  if (isExecute) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle(t('discord:embed.isLive.title'))
+      .setDescription(t('discord:embed.isLive.description'))
+      .setTimestamp();
+    await this.notify(commandName, interaction, {embeds: [embed]});
+  }
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.WARNING,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:info.isLive'),
+  });
+};
+
 module.exports.notifyError = async (commandName, e, interaction) => {
   const embed = new MessageEmbed()
     .setColor(config.colors.error)
