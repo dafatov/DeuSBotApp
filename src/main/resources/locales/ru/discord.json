@@ -266,6 +266,14 @@
     },
     "shikimori": {
       "description": "Команды взаимодействия с shikimori",
+      "export": {
+        "description": "Экспортирует список аниме в формате приемлемом для anilist.co"
+      },
+      "option": {
+        "nickname": {
+          "description": "Имя пользователя в рамках системы DeuS"
+        }
+      },
       "play": {
         "completed": {
           "description": "Выбраны аниме, песни и формируется плейлист. **Слышь, подожди!**",
@@ -279,9 +287,6 @@
         "option": {
           "count": {
             "description": "Количество композиций"
-          },
-          "nickname": {
-            "description": "Имя пользователя в рамках системы DeuS"
           }
         },
         "unboundCount": {

@@ -73,6 +73,9 @@
         "showed": "[response]: Реакция успешно выведена"
       },
       "shikimori": {
+        "export": {
+          "completed": "[shikimori]: Список аниме успешно экспортирован"
+        },
         "play": {
           "creating": {
             "noRandom": "[shikimori]: Лимит на количество запросов random.org исчерпан",

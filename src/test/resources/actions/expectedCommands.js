@@ -432,7 +432,7 @@ module.exports = [
         'type': 1,
       },
       {
-        'description': 'esf',
+        'description': 'Экспортирует список аниме в формате приемлемом для anilist.co',
         'name': 'export',
         'options': [
           {

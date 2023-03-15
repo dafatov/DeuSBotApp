@@ -28,7 +28,7 @@ module.exports = {
         .setDescription(t('discord:command.shikimori.play.description'))
         .addStringOption(s => s
           .setName('nickname')
-          .setDescription(t('discord:command.shikimori.play.option.nickname.description'))
+          .setDescription(t('discord:command.shikimori.option.nickname.description'))
           .setRequired(true)
           .setChoices(...nicknameChoices))
         .addIntegerOption(i => i
@@ -55,10 +55,10 @@ module.exports = {
           .setRequired(true)))
       .addSubcommand(s => s
         .setName('export')
-        .setDescription('esf')
+        .setDescription(t('discord:command.shikimori.export.description'))
         .addStringOption(s => s
           .setName('nickname')
-          .setDescription(t('discord:command.shikimori.play.option.nickname.description'))
+          .setDescription(t('discord:command.shikimori.option.nickname.description'))
           .setRequired(true)
           .setChoices(...nicknameChoices)))),
   execute: interaction => shikimori(interaction),
@@ -270,6 +270,6 @@ const oExport = async interaction => {
     guildId: interaction.guildId,
     type: TYPES.INFO,
     category: CATEGORIES.COMMAND,
-    message: t('inner:audit.command.shikimori.remove.completed'),
+    message: t('inner:audit.command.shikimori.export.completed'),
   });
 };
