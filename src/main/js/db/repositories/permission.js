@@ -28,6 +28,7 @@ module.exports.SCOPES = Object.freeze({
   COMMAND_SHIKIMORI_PLAY: 'command.shikimori.play',
   COMMAND_SHIKIMORI_SET: 'command.shikimori.set',
   COMMAND_SHIKIMORI_REMOVE: 'command.shikimori.remove',
+  COMMAND_SHIKIMORI_EXPORT: 'command.shikimori.export',
   COMMAND_SHUFFLE: 'command.shuffle',
   COMMAND_SKIP: 'command.skip',
   COMMAND_STATISTICS_SESSION: 'command.statistics.session',

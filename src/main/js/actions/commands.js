@@ -4,27 +4,20 @@ const {REST} = require('@discordjs/rest');
 const {Routes} = require('discord-api-types/v9');
 const {audit} = require('./auditor');
 const config = require('../configs/config.js');
-const db = require('../db/repositories/users.js');
 const fs = require('fs');
 const {stringify} = require('../utils/string');
 const {t} = require('i18next');
 
 module.exports.init = async client => {
   client.commands = new Collection();
-  fs.readdirSync('./src/main/js/actions/commands')
+  await Promise.all(fs.readdirSync('./src/main/js/actions/commands')
     .filter(f => !f.startsWith('_'))
     .filter(f => f.endsWith('.js'))
-    .forEach(f => {
+    .map(async f => {
       const command = require(`./commands/${f}`);
-      /* TODO: Временное решение пока все команды не мигрируют на функцию
-       * Целевое решение:
-       * command.data = await command.data();
-       */
-      command.data = typeof command.data === 'function'
-        ? command.data()
-        : command.data;
-      client.commands.set(command.data.name, command);
-    });
+      const data = await this.getCommandData(command);
+      client.commands.set(data.name, command);
+    }));
 
   if (client.commands.size <= 0) {
     return;
@@ -36,12 +29,12 @@ module.exports.init = async client => {
 module.exports.updateCommands = async client => {
   const rest = new REST({version: '9'}).setToken(process.env.DISCORD_TOKEN);
 
-  await setShikimoriChoices(client.commands);
   await client.guilds.fetch()
-    .then(guilds => guilds.map(guild => rest.put(
+    .then(guilds => Promise.all(guilds.map(async guild => rest.put(
       Routes.applicationGuildCommands(client.user.id, guild.id), {
-        body: client.commands.map(value => value.data.toJSON()),
-      }))).then(response => Promise.all(response) ?? [])
+        body: await Promise.all(client.commands.map(command => this.getCommandData(command)
+          .then(commandData => commandData.toJSON()))),
+      }))))
     .then(guildsCommands => guildsCommands.map(guildCommands =>
       `${client.guilds.resolve(guildCommands[0].guild_id).name}(${guildCommands.length})`))
     .then(guilds => audit({
@@ -78,7 +71,7 @@ module.exports.execute = async interaction => {
       guildId: interaction.guildId,
       type: TYPES.INFO,
       category: CATEGORIES.COMMAND,
-      message: t('inner:audit.command.executed', {name: command.data.name}),
+      message: t('inner:audit.command.executed', {name: commandName}),
     });
   } catch (e) {
     await audit({
@@ -209,9 +202,8 @@ module.exports.notifyError = async (commandName, e, interaction) => {
   });
 };
 
-const setShikimoriChoices = async commands => {
-  const all = await db.getAll();
-  commands.get('shikimori').data.options
-    .filter(i => i.name === 'play')[0].options
-    .filter(i => i.name === 'nickname')[0].choices = all.map(({login, nickname}) => ({name: nickname, value: login}));
-};
+/* TODO: Временное решение пока все команды не мигрируют на функцию
+ */
+module.exports.getCommandData = command => Promise.resolve(typeof command.data === 'function'
+  ? command.data()
+  : command.data);

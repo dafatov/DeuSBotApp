@@ -8,7 +8,7 @@ const {pause} = require('../../actions/commands/pause');
 const {play} = require('../../actions/commands/play');
 const {radio} = require('../../actions/commands/radio');
 const {remove} = require('../../actions/commands/remove');
-const {shikimoriPlay} = require('../../actions/commands/shikimori');
+const {play: shikimoriPlay} = require('../../actions/commands/shikimori');
 const {shuffle} = require('../../actions/commands/shuffle');
 const {skip} = require('../../actions/commands/skip');
 
@@ -108,7 +108,7 @@ const control = ({io, socket, client}) => {
   socket.on('control:shikimori', (token, login, count, callback) =>
     authForVoiceMember(token, client)
       .then(member => generateInteraction(member))
-      .then(interaction => shikimoriPlay(interaction, login, count))
+      .then(interaction => shikimoriPlay(interaction, false, login, count))
       .then(result => callback(result))
       .catch(result => callback(result))
       .finally(() => authForSongs(token, client)

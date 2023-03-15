@@ -333,6 +333,40 @@ module.exports = [
     ],
   },
   {
+    'description': 'Перемешать очередь',
+    'name': 'shuffle',
+    'options': [],
+  },
+  {
+    'description': 'Пропустить текущую композицию',
+    'name': 'skip',
+    'options': [],
+  },
+  {
+    'description': 'Отображение статистики пользователей',
+    'name': 'statistics',
+    'options': [
+      {
+        'description': 'Отображение последней активной сессии в голосовом канале на сервере',
+        'name': 'session',
+        'options': [],
+        'type': 1,
+      },
+      {
+        'description': 'Отображение количества сообщений, написанных каждым пользователем',
+        'name': 'messages',
+        'options': [],
+        'type': 1,
+      },
+      {
+        'description': 'Отображение времени проведенного в голосовых каналах',
+        'name': 'voices',
+        'options': [],
+        'type': 1,
+      },
+    ],
+  },
+  {
     'description': 'Команды взаимодействия с shikimori',
     'name': 'shikimori',
     'options': [
@@ -341,6 +375,16 @@ module.exports = [
         'name': 'play',
         'options': [
           {
+            'choices': [
+              {
+                'name': 'nickname1',
+                'value': 'login1',
+              },
+              {
+                'name': 'nickname2',
+                'value': 'login2',
+              },
+            ],
             'description': 'Имя пользователя в рамках системы DeuS',
             'name': 'nickname',
             'required': true,
@@ -387,38 +431,27 @@ module.exports = [
         ],
         'type': 1,
       },
-    ],
-  },
-  {
-    'description': 'Перемешать очередь',
-    'name': 'shuffle',
-    'options': [],
-  },
-  {
-    'description': 'Пропустить текущую композицию',
-    'name': 'skip',
-    'options': [],
-  },
-  {
-    'description': 'Отображение статистики пользователей',
-    'name': 'statistics',
-    'options': [
       {
-        'description': 'Отображение последней активной сессии в голосовом канале на сервере',
-        'name': 'session',
-        'options': [],
-        'type': 1,
-      },
-      {
-        'description': 'Отображение количества сообщений, написанных каждым пользователем',
-        'name': 'messages',
-        'options': [],
-        'type': 1,
-      },
-      {
-        'description': 'Отображение времени проведенного в голосовых каналах',
-        'name': 'voices',
-        'options': [],
+        'description': 'esf',
+        'name': 'export',
+        'options': [
+          {
+            'choices': [
+              {
+                'name': 'nickname1',
+                'value': 'login1',
+              },
+              {
+                'name': 'nickname2',
+                'value': 'login2',
+              },
+            ],
+            'description': 'Имя пользователя в рамках системы DeuS',
+            'name': 'nickname',
+            'required': true,
+            'type': 3,
+          },
+        ],
         'type': 1,
       },
     ],

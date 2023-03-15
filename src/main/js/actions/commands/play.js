@@ -17,7 +17,7 @@ const ytpl = require('ytpl');
 const ytsr = require('ytsr');
 
 module.exports = {
-  data: new SlashCommandBuilder()
+  data: () => new SlashCommandBuilder()
     .setName('play')
     .setDescription(t('discord:command.play.description'))
     .addStringOption(o => o
