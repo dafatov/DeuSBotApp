@@ -1,4 +1,7 @@
+const {Collection} = require('discord.js');
+
 module.exports = {
+  commands: new Collection(),
   guilds: {
     fetch: jest.fn(() => Promise.resolve([
       {

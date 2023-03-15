@@ -125,6 +125,7 @@
     "unbound": "Выход за пределы очереди",
     "unboundCount": "Некорректное количество выбранных композиций",
     "unequalChannels": "Не совпадают каналы",
-    "wrongShikimoriProfile": "Найти профиль не удалось"
+    "wrongShikimoriProfile": "Найти профиль не удалось",
+    "noRandom": "Рандом random.org закончился"
   }
 }

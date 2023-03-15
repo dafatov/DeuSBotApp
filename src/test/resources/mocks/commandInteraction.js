@@ -18,7 +18,9 @@ module.exports = {
     },
   },
   options: {
+    getInteger: jest.fn(),
     getString: jest.fn(),
+    getSubcommand: jest.fn(),
   },
   user: {
     id: '348774809003491329',

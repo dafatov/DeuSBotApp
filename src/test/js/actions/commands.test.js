@@ -4,8 +4,10 @@ const interaction = require('../../resources/mocks/commandInteraction');
 const locale = require('../configs/locale');
 
 const auditorModuleName = '../../../main/js/actions/auditor';
+const usersDbModuleName = '../../../main/js/db/repositories/users';
 const fsMocked = jest.mock('fs').requireMock('fs');
 const auditMocked = jest.mock(auditorModuleName).requireMock(auditorModuleName);
+const usersDbMocked = jest.mock(usersDbModuleName).requireMock(usersDbModuleName);
 
 // eslint-disable-next-line sort-imports-requires/sort-requires
 const commands = require('../../../main/js/actions/commands');
@@ -17,10 +19,15 @@ describe('init', () => {
     jest.spyOn(commands, 'updateCommands').mockReturnValueOnce();
     fsMocked.readdirSync.mockImplementationOnce(args =>
       jest.requireActual('fs').readdirSync(args));
+    usersDbMocked.getAll.mockResolvedValue([
+      {login: 'login1', nickname: 'nickname1'},
+      {login: 'login2', nickname: 'nickname2'},
+    ]);
 
     await commands.init(client);
 
-    expect(client?.commands.map(command => command.data.toJSON()))
+    expect(await Promise.all(client.commands.map(command => commands.getCommandData(command)
+      .then(commandData => commandData.toJSON()))))
       .toEqual(expectedCommands);
     expect(commands.updateCommands).toHaveBeenCalledWith(client);
   });
@@ -36,7 +43,7 @@ describe('init', () => {
 
     await commands.init(client);
 
-    expect(client?.commands.map(command => command.data.toJSON()))
+    expect(client.commands.map(command => command.data.toJSON()))
       .toEqual(expected);
     expect(commands.updateCommands).not.toHaveBeenCalled();
   });
