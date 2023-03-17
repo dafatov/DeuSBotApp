@@ -1,16 +1,17 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
-const {notify, notifyError} = require('../commands');
+const {notify, notifyForbidden} = require('../commands');
 const {MessageEmbed} = require('discord.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
-const db = require('../../db/repositories/publicist.js');
+const db = require('../../db/repositories/publicist');
+const {getCommandName} = require('../../utils/string');
 const {t} = require('i18next');
 
 module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('publicist')
+  data: () => new SlashCommandBuilder()
+    .setName(getCommandName(__filename))
     .setDescription(t('discord:command.publicist.description'))
     .addSubcommand(s => s
       .setName('set')
@@ -25,127 +26,85 @@ module.exports = {
     .addSubcommand(s => s
       .setName('show')
       .setDescription(t('discord:command.publicist.show.description'))),
-  async execute(interaction) {
-    await publicist(interaction);
-  },
+  execute: interaction => publicist(interaction),
 };
 
-const publicist = async interaction => {
-  if (interaction.options.getSubcommand() === 'set') {
-    await set(interaction);
-  } else if (interaction.options.getSubcommand() === 'remove') {
-    await remove(interaction);
-  } else if (interaction.options.getSubcommand() === 'show') {
-    await show(interaction);
+const publicist = interaction => {
+  switch (interaction.options.getSubcommand()) {
+    case 'set':
+      return set(interaction);
+    case 'remove':
+      return remove(interaction);
+    case 'show':
+      return show(interaction);
   }
 };
 
 const set = async interaction => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PUBLICIST_SET)) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.forbidden.title', {command: 'publicist set'}))
-      .setTimestamp()
-      .setDescription(t('discord:embed.forbidden.description'));
-    await notify('publicist', interaction, {embeds: [embed], ephemeral: true});
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.WARNING,
-      category: CATEGORIES.PERMISSION,
-      message: t('inner:info.forbidden', {command: 'publicist.set'}),
-    });
+    await notifyForbidden(getCommandName(__filename), interaction);
     return;
   }
 
   const channel = interaction.options.getChannel('channel');
 
-  try {
-    await db.set(interaction.guildId, channel.id);
-    const embed = new MessageEmbed()
-      .setColor(config.colors.info)
-      .setTitle(t('discord:command.publicist.set.completed.title'))
-      .setDescription(t('discord:command.publicist.set.completed.description', {channel: channel.name}))
-      .setTimestamp();
-    await notify('publicist', interaction, {embeds: [embed]});
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.INFO,
-      category: CATEGORIES.COMMAND,
-      message: t('inner:audit.command.publicist.set'),
-    });
-  } catch (e) {
-    await notifyError('publicist', e, interaction);
-  }
+  await db.set(interaction.guildId, channel.id);
+
+  const embed = new MessageEmbed()
+    .setColor(config.colors.info)
+    .setTitle(t('discord:command.publicist.set.completed.title'))
+    .setDescription(t('discord:command.publicist.set.completed.description', {channel: channel.name}))
+    .setTimestamp();
+  await notify(interaction, {embeds: [embed]});
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.INFO,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:audit.command.publicist.set'),
+  });
 };
 
 const remove = async interaction => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PUBLICIST_REMOVE)) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.forbidden.title', {command: 'publicist remove'}))
-      .setTimestamp()
-      .setDescription(t('discord:embed.forbidden.description'));
-    await notify('publicist', interaction, {embeds: [embed], ephemeral: true});
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.WARNING,
-      category: CATEGORIES.PERMISSION,
-      message: t('inner:info.forbidden', {command: 'publicist.remove'}),
-    });
+    await notifyForbidden(getCommandName(__filename), interaction);
     return;
   }
 
-  try {
-    await db.remove(interaction.guildId);
-    const embed = new MessageEmbed()
-      .setColor(config.colors.info)
-      .setTitle(t('discord:command.publicist.remove.completed.title'))
-      .setDescription(t('discord:command.publicist.remove.completed.description'))
-      .setTimestamp();
-    await notify('publicist', interaction, {embeds: [embed]});
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.INFO,
-      category: CATEGORIES.COMMAND,
-      message: t('inner:audit.command.publicist.remove'),
-    });
-  } catch (e) {
-    await notifyError('publicist', e, interaction);
-  }
+  await db.remove(interaction.guildId);
+
+  const embed = new MessageEmbed()
+    .setColor(config.colors.info)
+    .setTitle(t('discord:command.publicist.remove.completed.title'))
+    .setDescription(t('discord:command.publicist.remove.completed.description'))
+    .setTimestamp();
+  await notify(interaction, {embeds: [embed]});
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.INFO,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:audit.command.publicist.remove'),
+  });
 };
 
 const show = async interaction => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PUBLICIST_SHOW)) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.forbidden.title', {command: 'publicist show'}))
-      .setTimestamp()
-      .setDescription(t('discord:embed.forbidden.description'));
-    await notify('publicist', interaction, {embeds: [embed], ephemeral: true});
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.WARNING,
-      category: CATEGORIES.PERMISSION,
-      message: t('inner:info.forbidden', {command: 'publicist.show'}),
-    });
+    await notifyForbidden(getCommandName(__filename), interaction);
     return;
   }
 
-  try {
-    const channelId = (await db.getAll()).find(p => p.guildId === interaction.guildId)?.channelId;
-    const embed = new MessageEmbed()
-      .setColor(config.colors.info)
-      .setTitle(t('discord:command.publicist.show.completed.title', {name: interaction.guild.name}))
-      .setDescription(t('discord:command.publicist.show.completed.description', {name: interaction.guild.channels.resolve(channelId)?.name}))
-      .setTimestamp();
-    await notify('publicist', interaction, {embeds: [embed]});
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.INFO,
-      category: CATEGORIES.COMMAND,
-      message: t('inner:audit.command.publicist.show'),
-    });
-  } catch (e) {
-    await notifyError('publicist', e, interaction);
-  }
+  const channelId = await db.getAll()
+    .then(pairs => pairs.find(pair => pair.guildId === interaction.guildId)?.channelId);
+
+  const embed = new MessageEmbed()
+    .setColor(config.colors.info)
+    .setTitle(t('discord:command.publicist.show.completed.title', {name: interaction.guild.name}))
+    .setDescription(t('discord:command.publicist.show.completed.description', {name: interaction.guild.channels.resolve(channelId)?.name}))
+    .setTimestamp();
+  await notify(interaction, {embeds: [embed]});
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.INFO,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:audit.command.publicist.show'),
+  });
 };

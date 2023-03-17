@@ -333,40 +333,6 @@ module.exports = [
     ],
   },
   {
-    'description': 'Перемешать очередь',
-    'name': 'shuffle',
-    'options': [],
-  },
-  {
-    'description': 'Пропустить текущую композицию',
-    'name': 'skip',
-    'options': [],
-  },
-  {
-    'description': 'Отображение статистики пользователей',
-    'name': 'statistics',
-    'options': [
-      {
-        'description': 'Отображение последней активной сессии в голосовом канале на сервере',
-        'name': 'session',
-        'options': [],
-        'type': 1,
-      },
-      {
-        'description': 'Отображение количества сообщений, написанных каждым пользователем',
-        'name': 'messages',
-        'options': [],
-        'type': 1,
-      },
-      {
-        'description': 'Отображение времени проведенного в голосовых каналах',
-        'name': 'voices',
-        'options': [],
-        'type': 1,
-      },
-    ],
-  },
-  {
     'description': 'Команды взаимодействия с shikimori',
     'name': 'shikimori',
     'options': [
@@ -452,6 +418,40 @@ module.exports = [
             'type': 3,
           },
         ],
+        'type': 1,
+      },
+    ],
+  },
+  {
+    'description': 'Перемешать очередь',
+    'name': 'shuffle',
+    'options': [],
+  },
+  {
+    'description': 'Пропустить текущую композицию',
+    'name': 'skip',
+    'options': [],
+  },
+  {
+    'description': 'Отображение статистики пользователей',
+    'name': 'statistics',
+    'options': [
+      {
+        'description': 'Отображение последней активной сессии в голосовом канале на сервере',
+        'name': 'session',
+        'options': [],
+        'type': 1,
+      },
+      {
+        'description': 'Отображение количества сообщений, написанных каждым пользователем',
+        'name': 'messages',
+        'options': [],
+        'type': 1,
+      },
+      {
+        'description': 'Отображение времени проведенного в голосовых каналах',
+        'name': 'voices',
+        'options': [],
         'type': 1,
       },
     ],

@@ -2,7 +2,7 @@ const {MessageEmbed} = require('discord.js');
 const interaction = require('../../../mocks/commandInteraction');
 
 module.exports = [
-  'shikimori', interaction, {
+  interaction, {
     embeds: [
       new MessageEmbed({
         color: 16746496,

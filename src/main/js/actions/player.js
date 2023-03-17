@@ -1,24 +1,23 @@
 const {AudioPlayerStatus, NoSubscriberBehavior, VoiceConnectionStatus, createAudioPlayer, createAudioResource, joinVoiceChannel} = require('@discordjs/voice');
 const {CATEGORIES, TYPES} = require('../db/repositories/audit');
-const {timeFormatMilliseconds, timeFormatSeconds} = require('../utils/dateTime.js');
-const {MessageEmbed} = require('discord.js');
+const {timeFormatMilliseconds, timeFormatSeconds} = require('../utils/dateTime');
+const {arrayMoveMutable} = require('../utils/array');
 const {audit} = require('./auditor');
-const config = require('../configs/config.js');
-const {notify} = require('./commands');
+const shuffle = require('lodash/shuffle');
 const {stringify} = require('../utils/string');
 const {t} = require('i18next');
 const ytdl = require('ytdl-core');
 
 let client;
 
-module.exports.options = {
+module.exports.options = () => ({
   requestOptions: {
     headers: {
       Cookie: process.env.YOUTUBE_COOKIE,
       'x-youtube-identity-token': process.env.YOUTUBE_ID_TOKEN,
     },
   },
-};
+});
 
 module.exports.init = async c => {
   client = c;
@@ -42,6 +41,28 @@ module.exports.getQueue = guildId => {
   return guildId
     ? client?.queue.get(guildId)
     : null;
+};
+
+module.exports.addQueue = (guildId, added) => {
+  this.getQueue(guildId).songs.push(...added.songs);
+  this.getQueue(guildId).remained = (this.getQueue(guildId).remained ?? 0) + added.info.duration;
+};
+
+module.exports.removeQueue = (guildId, index) => {
+  const target = this.getQueue(guildId).songs[index];
+
+  this.getQueue(guildId).songs.splice(index, 1);
+  this.getQueue(guildId).remained -= target.length;
+
+  return target;
+};
+
+module.exports.moveQueue = (guildId, targetIndex, positionIndex) => {
+  const target = this.getQueue(guildId).songs[targetIndex];
+
+  arrayMoveMutable(this.getQueue(guildId).songs, targetIndex, positionIndex);
+
+  return target;
 };
 
 module.exports.skip = async guildId => {
@@ -69,6 +90,19 @@ module.exports.loop = guildId => {
   return this.getQueue(guildId).nowPlaying.isLoop;
 };
 
+module.exports.pause = guildId => {
+  if (this.getQueue(guildId).nowPlaying.isPause) {
+    this.getQueue(guildId).player.unpause();
+  } else {
+    this.getQueue(guildId).player.pause();
+  }
+  this.getQueue(guildId).nowPlaying.isPause = !this.getQueue(guildId).nowPlaying.isPause;
+
+  return this.getQueue(guildId).nowPlaying.isPause;
+};
+
+module.exports.shuffle = guildId => shuffle(this.getQueue(guildId).songs);
+
 module.exports.clearNowPlaying = guildId => {
   this.getQueue(guildId).nowPlaying = {};
 };
@@ -86,6 +120,22 @@ module.exports.clearConnection = guildId => {
 module.exports.hasLive = queue => {
   return (queue.nowPlaying?.song?.isLive ?? false) || (queue.songs?.filter(s => s.isLive).length ?? 0) > 0;
 };
+
+module.exports.isEmptyQueue = guildId => this.isLessQueue(guildId, 0);
+
+module.exports.isPlaying = guildId => !!this.getQueue(guildId).nowPlaying?.song;
+
+module.exports.isPlayingLive = guildId => !!this.getQueue(guildId).nowPlaying?.song.isLive;
+
+module.exports.isSameChannel = interaction => !!interaction.member.voice.channel?.id
+  && this.getQueue(interaction.guildId).connection?.joinConfig.channelId === interaction.member.voice.channel?.id;
+
+module.exports.isValidIndex = (guildId, index) => !isNaN(index)
+  && index >= 0 && index < this.getQueue(guildId).songs.length;
+
+module.exports.isConnected = guildId => !!this.getQueue(guildId).connection;
+
+module.exports.isLessQueue = (guildId, count) => (this.getQueue(guildId).songs?.length ?? 0) < count;
 
 module.exports.playPlayer = async interaction => {
   this.createConnection(interaction);
@@ -147,25 +197,6 @@ const createPlayer = async (interaction, guildId) => {
                 category: CATEGORIES.PLAYER,
                 message: t('inner:audit.player.play', {song: this.getQueue(guildId).nowPlaying.song.title}),
               });
-              if (e.message === 'No such format found: highestaudio') {
-                const embed = new MessageEmbed()
-                  .setColor(config.colors.warning)
-                  .setTitle(t('discord:embed.player.wrongFormat.title'))
-                  .setDescription(t('discord:embed.player.wrongFormat.description', {title: this.getQueue(guildId).nowPlaying.song.title}))
-                  .setTimestamp();
-                await notify('player', interaction, {embeds: [embed]});
-                await module.exports.skip(guildId);
-                return;
-              } else if (e.message === 'Cookie header used in request, but unable to find YouTube identity token') {
-                const embed = new MessageEmbed()
-                  .setColor(config.colors.error)
-                  .setTitle(t('discord:embed.player.wrongCookie.title'))
-                  .setDescription(t('discord:embed.player.wrongCookie.description'))
-                  .setTimestamp();
-                await notify('player', interaction, {embeds: [embed]});
-                await module.exports.skip(guildId);
-                return;
-              }
               await play(guildId, true);
             }, 250);
           }
@@ -199,7 +230,7 @@ const createPlayer = async (interaction, guildId) => {
             category: CATEGORIES.PLAYER,
             message: t(
               'inner:audit.player.idle.finished',
-              {current: timeFormatMilliseconds(p), total: timeFormatSeconds(this.getQueue(guildId).nowPlaying.song.length)},
+              {current: timeFormatMilliseconds(p), total: timeFormatSeconds(this.getQueue(guildId).nowPlaying.song.duration)},
             ),
           });
 
@@ -263,7 +294,7 @@ const createPlayer = async (interaction, guildId) => {
 const createAudioStream = song => {
   if (song.type === 'youtube') {
     return ytdl(song.url, {
-      ...this.options,
+      ...this.options(),
       filter: 'audioonly',
       quality: 'highestaudio',
       highWaterMark: 1 << 25,
@@ -278,7 +309,7 @@ const play = async (guildId, isCurrent) => {
     ? this.getQueue(guildId).nowPlaying.song
     : this.getQueue(guildId).songs.shift()));
   if (!isCurrent) {
-    this.getQueue(guildId).remained -= this.getQueue(guildId).nowPlaying.song.length;
+    this.getQueue(guildId).remained -= this.getQueue(guildId).nowPlaying.song.duration;
   }
   await this.getQueue(guildId).player.play(this.getQueue(guildId).nowPlaying.resource);
 };

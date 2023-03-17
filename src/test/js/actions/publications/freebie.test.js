@@ -4,8 +4,10 @@ const feed = require('../../../resources/actions/publications/freebie/feed');
 const locale = require('../../configs/locale');
 
 const variablesModuleName = '../../../../main/js/db/repositories/variables';
+const auditorModuleName = '../../../../main/js/actions/auditor';
 const variablesMocked = jest.mock(variablesModuleName).requireMock(variablesModuleName);
 const parserMocked = jest.mock('rss-parser').requireMock('rss-parser');
+const auditorMocked = jest.mock(auditorModuleName).requireMock(auditorModuleName);
 
 // eslint-disable-next-line sort-imports-requires/sort-requires
 const {condition, content, onPublished} = require('../../../../main/js/actions/publications/freebie');
@@ -69,20 +71,19 @@ describe('onPublication', () => {
 
     await onPublished(messages, variables);
 
-    expect(variablesMocked.set).toHaveBeenCalled();
     expect(variablesMocked.set).toHaveBeenCalledWith('lastFreebie', new Date('1970-01-01T00:00:00.000Z'));
     expect(crosspostMocked1).toHaveBeenCalled();
     expect(crosspostMocked2).not.toHaveBeenCalled();
+    expect(auditorMocked.audit).toHaveBeenCalled();
   });
 
   test.each([
     {messages: [], variables: {}},
     {messages: [], variables: null},
   ])('empty: $variables', async ({messages, variables}) => {
-    variablesMocked.set.mockImplementationOnce();
-
     await onPublished(messages, variables);
 
     expect(variablesMocked.set).not.toHaveBeenCalled();
+    expect(auditorMocked.audit).toHaveBeenCalled();
   });
 });

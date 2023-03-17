@@ -1,7 +1,7 @@
-const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {CATEGORIES, TYPES} = require('../../../db/repositories/audit');
 const {getResourceBundle, services, t} = require('i18next');
-const {audit} = require('../../actions/auditor');
-const {stringify} = require('../../utils/string');
+const {audit} = require('../../../actions/auditor');
+const {stringify} = require('../../../utils/string');
 
 module.exports = {
   execute({app}) {

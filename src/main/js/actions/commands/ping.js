@@ -4,7 +4,7 @@ const {notify, notifyForbidden} = require('../commands');
 const {MessageEmbed} = require('discord.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
-const config = require('../../configs/config.js');
+const config = require('../../configs/config');
 const {getCommandName} = require('../../utils/string');
 const {t} = require('i18next');
 
@@ -26,7 +26,7 @@ const ping = async interaction => {
     .setTitle(t('discord:command.ping.completed.title'))
     .setTimestamp()
     .setDescription(t('discord:command.ping.completed.description', {ping: Math.round(interaction.client.ws.ping)}));
-  await notify(getCommandName(__filename), interaction, {embeds: [embed]});
+  await notify(interaction, {embeds: [embed]});
   await audit({
     guildId: interaction.guildId,
     type: TYPES.INFO,

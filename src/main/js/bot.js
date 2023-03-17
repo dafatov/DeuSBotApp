@@ -17,14 +17,13 @@ const client = new Client({
 client.once('ready', async () => {
   client.user.setPresence({activities: [{name: t('discord:presence', {version})}], status: 'online'});
 
-  await require('./actions/db.js').init();
-  await require('./actions/auditor.js').init();
-  await require('./actions/radios.js').init();
-  await require('./actions/commands.js').init(client);
-  await require('./actions/listeners.js').init(client);
-  await require('./actions/player.js').init(client);
-  await require('./actions/changelog.js').init();
-  await require('./actions/publicist.js').init(client);
+  await require('./actions/db').init();
+  await require('./actions/auditor').init();
+  await require('./actions/radios').init();
+  await require('./actions/commands').init(client);
+  await require('./actions/player').init(client);
+  await require('./actions/changelog').init();
+  await require('./actions/publicist').init(client);
   await require('./server').init(client);
 
   await audit({
@@ -37,10 +36,9 @@ client.once('ready', async () => {
 
 client.on('interactionCreate', async interaction => {
   if (interaction.isCommand()) {
-    await require('./actions/commands.js').execute(interaction);
-  }
-  if (interaction.isButton()) {
-    await require('./actions/listeners.js').execute(interaction);
+    await require('./actions/commands').execute(interaction);
+  } else if (interaction.isButton()) {
+    await require('./actions/listeners').execute(interaction);
   }
 });
 

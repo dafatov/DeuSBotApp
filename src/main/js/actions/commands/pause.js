@@ -1,113 +1,57 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {isPlaying, isPlayingLive, isSameChannel, pause} = require('../player');
+const {notify, notifyForbidden, notifyIsLive, notifyNoPlaying, notifyUnequalChannels} = require('../commands');
 const {MessageEmbed} = require('discord.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
-const config = require('../../configs/config.js');
-const {getQueue} = require('../player');
-const {notify} = require('../commands');
+const config = require('../../configs/config');
+const {getCommandName} = require('../../utils/string');
 const {t} = require('i18next');
 
 module.exports = {
-  data: new SlashCommandBuilder()
+  data: () => new SlashCommandBuilder()
     .setName('pause')
     .setDescription(t('discord:command.pause.description')),
-  async execute(interaction) {
-    await module.exports.pause(interaction, true);
-  },
+  execute: interaction => module.exports.pause(interaction, true),
 };
 
 module.exports.pause = async (interaction, isExecute) => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PAUSE)) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.forbidden.title', {command: 'pause'}))
-      .setTimestamp()
-      .setDescription(t('discord:embed.forbidden.description'));
-    await notify('pause', interaction, {embeds: [embed], ephemeral: true});
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.WARNING,
-      category: CATEGORIES.PERMISSION,
-      message: t('inner:info.forbidden', {command: 'pause'}),
-    });
-    return {result: t('web:info.forbidden', {command: 'pause'})};
+    await notifyForbidden(getCommandName(__filename), interaction);
+    return {result: t('web:info.forbidden', {command: getCommandName(__filename)})};
   }
 
-  if (!getQueue(interaction.guildId).nowPlaying.song || !getQueue(interaction.guildId).connection || !getQueue(interaction.guildId).player) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.noPlaying.title'))
-      .setDescription(t('discord:embed.noPlaying.description'))
-      .setTimestamp();
-    if (isExecute) {
-      await notify('pause', interaction, {embeds: [embed]});
-    }
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.WARNING,
-      category: CATEGORIES.COMMAND,
-      message: t('inner:audit.command.pause.noPlaying'),
-    });
+  if (!isPlaying(interaction.guildId)) {
+    await notifyNoPlaying(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.noPlaying')};
   }
 
-  if (getQueue(interaction.guildId)?.connection?.joinConfig?.channelId
-    !== interaction.member.voice.channel.id) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.unequalChannels.title'))
-      .setDescription(t('discord:embed.unequalChannels.description'))
-      .setTimestamp();
-    if (isExecute) {
-      await notify('pause', interaction, {embeds: [embed]});
-    }
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.WARNING,
-      category: CATEGORIES.COMMAND,
-      message: t('inner:audit.command.pause.unequalChannels'),
-    });
+  if (!isSameChannel(interaction)) {
+    await notifyUnequalChannels(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.unequalChannels')};
   }
 
-  if (getQueue(interaction.guildId).nowPlaying.song.isLive) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:command.loop.live.title'))
-      .setDescription(t('discord:command.loop.live.description'))
-      .setTimestamp();
-    if (isExecute) {
-      await notify('pause', interaction, {embeds: [embed]});
-    }
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.WARNING,
-      category: CATEGORIES.COMMAND,
-      message: t('inner:audit.command.pause.live'),
-    });
+  if (isPlayingLive(interaction.guildId)) {
+    await notifyIsLive(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.live')};
   }
 
-  const isPause = getQueue(interaction.guildId).nowPlaying.isPause;
-  if (isPause) {
-    getQueue(interaction.guildId).player.unpause();
-  } else {
-    getQueue(interaction.guildId).player.pause();
-  }
-  getQueue(interaction.guildId).nowPlaying.isPause = !isPause;
-  const embed = new MessageEmbed()
-    .setColor(config.colors.info)
-    .setTitle(t('discord:command.pause.completed.title', {
-      status: isPause
-        ? t('common:player.resumed')
-        : t('common:player.paused'),
-    }))
-    .setDescription(`${isPause
-      ? t('discord:command.pause.completed.description.resumed')
-      : t('discord:command.pause.completed.description.paused')}`);
+  const isPause = pause(interaction.guildId);
+
   if (isExecute) {
-    await notify('pause', interaction, {embeds: [embed]});
+    const embed = new MessageEmbed()
+      .setColor(config.colors.info)
+      .setTitle(t('discord:command.pause.completed.title', {
+        status: isPause
+          ? t('common:player.paused')
+          : t('common:player.resumed'),
+      }))
+      .setDescription(`${(isPause
+        ? t('discord:command.pause.completed.description.paused')
+        : t('discord:command.pause.completed.description.resumed'))}`)
+      .setTimestamp();
+    await notify(interaction, {embeds: [embed]});
   }
   await audit({
     guildId: interaction.guildId,
@@ -115,9 +59,9 @@ module.exports.pause = async (interaction, isExecute) => {
     category: CATEGORIES.COMMAND,
     message: t('inner:audit.command.pause.completed', {
       status: isPause
-        ? t('common:player.resumed')
-        : t('common:player.paused'),
+        ? t('common:player.paused')
+        : t('common:player.resumed'),
     }),
   });
-  return {isPause: getQueue(interaction.guildId).nowPlaying.isPause};
+  return {isPause};
 };

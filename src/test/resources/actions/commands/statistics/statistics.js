@@ -1,0 +1,147 @@
+module.exports = [
+  {
+    'user_id': '345503614359568384',
+    'message_count': 11,
+    'voice_duration': {
+      'minutes': 10,
+      'seconds': 25,
+      'milliseconds': 582,
+    },
+    'guild_id': '301783183828189184',
+  },
+  {
+    'user_id': '909473788779958363',
+    'message_count': 73,
+    'voice_duration': {
+      'minutes': 20,
+      'seconds': 14,
+      'milliseconds': 229,
+    },
+    'guild_id': '905052154027475004',
+  },
+  {
+    'user_id': '395615758278852609',
+    'message_count': 0,
+    'voice_duration': {
+      'days': 2,
+      'minutes': 24,
+      'seconds': 33,
+      'milliseconds': 414,
+    },
+    'guild_id': '301783183828189184',
+  },
+  {
+    'user_id': '233923369685352449',
+    'message_count': 7,
+    'voice_duration': {
+      'days': 1,
+      'hours': 12,
+      'minutes': 25,
+      'seconds': 4,
+      'milliseconds': 689,
+    },
+    'guild_id': '301783183828189184',
+  },
+  {
+    'user_id': '217196050337890305',
+    'message_count': 66,
+    'voice_duration': {
+      'days': 2,
+      'hours': 5,
+      'minutes': 49,
+      'seconds': 44,
+      'milliseconds': 310,
+    },
+    'guild_id': '301783183828189184',
+  },
+  {
+    'user_id': '381845173384249356',
+    'message_count': 1,
+    'voice_duration': {
+      'days': 13,
+      'hours': 21,
+      'minutes': 51,
+      'seconds': 32,
+      'milliseconds': 736,
+    },
+    'guild_id': '301783183828189184',
+  },
+  {
+    'user_id': '905052906296852500',
+    'message_count': 3,
+    'voice_duration': {
+      'minutes': 15,
+      'seconds': 49,
+      'milliseconds': 832,
+    },
+    'guild_id': '301783183828189184',
+  },
+  {
+    'user_id': '229605426327584769',
+    'message_count': 2,
+    'voice_duration': {
+      'days': 5,
+      'hours': 3,
+      'minutes': 44,
+      'seconds': 22,
+      'milliseconds': 65,
+    },
+    'guild_id': '301783183828189184',
+  },
+  {
+    'user_id': '531429539176513546',
+    'message_count': 1,
+    'voice_duration': {},
+    'guild_id': '301783183828189184',
+  },
+  {
+    'user_id': '348774809003491329',
+    'message_count': 1,
+    'voice_duration': {
+      'months': 1,
+      'days': 11,
+      'hours': 16,
+      'minutes': 27,
+      'seconds': 43,
+      'milliseconds': 427,
+    },
+    'guild_id': '905052154027475004',
+  },
+  {
+    'user_id': '173790866966577155',
+    'message_count': 0,
+    'voice_duration': {
+      'hours': 2,
+      'minutes': 49,
+      'seconds': 3,
+      'milliseconds': 795,
+    },
+    'guild_id': '301783183828189184',
+  },
+  {
+    'user_id': '321164800597950465',
+    'message_count': 0,
+    'voice_duration': {
+      'seconds': 10,
+      'milliseconds': 246,
+    },
+    'guild_id': '301783183828189184',
+  },
+  {
+    'user_id': '348774809003491329',
+    'message_count': 7,
+    'voice_duration': {
+      'hours': 6,
+      'minutes': 7,
+      'seconds': 56,
+      'milliseconds': 283,
+    },
+    'guild_id': '301783183828189184',
+  },
+  {
+    'user_id': '155149108183695360',
+    'message_count': 9,
+    'voice_duration': {},
+    'guild_id': '301783183828189184',
+  },
+];

@@ -1,20 +1,20 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
-const {notify, notifyError} = require('../commands.js');
+const {escaping, getCommandName, stringify} = require('../../utils/string');
+const {notify, notifyForbidden} = require('../commands');
 const {MessageEmbed} = require('discord.js');
 const {Pagination} = require('../../utils/components');
 const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
-const config = require('../../configs/config.js');
-const db = require('../../db/repositories/responses.js');
-const {escaping} = require('../../utils/string.js');
+const config = require('../../configs/config');
+const db = require('../../db/repositories/responses');
 const {t} = require('i18next');
 
 const {start, count} = {start: 0, count: 5};
 
 module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('response')
+  data: () => new SlashCommandBuilder()
+    .setName(getCommandName(__filename))
     .setDescription(t('discord:command.response.description'))
     .addSubcommand(s => s
       .setName('set')
@@ -37,162 +37,120 @@ module.exports = {
     .addSubcommand(s => s
       .setName('show')
       .setDescription(t('discord:command.response.show.description'))),
-  async execute(interaction) {
-    await response(interaction);
-  },
-  async listener(interaction) {
-    await onShow(interaction);
-  },
+  execute: interaction => response(interaction),
+  listener: interaction => onShow(interaction),
 };
 
-const response = async interaction => {
-  if (interaction.options.getSubcommand() === 'set') {
-    await set(interaction);
-  } else if (interaction.options.getSubcommand() === 'remove') {
-    await remove(interaction);
-  } else if (interaction.options.getSubcommand() === 'show') {
-    await show(interaction);
+const response = interaction => {
+  switch (interaction.options.getSubcommand()) {
+    case 'set':
+      return set(interaction);
+    case 'remove':
+      return remove(interaction);
+    case 'show':
+      return show(interaction);
   }
 };
 
 const set = async interaction => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_RESPONSE_SET)) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.forbidden.title', {command: 'response set'}))
-      .setTimestamp()
-      .setDescription(t('discord:embed.forbidden.description'));
-    await notify('response', interaction, {embeds: [embed], ephemeral: true});
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.WARNING,
-      category: CATEGORIES.PERMISSION,
-      message: t('inner:info.forbidden', {command: 'response.set'}),
-    });
+    await notifyForbidden(getCommandName(__filename), interaction);
     return;
   }
 
-  const {regex, react} = {
+  const response = {
     regex: interaction.options.getString('regex'),
     react: interaction.options.getString('react'),
   };
 
   try {
-    if (!regex || !react) {
-      await notifyError('response', t('discord:command.response.set.emptyResponse', {regex, react}), interaction);
-    }
-
-    try {
-      'test'.match(regex);
-    } catch (e) {
-      await notifyError('response', t('discord:command.response.set.wrongRegex', {regex}), interaction);
-    }
-
-    await db.set(interaction.guildId, {
-      'regex': regex,
-      'react': react,
-    });
+    'test'.match(response.regex);
+  } catch (e) {
     const embed = new MessageEmbed()
-      .setColor(config.colors.info)
-      .setTitle(t('discord:command.response.set.completed.title'))
+      .setColor(config.colors.error)
+      .setTitle(t('discord:command.response.set.wrongRegex.title'))
       .setTimestamp()
-      .addField(escaping(regex), react);
-
-    await notify('response', interaction, {embeds: [embed]});
+      .setDescription(t('discord:command.response.set.wrongRegex.description', {regex: response.regex}));
+    await notify(interaction, {embeds: [embed]});
     await audit({
       guildId: interaction.guildId,
-      type: TYPES.INFO,
+      type: TYPES.WARNING,
       category: CATEGORIES.COMMAND,
-      message: t('inner:audit.command.response.set'),
+      message: stringify(e),
     });
-  } catch (e) {
-    await notifyError('response', e, interaction);
+    return;
   }
+
+  await db.set(interaction.guildId, response);
+
+  const embed = new MessageEmbed()
+    .setColor(config.colors.info)
+    .setTitle(t('discord:command.response.set.completed.title'))
+    .setTimestamp()
+    .setFields({name: escaping(response.regex), value: response.react});
+  await notify(interaction, {embeds: [embed]});
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.INFO,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:audit.command.response.set'),
+  });
 };
 
 const remove = async interaction => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_RESPONSE_REMOVE)) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.forbidden.title', {command: 'response remove'}))
-      .setTimestamp()
-      .setDescription(t('discord:embed.forbidden.description'));
-    await notify('response', interaction, {embeds: [embed], ephemeral: true});
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.WARNING,
-      category: CATEGORIES.PERMISSION,
-      message: t('inner:info.forbidden', {command: 'response.remove'}),
-    });
+    await notifyForbidden(getCommandName(__filename), interaction);
     return;
   }
 
   const regex = interaction.options.getString('regex');
 
-  try {
-    if (!regex) {
-      await notifyError('response', t('discord:command.response.remove.emptyRegex', {regex}), interaction);
-    }
+  await db.remove(interaction.guildId, regex);
 
-    await db.remove(interaction.guildId, regex);
-    const embed = new MessageEmbed()
-      .setColor(config.colors.info)
-      .setTitle(t('discord:command.response.remove.completed.title'))
-      .setTimestamp()
-      .setDescription(escaping(regex));
-
-    await notify('response', interaction, {embeds: [embed]});
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.INFO,
-      category: CATEGORIES.COMMAND,
-      message: t('inner:audit.command.response.removed'),
-    });
-  } catch (e) {
-    await notifyError('response', e, interaction);
-  }
+  const embed = new MessageEmbed()
+    .setColor(config.colors.info)
+    .setTitle(t('discord:command.response.remove.completed.title'))
+    .setTimestamp()
+    .setDescription(escaping(regex));
+  await notify(interaction, {embeds: [embed]});
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.INFO,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:audit.command.response.removed'),
+  });
 };
 
 const show = async interaction => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_RESPONSE_SHOW)) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.forbidden.title', {command: 'response show'}))
-      .setTimestamp()
-      .setDescription(t('discord:embed.forbidden.description'));
-    await notify('response', interaction, {embeds: [embed], ephemeral: true});
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.WARNING,
-      category: CATEGORIES.PERMISSION,
-      message: t('inner:info.forbidden', {command: 'response.show'}),
-    });
+    await notifyForbidden(getCommandName(__filename), interaction);
     return;
   }
 
   const rules = await db.getAll(interaction.guildId);
   const pagination = Pagination.getComponent(start, count, rules.length);
+
   const embed = new MessageEmbed()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.response.show.completed.title'))
     .setTimestamp()
     .setFields(getRulesFields(rules, start, count))
     .setFooter({text: Pagination.getFooter(start, count, rules.length)});
-
-  try {
-    await notify('response', interaction, {embeds: [embed], components: [pagination]});
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.INFO,
-      category: CATEGORIES.COMMAND,
-      message: t('inner:audit.command.response.showed'),
-    });
-  } catch (e) {
-    await notifyError('response', e, interaction);
-  }
+  await notify(interaction, {embeds: [embed], components: [pagination]});
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.INFO,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:audit.command.response.showed'),
+  });
 };
 
 const onShow = async interaction => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_RESPONSE_SHOW)) {
+    await notifyForbidden(getCommandName(__filename), interaction);
+    return;
+  }
+
   const rules = await db.getAll(interaction.guildId);
   const embed = interaction.message.embeds[0];
   const pagination = interaction.message.components[0];
@@ -200,19 +158,14 @@ const onShow = async interaction => {
   const start = Pagination.update(interaction, pages, rules.length);
 
   embed
-    .setFields(getRulesFields(rules))
+    .setFields(getRulesFields(rules, start, count))
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
     .setFooter({text: Pagination.getFooter(start, pages.count, rules.length)});
-
-  try {
-    await interaction.update({embeds: [embed], components: [pagination]});
-  } catch (e) {
-    await notifyError('response', e, interaction);
-  }
+  await interaction.update({embeds: [embed], components: [pagination]});
 };
 
 const getRulesFields = (rules, start, count) => rules
-  .slice(start, count)
+  .slice(start, start + count)
   .map(rule => ({
     name: escaping(rule.regex),
     value: rule.react,

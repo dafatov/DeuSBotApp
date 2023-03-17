@@ -6,7 +6,7 @@ const locale = require('../configs/locale');
 const auditorModuleName = '../../../main/js/actions/auditor';
 const usersDbModuleName = '../../../main/js/db/repositories/users';
 const fsMocked = jest.mock('fs').requireMock('fs');
-const auditMocked = jest.mock(auditorModuleName).requireMock(auditorModuleName);
+const auditorMocked = jest.mock(auditorModuleName).requireMock(auditorModuleName);
 const usersDbMocked = jest.mock(usersDbModuleName).requireMock(usersDbModuleName);
 
 // eslint-disable-next-line sort-imports-requires/sort-requires
@@ -26,9 +26,7 @@ describe('init', () => {
 
     await commands.init(client);
 
-    expect(await Promise.all(client.commands.map(command => commands.getCommandData(command)
-      .then(commandData => commandData.toJSON()))))
-      .toEqual(expectedCommands);
+    expect(await commands.getCommandsData(client)).toEqual(expectedCommands);
     expect(commands.updateCommands).toHaveBeenCalledWith(client);
   });
 
@@ -52,29 +50,26 @@ describe('init', () => {
 describe('execute', () => {
   test('success', async () => {
     const executeMocked = jest.fn();
-    interaction.client.commands = {
-      get: jest.fn().mockReturnValueOnce({execute: executeMocked}),
-    };
+    jest.spyOn(interaction.client.commands, 'get').mockReturnValueOnce({execute: executeMocked});
 
     await commands.execute(interaction);
 
     expect(interaction.deferReply).toHaveBeenCalled();
     expect(executeMocked).toHaveBeenCalledWith(interaction);
-    expect(auditMocked.audit).toHaveBeenCalled();
+    expect(auditorMocked.audit).toHaveBeenCalled();
   });
 
   test('restricted', async () => {
-    interaction.client.commands = {
-      get: jest.fn().mockReturnValueOnce({execute: jest.fn()}),
-    };
+    jest.spyOn(interaction.client.commands, 'get').mockReturnValueOnce({execute: jest.fn()});
     jest.spyOn(commands, 'notifyRestricted').mockReturnValueOnce();
     process.env.RESTRICTED_COMMANDS = '["play"]';
+    jest.replaceProperty(interaction, 'commandName', 'play');
 
     await commands.execute(interaction);
 
     expect(interaction.deferReply).not.toHaveBeenCalled();
     expect(commands.notifyRestricted).toHaveBeenCalledWith('play', interaction);
-    expect(auditMocked.audit).not.toHaveBeenCalled();
+    expect(auditorMocked.audit).not.toHaveBeenCalled();
   });
 
   test.each([
@@ -82,13 +77,59 @@ describe('execute', () => {
     {command: {}},
     {command: {execute: {}}},
   ])('failure: $command', async ({command}) => {
-    interaction.client.commands = {
-      get: jest.fn().mockReturnValueOnce(command),
-    };
+    jest.spyOn(interaction.client.commands, 'get').mockReturnValueOnce(command);
 
     await commands.execute(interaction);
 
     expect(interaction.deferReply).not.toHaveBeenCalled();
-    expect(auditMocked.audit).not.toHaveBeenCalled();
+    expect(auditorMocked.audit).not.toHaveBeenCalled();
   });
+});
+
+describe('notify', () => {
+  test('reply', async () => {
+    jest.replaceProperty(interaction, 'deferred', false);
+    jest.replaceProperty(interaction, 'replied', false);
+    interaction.isRepliable.mockReturnValueOnce(true);
+
+    await commands.notify(interaction, {embeds: []});
+
+    expect(interaction.reply).toHaveBeenCalledWith({embeds: []});
+    expect(interaction.followUp).not.toHaveBeenCalled();
+    expect(interaction.editReply).not.toHaveBeenCalled();
+  });
+
+  test('editReply', async () => {
+    jest.replaceProperty(interaction, 'deferred', true);
+    jest.replaceProperty(interaction, 'replied', false);
+    interaction.isRepliable.mockReturnValueOnce(true);
+
+    await commands.notify(interaction, {embeds: []});
+
+    expect(interaction.reply).not.toHaveBeenCalled();
+    expect(interaction.followUp).not.toHaveBeenCalled();
+    expect(interaction.editReply).toHaveBeenCalledWith({embeds: []});
+  });
+
+  test.each([
+    {deferred: false, replied: false, isRepliable: false},
+    {deferred: true, replied: false, isRepliable: false},
+    {deferred: false, replied: true, isRepliable: false},
+    {deferred: true, replied: true, isRepliable: false},
+    {deferred: false, replied: true, isRepliable: true},
+    {deferred: true, replied: true, isRepliable: true},
+  ])(
+    'followUp: {deferred: $deferred, replied: $replied, isRepliable: $isRepliable}',
+    async ({deferred, replied, isRepliable}) => {
+      jest.replaceProperty(interaction, 'deferred', deferred);
+      jest.replaceProperty(interaction, 'replied', replied);
+      interaction.isRepliable.mockReturnValueOnce(isRepliable);
+
+      await commands.notify(interaction, {embeds: []});
+
+      expect(interaction.reply).not.toHaveBeenCalled();
+      expect(interaction.followUp).toHaveBeenCalledWith({embeds: []});
+      expect(interaction.editReply).not.toHaveBeenCalled();
+    },
+  );
 });

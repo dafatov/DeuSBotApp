@@ -1,16 +1,16 @@
-const {authForNowPlaying, authForSongs, authForVoiceMember, generateInteraction, generateInteractionWithVoiceChannel} = require('../../utils/security');
-const {clear} = require('../../actions/commands/clear');
-const {getAll} = require('../../db/repositories/users');
-const {getRadios} = require('../../actions/radios');
-const {loop} = require('../../actions/commands/loop');
-const {move} = require('../../actions/commands/move');
-const {pause} = require('../../actions/commands/pause');
-const {play} = require('../../actions/commands/play');
-const {radio} = require('../../actions/commands/radio');
-const {remove} = require('../../actions/commands/remove');
-const {play: shikimoriPlay} = require('../../actions/commands/shikimori');
-const {shuffle} = require('../../actions/commands/shuffle');
-const {skip} = require('../../actions/commands/skip');
+const {authForNowPlaying, authForSongs, authForVoiceMember, generateInteraction, generateInteractionWithVoiceChannel} = require('../../../utils/security');
+const {clear} = require('../../../actions/commands/clear');
+const {getAll} = require('../../../db/repositories/users');
+const {getRadios} = require('../../../actions/radios');
+const {loop} = require('../../../actions/commands/loop');
+const {move} = require('../../../actions/commands/move');
+const {pause} = require('../../../actions/commands/pause');
+const {play} = require('../../../actions/commands/play');
+const {radio} = require('../../../actions/commands/radio');
+const {remove} = require('../../../actions/commands/remove');
+const {play: shikimoriPlay} = require('../../../actions/commands/shikimori');
+const {shuffle} = require('../../../actions/commands/shuffle');
+const {skip} = require('../../../actions/commands/skip');
 
 module.exports = {
   execute(params) {
@@ -84,7 +84,7 @@ const control = ({io, socket, client}) => {
       .finally(() => authForSongs(token, client)
         .then(data => io.emit('queue:now', data))));
 
-  socket.on('control:clear', (token, callback) =>//
+  socket.on('control:clear', (token, callback) =>
     authForVoiceMember(token, client)
       .then(member => generateInteractionWithVoiceChannel(member))
       .then(interaction => clear(interaction, false))

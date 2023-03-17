@@ -3,15 +3,9 @@ const {audit} = require('./auditor');
 const {stringify} = require('../utils/string');
 const {t} = require('i18next');
 
-let client;
-
-module.exports.init = c => {
-  client = c;
-};
-
 module.exports.execute = async interaction => {
   const commandName = interaction?.message?.interaction?.commandName;
-  const command = client.commands.get(commandName?.split(' ')?.[0]);
+  const command = interaction.client.commands.get(commandName?.split(' ')?.[0]);
 
   if (!command) {
     await audit({

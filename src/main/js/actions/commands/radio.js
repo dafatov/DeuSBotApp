@@ -1,22 +1,21 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
-const {getQueue, hasLive, playPlayer} = require('../player');
-const {timeFormatMilliseconds, timeFormatSeconds} = require('../../utils/dateTime');
+const {addQueue, isConnected, isSameChannel, playPlayer} = require('../player');
+const {escaping, getCommandName} = require('../../utils/string');
+const {notify, notifyForbidden, notifyUnequalChannels} = require('../commands');
 const {DISCORD_OPTIONS_MAX} = require('../../utils/constants');
 const {MessageEmbed} = require('discord.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const {chunk} = require('../../utils/array');
-const config = require('../../configs/config.js');
-const {escaping} = require('../../utils/string');
+const config = require('../../configs/config');
+const {getAddedDescription} = require('../../utils/player');
 const {getRadios} = require('../radios');
-const {notify} = require('../commands');
-const {remained} = require('../../utils/calc');
 const {t} = require('i18next');
 
 module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('radio')
+  data: () => new SlashCommandBuilder()
+    .setName(getCommandName(__filename))
     .setDescription(t('discord:command.radio.description'))
     .addSubcommandGroup(g => {
       const radios = chunk([...getRadios().keys()].sort(), DISCORD_OPTIONS_MAX);
@@ -43,86 +42,38 @@ module.exports = {
 
       return g;
     }),
-  async execute(interaction) {
-    await this.radio(interaction, true);
-  },
+  execute: interaction => module.exports.radio(interaction, true),
 };
 
 module.exports.radio = async (interaction, isExecute, stationKey = interaction.options.getString('station')) => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_RADIO)) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.forbidden.title', {command: 'radio'}))
-      .setTimestamp()
-      .setDescription(t('discord:embed.forbidden.description'));
-    await notify('radio', interaction, {embeds: [embed], ephemeral: true});
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.WARNING,
-      category: CATEGORIES.PERMISSION,
-      message: t('inner:info.forbidden', {command: 'radio'}),
-    });
+    await notifyForbidden(getCommandName(__filename), interaction);
     return {result: t('web:info.forbidden', {command: 'radio'})};
   }
 
-  if (!interaction.member.voice.channel || getQueue(interaction.guildId).connection
-    && getQueue(interaction.guildId).connection.joinConfig.channelId
-    !== interaction.member.voice.channel.id) {
-    const embed = new MessageEmbed()
-      .setColor(config.colors.warning)
-      .setTitle(t('discord:embed.unequalChannels.title'))
-      .setDescription(t('discord:embed.unequalChannels.description'))
-      .setTimestamp();
-    if (isExecute) {
-      await notify('radio', interaction, {embeds: [embed]});
-    }
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.WARNING,
-      category: CATEGORIES.COMMAND,
-      message: t('inner:audit.command.clear.unequalChannels'),
-    });
+  if (isConnected(interaction.guildId) && !isSameChannel(interaction)) {
+    await notifyUnequalChannels(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.unequalChannels')};
   }
 
-  const station = getRadios().get(stationKey);
-  const info = {
-    id: `${new Date().getTime()}`,
-    type: 'radio',
-    title: stationKey,
-    length: 0,
-    url: station.channel.url,
-    isLive: true,
-    preview: station.channel.preview,
-    author: interaction.user,
-  };
-  getQueue(interaction.guildId).songs.push(info);
+  const added = getStationAdded(interaction.user, stationKey);
+  const description = getAddedDescription(interaction.guildId, added.info);
+  addQueue(interaction.guildId, added);
+  await playPlayer(interaction);
 
-  const remainedValue = remained(getQueue(interaction.guildId));
-  getQueue(interaction.guildId).remained = (getQueue(interaction.guildId).remained ?? 0) + parseInt(info.length);
-  const embed = new MessageEmbed()
-    .setColor(config.colors.info)
-    .setTitle(escaping(info.title))
-    .setURL(info.url)
-    .setDescription(t('discord:command.radio.completed.description', {
-      allLength: info.isLive
-        ? t('common:player.stream')
-        : timeFormatSeconds(info.length),
-      length: getQueue(interaction.guildId).songs.length,
-      beginIn: hasLive(getQueue(interaction.guildId))
-        ? t('common:player.noRemained')
-        : remainedValue === 0
-          ? t('common:player.beginNow')
-          : timeFormatMilliseconds(remainedValue),
-    }))
-    .setThumbnail(info.preview)
-    .setTimestamp()
-    .setFooter({
-      text: t('discord:command.radio.completed.footer', {username: interaction.user.username}),
-      iconURL: interaction.user.displayAvatarURL()
-    });
   if (isExecute) {
-    await notify('radio', interaction, {embeds: [embed]});
+    const embed = new MessageEmbed()
+      .setColor(config.colors.info)
+      .setTitle(escaping(added.info.title))
+      .setURL(added.info.url)
+      .setDescription(description)
+      .setThumbnail(added.info.preview)
+      .setTimestamp()
+      .setFooter({
+        text: t('discord:command.radio.completed.footer', {username: added.info.author.username}),
+        iconURL: added.info.author.iconURL,
+      });
+    await notify(interaction, {embeds: [embed]});
   }
   await audit({
     guildId: interaction.guildId,
@@ -130,7 +81,28 @@ module.exports.radio = async (interaction, isExecute, stationKey = interaction.o
     category: CATEGORIES.COMMAND,
     message: t('inner:audit.command.radio'),
   });
+  return {info: added.info};
+};
 
-  await playPlayer(interaction);
-  return {info};
+const getStationAdded = (user, stationKey) => {
+  const station = getRadios().get(stationKey);
+
+  return {
+    info: {
+      id: `${new Date().getTime()}`,
+      type: 'radio',
+      title: stationKey,
+      duration: 0,
+      url: station.channel.url,
+      isLive: true,
+      preview: station.channel.preview,
+      author: {
+        username: user.username,
+        iconURL: user.displayAvatarURL(),
+      },
+    },
+    get songs() {
+      return [this.info];
+    },
+  };
 };
