@@ -1,11 +1,11 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
-const {clearQueue, getQueue} = require('../player');
+const {clearQueue, isEmptyQueue, isSameChannel} = require('../player');
 const {notify, notifyForbidden, notifyNoPlaying, notifyUnequalChannels} = require('../commands');
 const {MessageEmbed} = require('discord.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
-const config = require('../../configs/config.js');
+const config = require('../../configs/config');
 const {getCommandName} = require('../../utils/string');
 const {t} = require('i18next');
 
@@ -22,14 +22,12 @@ module.exports.clear = async (interaction, isExecute) => {
     return {result: t('web:info.forbidden', {command: getCommandName(__filename)})};
   }
 
-  if (!getQueue(interaction.guildId).connection || !getQueue(interaction.guildId).player
-    || !getQueue(interaction.guildId).songs?.length) {
+  if (isEmptyQueue(interaction.guildId)) {
     await notifyNoPlaying(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.noPlaying')};
   }
 
-  if (getQueue(interaction.guildId).connection?.joinConfig.channelId
-    !== interaction.member.voice.channel?.id) {
+  if (!isSameChannel(interaction)) {
     await notifyUnequalChannels(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.unequalChannels')};
   }
@@ -42,7 +40,7 @@ module.exports.clear = async (interaction, isExecute) => {
       .setTitle(t('discord:command.clear.completed.title'))
       .setDescription(t('discord:command.clear.completed.description'))
       .setTimestamp();
-    await notify(getCommandName(__filename), interaction, {embeds: [embed]});
+    await notify(interaction, {embeds: [embed]});
   }
   await audit({
     guildId: interaction.guildId,
@@ -52,4 +50,3 @@ module.exports.clear = async (interaction, isExecute) => {
   });
   return {};
 };
-

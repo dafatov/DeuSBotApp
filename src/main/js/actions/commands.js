@@ -1,23 +1,24 @@
 const {CATEGORIES, TYPES} = require('../db/repositories/audit');
 const {Collection, MessageEmbed} = require('discord.js');
+const {getCommandName, stringify} = require('../utils/string');
 const {REST} = require('@discordjs/rest');
 const {Routes} = require('discord-api-types/v9');
 const {audit} = require('./auditor');
-const config = require('../configs/config.js');
+const config = require('../configs/config');
 const fs = require('fs');
-const {stringify} = require('../utils/string');
+const {getQueue} = require('./player');
 const {t} = require('i18next');
 
 module.exports.init = async client => {
   client.commands = new Collection();
-  await Promise.all(fs.readdirSync('./src/main/js/actions/commands')
+  fs.readdirSync('./src/main/js/actions/commands')
     .filter(f => !f.startsWith('_'))
     .filter(f => f.endsWith('.js'))
-    .map(async f => {
+    .forEach(f => {
       const command = require(`./commands/${f}`);
-      const data = await this.getCommandData(command);
-      client.commands.set(data.name, command);
-    }));
+
+      client.commands.set(getCommandName(f), command);
+    });
 
   if (client.commands.size <= 0) {
     return;
@@ -32,8 +33,7 @@ module.exports.updateCommands = async client => {
   await client.guilds.fetch()
     .then(guilds => Promise.all(guilds.map(async guild => rest.put(
       Routes.applicationGuildCommands(client.user.id, guild.id), {
-        body: await Promise.all(client.commands.map(command => this.getCommandData(command)
-          .then(commandData => commandData.toJSON()))),
+        body: await this.getCommandsData(client),
       }))))
     .then(guildsCommands => guildsCommands.map(guildCommands =>
       `${client.guilds.resolve(guildCommands[0].guild_id).name}(${guildCommands.length})`))
@@ -83,17 +83,16 @@ module.exports.execute = async interaction => {
   }
 };
 
-module.exports.notify = async (commandName, interaction, content) => {
+module.exports.notify = async (interaction, content) => {
   try {
-    if (interaction.commandName === commandName && !interaction.replied && !interaction.deferred) {
-      await interaction.reply(content);
+    if (interaction.isRepliable() && !interaction.replied) {
+      if (interaction.deferred) {
+        await interaction.editReply(content);
+      } else {
+        await interaction.reply(content);
+      }
     } else {
       await interaction.followUp(content);
-      return;
-    }
-
-    if (interaction.deferred) {
-      await interaction.editReply(content);
     }
   } catch (e) {
     await audit({
@@ -102,7 +101,6 @@ module.exports.notify = async (commandName, interaction, content) => {
       category: CATEGORIES.COMMAND,
       message: stringify(e),
     });
-    interaction.message?.send(content);
   }
 };
 
@@ -112,7 +110,7 @@ module.exports.notifyForbidden = async (commandName, interaction) => {
     .setTitle(t('discord:embed.forbidden.title', {command: commandName}))
     .setTimestamp()
     .setDescription(t('discord:embed.forbidden.description'));
-  await this.notify(commandName, interaction, {embeds: [embed], ephemeral: true});
+  await this.notify(interaction, {embeds: [embed], ephemeral: true});
   await audit({
     guildId: interaction.guildId,
     type: TYPES.INFO,
@@ -127,7 +125,7 @@ module.exports.notifyRestricted = async (commandName, interaction) => {
     .setTitle(t('discord:embed.restricted.title', {command: commandName}))
     .setTimestamp()
     .setDescription(t('discord:embed.restricted.description'));
-  await this.notify(commandName, interaction, {embeds: [embed], ephemeral: true});
+  await this.notify(interaction, {embeds: [embed], ephemeral: true});
   await audit({
     guildId: interaction.guildId,
     type: TYPES.INFO,
@@ -136,14 +134,14 @@ module.exports.notifyRestricted = async (commandName, interaction) => {
   });
 };
 
-module.exports.notifyNoPlaying = async (commandName, interaction, isExecute) => {
+module.exports.notifyNoPlaying = async (commandName, interaction, isExecute = true) => {
   if (isExecute) {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
       .setTitle(t('discord:embed.noPlaying.title'))
       .setDescription(t('discord:embed.noPlaying.description'))
       .setTimestamp();
-    await this.notify(commandName, interaction, {embeds: [embed]});
+    await this.notify(interaction, {embeds: [embed]});
   }
   await audit({
     guildId: interaction.guildId,
@@ -160,7 +158,7 @@ module.exports.notifyUnequalChannels = async (commandName, interaction, isExecut
       .setTitle(t('discord:embed.unequalChannels.title'))
       .setDescription(t('discord:embed.unequalChannels.description'))
       .setTimestamp();
-    await this.notify(commandName, interaction, {embeds: [embed]});
+    await this.notify(interaction, {embeds: [embed]});
   }
   await audit({
     guildId: interaction.guildId,
@@ -177,13 +175,30 @@ module.exports.notifyIsLive = async (commandName, interaction, isExecute) => {
       .setTitle(t('discord:embed.isLive.title'))
       .setDescription(t('discord:embed.isLive.description'))
       .setTimestamp();
-    await this.notify(commandName, interaction, {embeds: [embed]});
+    await this.notify(interaction, {embeds: [embed]});
   }
   await audit({
     guildId: interaction.guildId,
     type: TYPES.WARNING,
     category: CATEGORIES.COMMAND,
-    message: t('inner:info.isLive'),
+    message: t('inner:info.isLive', {command: commandName}),
+  });
+};
+
+module.exports.notifyUnbound = async (commandName, interaction, isExecute) => {
+  if (isExecute) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.warning)
+      .setTitle(t('discord:embed.unbound.title'))
+      .setDescription(t('discord:embed.unbound.description', {length: getQueue(interaction.guildId).songs.length}))
+      .setTimestamp();
+    await this.notify(interaction, {embeds: [embed]});
+  }
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.WARNING,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:info.unbound', {command: commandName}),
   });
 };
 
@@ -193,7 +208,7 @@ module.exports.notifyError = async (commandName, e, interaction) => {
     .setTitle(t('discord:embed.command.notifyError.title'))
     .setTimestamp()
     .setDescription(`${stringify(e)}`);
-  await this.notify(`${commandName}`, interaction, {embeds: [embed]});
+  await this.notify(interaction, {embeds: [embed]});
   await audit({
     guildId: interaction.guildId,
     type: TYPES.ERROR,
@@ -202,8 +217,5 @@ module.exports.notifyError = async (commandName, e, interaction) => {
   });
 };
 
-/* TODO: Временное решение пока все команды не мигрируют на функцию
- */
-module.exports.getCommandData = command => Promise.resolve(typeof command.data === 'function'
-  ? command.data()
-  : command.data);
+module.exports.getCommandsData = client =>
+  Promise.all(client.commands.map(command => Promise.resolve(command.data()).then(commandData => commandData.toJSON())));

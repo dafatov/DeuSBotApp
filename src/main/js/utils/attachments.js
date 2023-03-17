@@ -1,19 +1,21 @@
 const {createCanvas, loadImage} = require('canvas');
+const {getQueue, hasLive} = require('../actions/player');
 const {MessageAttachment} = require('discord.js');
+const axios = require('axios');
 const config = require('../configs/config.js');
 const {getStatusIcon} = require('./resources');
-const {hasLive} = require('../actions/player');
 const {remained} = require('./calc');
 const {t} = require('i18next');
 const {timeFormatMilliseconds} = require('./dateTime.js');
+const xml2js = require('xml2js');
 
-module.exports.createStatus = async queue => {
+module.exports.createStatus = async guildId => {
   const canvas = createCanvas(510, 40);
   const context = canvas.getContext('2d');
 
-  const remainedTmp = `-${hasLive(queue)
+  const remainedTmp = `-${hasLive(getQueue(guildId))
     ? t('common:player.noRemained')
-    : timeFormatMilliseconds(remained(queue))}`;
+    : timeFormatMilliseconds(remained(getQueue(guildId)))}`;
   context.font = '24px sans-serif';
 
   context.fillStyle = '#2F3136';
@@ -22,7 +24,7 @@ module.exports.createStatus = async queue => {
   context.fillStyle = config.colors.info;
   context.fillRect(0, 0, 5, 40);
 
-  const status = await loadImage(`./src/main/resources/icons/${getStatusIcon(queue.nowPlaying)}.png`);
+  const status = await loadImage(`./src/main/resources/icons/${getStatusIcon(getQueue(guildId).nowPlaying)}.png`);
   context.drawImage(status, 9, 4, 32, 32);
 
   context.fillStyle = config.colors.info;
@@ -89,3 +91,18 @@ module.exports.createCalendar = async (guild, birthdays, monthDate, {month, year
   }
   return new MessageAttachment(canvas.toBuffer(), 'calendar.png');
 };
+
+module.exports.createShikimoriXml = nickname => axios.get(`https://shikimori.one/${nickname}/list_export/animes.xml`)
+  .then(response => xml2js.parseStringPromise(response.data))
+  .then(animeList => ({
+    myanimelist: {
+      ...animeList.myanimelist,
+      anime: animeList.myanimelist.anime.map(anime => ({
+        my_start_date: ['0000-00-00'],
+        my_finish_date: ['0000-00-00'],
+        ...anime,
+      })),
+    },
+  }))
+  .then(animeList => new xml2js.Builder().buildObject(animeList))
+  .then(xml => new MessageAttachment(Buffer.from(xml, 'utf8'), `${nickname}_animes.xml`));

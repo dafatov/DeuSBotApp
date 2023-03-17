@@ -1,7 +1,7 @@
 const {CATEGORIES, TYPES, add, getAll, removeBeforeWithOffset} = require('../db/repositories/audit');
 const {getFixedT, t} = require('i18next');
 const {padEnum, spell, stringify} = require('../utils/string');
-const {bigIntReplacer} = require('../utils/jsonMapping');
+const {bigIntReplacer} = require('../utils/mapping');
 
 module.exports.init = async () => {
   await (async function loop() {

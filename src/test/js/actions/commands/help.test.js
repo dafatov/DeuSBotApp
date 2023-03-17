@@ -8,7 +8,7 @@ const commandsModuleName = '../../../../main/js/actions/commands';
 const auditorModuleName = '../../../../main/js/actions/auditor';
 const permissionMocked = jest.mock(permissionModuleName).requireMock(permissionModuleName);
 const commandsMocked = jest.mock(commandsModuleName).requireMock(commandsModuleName);
-const auditMocked = jest.mock(auditorModuleName).requireMock(auditorModuleName);
+const auditorMocked = jest.mock(auditorModuleName).requireMock(auditorModuleName);
 
 // eslint-disable-next-line sort-imports-requires/sort-requires
 const {execute} = require('../../../../main/js/actions/commands/help');
@@ -23,7 +23,7 @@ describe('execute', () => {
 
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.help');
     expect(commandsMocked.notifyForbidden).toHaveBeenCalledWith('help', interaction);
-    expect(auditMocked.audit).not.toHaveBeenCalled();
+    expect(auditorMocked.audit).not.toHaveBeenCalled();
   });
 
   test.each([
@@ -38,6 +38,6 @@ describe('execute', () => {
 
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.help');
     expect(commandsMocked.notify).toHaveBeenCalledWith(...expected);
-    expect(auditMocked.audit).toHaveBeenCalled();
+    expect(auditorMocked.audit).toHaveBeenCalled();
   });
 });

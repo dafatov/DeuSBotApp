@@ -1,9 +1,9 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {getCommandName, stringify} = require('../../utils/string');
 const {MessageEmbed} = require('discord.js');
 const Parser = require('rss-parser');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
-const {stringify} = require('../../utils/string');
 const {t} = require('i18next');
 const variablesDb = require('../../db/repositories/variables');
 
@@ -53,15 +53,18 @@ module.exports = {
     if (variables?.lastFreebie) {
       await variablesDb.set('lastFreebie', variables.lastFreebie);
     }
-    Promise.all(messages.map(message => {
-      if (message.channel.type === 'GUILD_NEWS') {
-        return message.crosspost();
-      }
-    })).then(() => audit({
+
+    await Promise.all(messages
+      .filter(message => message.channel.type === 'GUILD_NEWS')
+      .map(message => message.crosspost()),
+    ).then(() => audit({
       guildId: null,
       type: TYPES.INFO,
       category: CATEGORIES.PUBLICIST,
-      message: t('inner:audit.publicist.crossPost', {publication: 'freebie'}),
+      message: t('inner:audit.publicist.crossPost', {
+        count: messages.length,
+        publication: getCommandName(__filename),
+      }),
     })).catch(e => audit({
       guildId: null,
       type: TYPES.ERROR,

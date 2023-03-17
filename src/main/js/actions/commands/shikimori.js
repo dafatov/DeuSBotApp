@@ -1,19 +1,20 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
-const {MessageAttachment, MessageEmbed} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
-const {getCommandName, stringify} = require('../../utils/string');
-const {notify, updateCommands} = require('../commands.js');
+const {addQueue, isConnected, isSameChannel, playPlayer} = require('../player');
+const {escaping, getCommandName, stringify} = require('../../utils/string');
+const {notify, notifyForbidden, notifyUnequalChannels, updateCommands} = require('../commands');
+const {MessageEmbed} = require('discord.js');
 const RandomOrg = require('random-org');
 const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
-const axios = require('axios').default;
-const config = require('../../configs/config.js');
-const db = require('../../db/repositories/users.js');
-const {escaping} = require('../../utils/string.js');
-const {notifyForbidden} = require('../commands');
-const {searchSongs} = require('./play.js');
+const axios = require('axios');
+const config = require('../../configs/config');
+const {createShikimoriXml} = require('../../utils/attachments');
+const db = require('../../db/repositories/users');
+const {getAddedDescription} = require('../../utils/player');
+const {getSearch} = require('../../api/external/youtube');
+const progressBar = require('string-progressbar');
 const {t} = require('i18next');
-const xml2js = require('xml2js');
 
 const MAX_COUNT = 100;
 
@@ -86,6 +87,11 @@ module.exports.play = async (interaction, isExecute,
     return {result: t('web:info.forbidden', {command: getCommandName(__filename)})};
   }
 
+  if (isConnected(interaction.guildId) && !isSameChannel(interaction)) {
+    await notifyUnequalChannels(getCommandName(__filename), interaction, isExecute);
+    return {result: t('web:info.unequalChannels')};
+  }
+
   if (count < 1 || count > MAX_COUNT) {
     if (isExecute) {
       const embed = new MessageEmbed()
@@ -93,7 +99,7 @@ module.exports.play = async (interaction, isExecute,
         .setTitle(t('discord:command.shikimori.play.unboundCount.title'))
         .setDescription(t('discord:command.shikimori.play.unboundCount.description', {max: MAX_COUNT}))
         .setTimestamp();
-      await notify(getCommandName(__filename), interaction, {embeds: [embed]});
+      await notify(interaction, {embeds: [embed]});
     }
     await audit({
       guildId: interaction.guildId,
@@ -143,7 +149,7 @@ module.exports.play = async (interaction, isExecute,
         .setTitle(t('discord:command.shikimori.play.noRandom.title'))
         .setDescription(t('discord:command.shikimori.play.noRandom.description'))
         .setTimestamp();
-      await notify(getCommandName(__filename), interaction, {embeds: [embed]});
+      await notify(interaction, {embeds: [embed]});
     }
     await audit({
       guildId: interaction.guildId,
@@ -160,7 +166,7 @@ module.exports.play = async (interaction, isExecute,
       .setTitle(t('discord:command.shikimori.play.completed.title'))
       .setDescription(t('discord:command.shikimori.play.completed.description'))
       .setTimestamp();
-    await notify('shikimori', interaction, {embeds: [embed]});
+    await notify(interaction, {embeds: [embed]});
   }
   await audit({
     guildId: interaction.guildId,
@@ -168,7 +174,7 @@ module.exports.play = async (interaction, isExecute,
     category: CATEGORIES.COMMAND,
     message: t('inner:audit.command.shikimori.play.creating.success'),
   });
-  await searchSongs(interaction, isExecute, audios, login);
+  await search(interaction, audios, login, isExecute);
   return {login, count: audios.length};
 };
 
@@ -188,7 +194,7 @@ const set = async interaction => {
       .setTitle(t('discord:command.shikimori.set.nonExistLogin.title'))
       .setDescription(t('discord:command.shikimori.set.nonExistLogin.description', {login}))
       .setTimestamp();
-    await notify(getCommandName(__filename), interaction, {embeds: [embed]});
+    await notify(interaction, {embeds: [embed]});
     await audit({
       guildId: interaction.guildId,
       type: TYPES.WARNING,
@@ -208,7 +214,7 @@ const set = async interaction => {
     .setTitle(t('discord:command.shikimori.set.completed.title'))
     .setTimestamp()
     .setFields({name: escaping(login), value: escaping(nickname)});
-  await notify(getCommandName(__filename), interaction, {embeds: [embed]});
+  await notify(interaction, {embeds: [embed]});
   await audit({
     guildId: interaction.guildId,
     type: TYPES.INFO,
@@ -233,7 +239,7 @@ const remove = async interaction => {
     .setTitle(t('discord:command.shikimori.remove.completed.title'))
     .setTimestamp()
     .setDescription(escaping(login));
-  await notify(getCommandName(__filename), interaction, {embeds: [embed]});
+  await notify(interaction, {embeds: [embed]});
   await audit({
     guildId: interaction.guildId,
     type: TYPES.INFO,
@@ -249,23 +255,8 @@ const oExport = async interaction => {
   }
 
   const nickname = interaction.options.getString('nickname');
-
-  const attachment = await axios.get(`https://shikimori.one/${nickname}/list_export/animes.xml`)
-    .then(response => xml2js.parseStringPromise(response.data))
-    .then(animeList => ({
-      myanimelist: {
-        ...animeList.myanimelist,
-        anime: animeList.myanimelist.anime.map(anime => ({
-          my_start_date: ['0000-00-00'],
-          my_finish_date: ['0000-00-00'],
-          ...anime,
-        })),
-      },
-    }))
-    .then(animeList => new xml2js.Builder().buildObject(animeList))
-    .then(xml => new MessageAttachment(Buffer.from(xml, 'utf8'), `${nickname}_animes.xml`));
-
-  await notify(getCommandName(__filename), interaction, {files: [attachment]});
+  const attachment = await createShikimoriXml(nickname);
+  await notify(interaction, {files: [attachment]});
   await audit({
     guildId: interaction.guildId,
     type: TYPES.INFO,
@@ -273,3 +264,69 @@ const oExport = async interaction => {
     message: t('inner:audit.command.shikimori.export.completed'),
   });
 };
+
+const search = async (interaction, audios, login, isExecute) => {
+  let intervalId = null;
+  let counter = 0;
+
+  if (isExecute) {
+    const embed = new MessageEmbed()
+      .setColor(config.colors.info)
+      .setTitle(t('discord:command.play.searching.title'));
+    intervalId = setInterval(async () => {
+      const barString = progressBar.filledBar(audios.length, counter);
+
+      embed.setDescription(`${barString[0]} [${Math.round(barString[1])}%]`);
+      await interaction.editReply({embeds: [embed]});
+    }, 1000);
+  }
+
+  const added = await audios.reduce((accPromise, audio) => getSearch(interaction, audio)
+    .then(search => accPromise.then(acc => reduceInfo(acc, search.info)),
+    ).then(info => {
+      counter++;
+      return info;
+    }), initialInfo(interaction, audios));
+
+  const description = getAddedDescription(interaction.guildId, added.info);
+  clearInterval(intervalId);
+  addQueue(interaction.guildId, added);
+  await playPlayer(interaction);
+
+  if (isExecute) {
+    const embed = new MessageEmbed()
+      .setTitle(t('discord:command.play.shikimori.title', {login}))
+      .setColor(config.colors.info)
+      .setURL(`https://shikimori.one/${login}/list/anime/mylist/completed,watching/order-by/ranked`)
+      .setDescription(description)
+      .setThumbnail('https://i.ibb.co/PGFbnkS/Afk-W8-Fi-E-400x400.png')
+      .setTimestamp()
+      .setFooter({
+        text: t('inner:audit.command.play.shikimori', {username: added.info.author.username}),
+        iconURL: added.info.author.iconURL,
+      });
+    await interaction.editReply({embeds: [embed]});
+  }
+};
+
+const reduceInfo = (acc, info) => ({
+  info: {
+    ...acc.info,
+    duration: acc.info.duration + parseInt(info.duration),
+  },
+  songs: [
+    ...(acc.songs ?? []),
+    info,
+  ],
+});
+
+const initialInfo = (interaction, audios) => Promise.resolve({
+  info: {
+    length: audios.length,
+    duration: 0,
+    author: {
+      username: interaction.user.username,
+      iconURL: interaction.user.displayAvatarURL(),
+    },
+  },
+});

@@ -4,9 +4,9 @@ const {notify, notifyForbidden} = require('../commands');
 const {MessageEmbed} = require('discord.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
-const config = require('../../configs/config.js');
+const config = require('../../configs/config');
 const {getCommandName} = require('../../utils/string');
-const helps = require('../../configs/help.js');
+const helps = require('../../configs/help');
 const {t} = require('i18next');
 const {version} = require('../../../../../package.json');
 
@@ -42,7 +42,7 @@ const help = async interaction => {
       text: t('discord:command.help.completed.footer', {currentYear: new Date().getFullYear()}),
       iconURL: 'https://e7.pngegg.com/pngimages/330/725/png-clipart-computer-icons-public-key-certificate-organization-test-certificate-miscellaneous-company.png',
     });
-  await notify(getCommandName(__filename), interaction, {embeds: [embed]});
+  await notify(interaction, {embeds: [embed]});
   await audit({
     guildId: interaction.guildId,
     type: TYPES.INFO,

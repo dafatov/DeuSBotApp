@@ -40,6 +40,7 @@ module.exports.stringify = object => {
 
 module.exports.padEnum = (item, enumeration) => {
   const max = Math.max(...Object.values(enumeration).map(e => e.length));
+
   return item.padStart(max, ' ');
 };
 

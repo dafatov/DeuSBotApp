@@ -15,19 +15,19 @@ module.exports.init = async client => {
   const httpServer = createServer(app);
   const io = new Server(httpServer, {cors: {origin: '*'}});
 
-  fs.readdirSync('./src/main/js/api/rest')
+  fs.readdirSync('./src/main/js/api/internal/rest')
     .filter(f => !f.startsWith('_'))
     .filter(f => f.endsWith('js'))
-    .map(f => require(`./api/rest/${f}`))
+    .map(f => require(`./api/internal/rest/${f}`))
     .forEach(api => {
       api.execute({app});
     });
 
   io.on('connection', socket => {
-    fs.readdirSync('./src/main/js/api/socket')
+    fs.readdirSync('./src/main/js/api/internal/socket')
       .filter(f => !f.startsWith('_'))
       .filter(f => f.endsWith('js'))
-      .map(f => require(`./api/socket/${f}`))
+      .map(f => require(`./api/internal/socket/${f}`))
       .forEach(api => {
         api.execute({io, socket, client});
       });

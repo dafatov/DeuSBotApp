@@ -24,20 +24,21 @@ module.exports.localePostgresInterval = postgresInterval => {
 };
 
 module.exports.comparePostgresInterval = (a, b, isDescending = false) => {
-  const mapPostgresInterval = interval => interval.toISOString()
-    .replace('T', '')
-    .split(new RegExp('[A-Z]'))
-    .slice(1, -1);
+  const keys = ['years', 'months', 'days', 'hours', 'minutes', 'seconds', 'milliseconds'];
+  const mapPostgresInterval = interval => keys.reduce((acc, key) => ({
+    ...acc,
+    [key]: interval[key] ?? 0
+  }), {});
 
   a = mapPostgresInterval(a);
   b = mapPostgresInterval(b);
 
   // eslint-disable-next-line no-loops/no-loops
-  for (let i = 0; i < Math.min(a.length, b.length); i++) {
-    if (a[i] !== b[i]) {
+  for (const key of keys) {
+    if (a[key] !== b[key]) {
       return (isDescending
         ? -1
-        : 1) * (a[i] - b[i]);
+        : 1) * (a[key] - b[key]);
     }
   }
 

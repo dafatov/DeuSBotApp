@@ -1,5 +1,5 @@
 const {t} = require('i18next');
-const {version} = require('../../../../../package.json');
+const {version} = require('../../../../../../package.json');
 
 module.exports = {
   execute({app}) {
