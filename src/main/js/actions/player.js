@@ -172,6 +172,7 @@ module.exports.createConnection = interaction => {
 
 const createPlayer = async (interaction, guildId) => {
   let timerId;
+
   try {
     if (this.getQueue(guildId).connection && !this.getQueue(guildId).player) {
       this.getQueue(guildId).player = createAudioPlayer({
@@ -188,9 +189,9 @@ const createPlayer = async (interaction, guildId) => {
           message: stringify(e),
         });
 
-        try {
-          if (e.resource.playbackDuration === 0) {
-            timerId = setTimeout(async () => {
+        if (e.resource.playbackDuration === 0) {
+          timerId = setTimeout(async () => {
+            if (this.isPlaying(guildId)) {
               await audit({
                 guildId,
                 type: TYPES.WARNING,
@@ -198,15 +199,8 @@ const createPlayer = async (interaction, guildId) => {
                 message: t('inner:audit.player.play', {song: this.getQueue(guildId).nowPlaying.song.title}),
               });
               await play(guildId, true);
-            }, 250);
-          }
-        } catch (e) {
-          await audit({
-            guildId,
-            type: TYPES.ERROR,
-            category: CATEGORIES.PLAYER,
-            message: stringify(e),
-          });
+            }
+          }, 250);
         }
       });
 
