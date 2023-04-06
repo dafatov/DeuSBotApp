@@ -14,7 +14,6 @@ module.exports.execute = async interaction => {
       category: CATEGORIES.LISTENER,
       message: t('inner:audit.listener.lost', {commandName}),
     });
-
     return;
   }
 

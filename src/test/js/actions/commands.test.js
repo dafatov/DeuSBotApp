@@ -1,5 +1,5 @@
 const client = require('../../resources/mocks/client');
-const expectedCommands = require('../../resources/actions/expectedCommands');
+const expectedCommands = require('../../resources/actions/commands/expectedCommands');
 const interaction = require('../../resources/mocks/commandInteraction');
 const locale = require('../configs/locale');
 

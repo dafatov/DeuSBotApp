@@ -15,3 +15,5 @@ module.exports.arrayMoveMutable = (array, fromIndex, toIndex) => {
 
 module.exports.chunk = (array, chunkSize) => Array(Math.ceil(array.length / chunkSize)).fill()
   .map((_, index) => array.slice(index * chunkSize, index * chunkSize + chunkSize));
+
+module.exports.mapToArray = map => JSON.parse(JSON.stringify(Array.from(map)));
