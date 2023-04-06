@@ -121,6 +121,7 @@ describe('execute', () => {
         generateIntegers: jest.fn().mockResolvedValue({requestsLeft: 3, random: {data: [1, 4]}}),
       }));
       youtubeMocked.getSearch.mockResolvedValueOnce(search[0]).mockResolvedValueOnce(search[1]);
+      process.env.SHIKIMORI_URL = 'https://shikimori.me';
 
       const result = await execute(interaction);
 
@@ -161,12 +162,13 @@ describe('execute', () => {
       axiosMocked.get.mockImplementationOnce(() => {
         throw new Error('wrong user');
       });
+      process.env.SHIKIMORI_URL = 'https://shikimori.me';
 
       await execute(interaction);
 
       expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.shikimori.set');
       expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
-      expect(axiosMocked.get).toHaveBeenCalledWith('https://shikimori.one/login');
+      expect(axiosMocked.get).toHaveBeenCalledWith('https://shikimori.me/login');
       expect(commandsMocked.notify).toHaveBeenCalledWith(...expectedSetNonExistLogin);
       expect(auditorMocked.audit).toHaveBeenCalled();
       expect(usersDbMocked.set).not.toHaveBeenCalled();
@@ -185,7 +187,7 @@ describe('execute', () => {
 
       expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.shikimori.set');
       expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
-      expect(axiosMocked.get).toHaveBeenCalledWith('https://shikimori.one/login');
+      expect(axiosMocked.get).toHaveBeenCalledWith('https://shikimori.me/login');
       expect(usersDbMocked.set).toHaveBeenCalledWith({'login': 'login', 'nickname': 'nickname'});
       expect(commandsMocked.updateCommands).toHaveBeenCalledWith(interaction.client);
       expect(commandsMocked.notify).toHaveBeenCalledWith(...expectedSetSuccess);
@@ -273,6 +275,7 @@ describe('play', () => {
       generateIntegers: jest.fn().mockResolvedValue({requestsLeft: 3, random: {data: [1, 4]}}),
     }));
     youtubeMocked.getSearch.mockResolvedValueOnce(search[0]).mockResolvedValueOnce(search[1]);
+    process.env.SHIKIMORI_URL = 'https://shikimori.me';
 
     const result = await play(interaction, false, 'login', 2);
 

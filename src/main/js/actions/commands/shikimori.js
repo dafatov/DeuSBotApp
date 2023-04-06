@@ -111,7 +111,7 @@ module.exports.play = async (interaction, isExecute,
   }
 
   let audios = [];
-  await axios.get(`https://shikimori.one/${login}/list_export/animes.json`)
+  await axios.get(`${process.env.SHIKIMORI_URL}/${login}/list_export/animes.json`)
     .then(response => response.data
       .filter(anime => (anime.status === 'completed' || anime.status === 'watching') && anime.episodes > 1))
     .then(animes => animes.forEach(anime => {
@@ -187,7 +187,7 @@ const set = async interaction => {
   const login = interaction.options.getString('login');
 
   try {
-    await axios.get(`https://shikimori.one/${login}`);
+    await axios.get(`${process.env.SHIKIMORI_URL}/${login}`);
   } catch (e) {
     const embed = new MessageEmbed()
       .setColor(config.colors.info)
@@ -297,7 +297,7 @@ const search = async (interaction, audios, login, isExecute) => {
     const embed = new MessageEmbed()
       .setTitle(t('discord:command.play.shikimori.title', {login}))
       .setColor(config.colors.info)
-      .setURL(`https://shikimori.one/${login}/list/anime/mylist/completed,watching/order-by/ranked`)
+      .setURL(`${process.env.SHIKIMORI_URL}/${login}/list/anime/mylist/completed,watching/order-by/ranked`)
       .setDescription(description)
       .setThumbnail('https://i.ibb.co/PGFbnkS/Afk-W8-Fi-E-400x400.png')
       .setTimestamp()

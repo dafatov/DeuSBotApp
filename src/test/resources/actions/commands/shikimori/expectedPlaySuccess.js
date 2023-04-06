@@ -14,7 +14,7 @@ module.exports = {
         'url': 'https://i.ibb.co/PGFbnkS/Afk-W8-Fi-E-400x400.png',
       },
       title: 'Композиции профиля login',
-      'url': 'https://shikimori.one/login/list/anime/mylist/completed,watching/order-by/ranked',
+      'url': 'https://shikimori.me/login/list/anime/mylist/completed,watching/order-by/ranked',
     }),
   ],
 };

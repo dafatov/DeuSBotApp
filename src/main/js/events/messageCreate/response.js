@@ -10,22 +10,17 @@ module.exports.execute = ({message}) => {
   }
 
   return getAll(message.guildId)
-    .then(rules => rules
-      .map(async e => {
-        if (!e.regex || !e.react) {
-          throw t('inner:error.response', {regex: e.regex, react: e.react});
-        }
-
-        if (message.content.match(e.regex)) {
-          await message.reply(`${e.react}`);
-          await audit({
+    .then(rules => Promise.all(rules.map(rule => {
+      if (message.content.match(rule.regex)) {
+        return message.reply(rule.react)
+          .then(() => audit({
             guildId: message.guild.id,
             type: TYPES.INFO,
             category: CATEGORIES.RESPONSE,
-            message: t('inner:audit.response', {message: message.content, regex: e.regex, react: e.react}),
-          });
-        }
-      })).catch(e => audit({
+            message: t('inner:audit.response', {message: message.content, regex: rule.regex, react: rule.react}),
+          }));
+      }
+    }))).catch(e => audit({
       guildId: null,
       type: TYPES.ERROR,
       category: CATEGORIES.RESPONSE,

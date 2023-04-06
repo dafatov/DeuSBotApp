@@ -92,7 +92,7 @@ module.exports.createCalendar = async (guild, birthdays, monthDate, {month, year
   return new MessageAttachment(canvas.toBuffer(), 'calendar.png');
 };
 
-module.exports.createShikimoriXml = nickname => axios.get(`https://shikimori.one/${nickname}/list_export/animes.xml`)
+module.exports.createShikimoriXml = nickname => axios.get(`${process.env.SHIKIMORI_URL}/${nickname}/list_export/animes.xml`)
   .then(response => xml2js.parseStringPromise(response.data))
   .then(animeList => ({
     myanimelist: {
