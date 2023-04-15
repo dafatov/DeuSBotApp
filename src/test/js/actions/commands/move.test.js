@@ -32,7 +32,7 @@ describe('execute', () => {
     expect(commandsMocked.notifyUnbound).not.toHaveBeenCalled();
     expect(commandsMocked.notify).not.toHaveBeenCalled();
     expect(auditorMocked.audit).not.toHaveBeenCalled();
-    expect(arrayMocked.arrayMoveMutable).not.toHaveBeenCalled();
+    expect(arrayMocked.arrayMove).not.toHaveBeenCalled();
   });
 
   test('no playing', async () => {
@@ -50,7 +50,7 @@ describe('execute', () => {
     expect(commandsMocked.notifyUnbound).not.toHaveBeenCalled();
     expect(commandsMocked.notify).not.toHaveBeenCalled();
     expect(auditorMocked.audit).not.toHaveBeenCalled();
-    expect(arrayMocked.arrayMoveMutable).not.toHaveBeenCalled();
+    expect(arrayMocked.arrayMove).not.toHaveBeenCalled();
   });
 
   test('unequal channels', async () => {
@@ -69,7 +69,7 @@ describe('execute', () => {
     expect(commandsMocked.notifyUnbound).not.toHaveBeenCalled();
     expect(commandsMocked.notify).not.toHaveBeenCalled();
     expect(auditorMocked.audit).not.toHaveBeenCalled();
-    expect(arrayMocked.arrayMoveMutable).not.toHaveBeenCalled();
+    expect(arrayMocked.arrayMove).not.toHaveBeenCalled();
   });
 
   test(
@@ -92,7 +92,7 @@ describe('execute', () => {
       expect(commandsMocked.notifyUnbound).toHaveBeenCalledWith('move', interaction, true);
       expect(commandsMocked.notify).not.toHaveBeenCalled();
       expect(auditorMocked.audit).not.toHaveBeenCalled();
-      expect(arrayMocked.arrayMoveMutable).not.toHaveBeenCalled();
+      expect(arrayMocked.arrayMove).not.toHaveBeenCalled();
     },
   );
 

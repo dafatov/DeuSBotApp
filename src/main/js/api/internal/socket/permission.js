@@ -1,5 +1,5 @@
 const {SCOPES, getAll, setPatch} = require('../../../db/repositories/permission');
-const {authCheckForbidden, authForScopes} = require('../../../utils/security');
+const {authCheckForbidden, authForScopes} = require('../security');
 const {t} = require('i18next');
 
 module.exports = {
@@ -30,17 +30,16 @@ module.exports = {
 
     socket.on('permission:getUsers', callback =>
       client.guilds.fetch()
-        .then(guilds => guilds.reduce((acc, guild) => guild.fetch()
+        .then(guilds => guilds.reduce((accPromise, guild) => guild.fetch()
           .then(guild => guild.members.fetch())
           .then(members => members.map(member => member.user))
           .then(users => users.filter(user => !user.bot))
-          .then(async users => [
-            ...new Set([
-              ...(await acc),
-              ...users,
-            ]),
-          ]), []))
-        .then(users => callback(users)));
+          .then(users => accPromise
+            .then(acc => [
+              ...acc,
+              ...users.filter(user => !acc.map(accUser => accUser.id).includes(user.id)),
+            ])), Promise.resolve([]))
+          .then(users => callback(users))));
 
     socket.on('permission:getScopes', callback =>
       callback(Object.values(SCOPES)));

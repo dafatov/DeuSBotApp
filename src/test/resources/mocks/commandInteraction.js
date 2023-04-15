@@ -1,5 +1,6 @@
 const client = require('./client');
 const guild = require('./guild');
+const member = require('./member');
 const user = require('./user');
 
 module.exports = {
@@ -12,18 +13,7 @@ module.exports = {
   guild,
   guildId: '301783183828189184',
   isRepliable: jest.fn(),
-  member: {
-    voice: {
-      channel: {
-        id: '343847059612237824',
-        guildId: '301783183828189184',
-        guild: {
-          voiceAdapterCreator: {},
-        },
-        name: 'Осенний кринж',
-      },
-    },
-  },
+  member,
   options: {
     getChannel: jest.fn(),
     getInteger: jest.fn(),

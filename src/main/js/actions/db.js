@@ -18,24 +18,22 @@ const getNewClient = () => {
 
 module.exports.db = getNewClient();
 
-module.exports.init = async () => {
-  await this.db.connect()
-    .then(() => migrate({client: this.db}, 'src/main/js/db/migrations', process.env.LOGGING === 'DEBUG'
-      // eslint-disable-next-line no-console
-      ? {logger: console.log}
-      : {}))
-    .then(() => audit({
-      guildId: null,
-      type: TYPES.INFO,
-      category: CATEGORIES.INIT,
-      message: t('inner:audit.init.database'),
-    })).catch(e => audit({
-      guildId: null,
-      type: TYPES.ERROR,
-      category: CATEGORIES.DATABASE,
-      message: stringify(e),
-    }));
-};
+module.exports.init = () => this.db.connect()
+  .then(() => migrate({client: this.db}, 'src/main/js/db/migrations', process.env.LOGGING === 'DEBUG'
+    // eslint-disable-next-line no-console
+    ? {logger: console.log}
+    : {}))
+  .then(() => audit({
+    guildId: null,
+    type: TYPES.INFO,
+    category: CATEGORIES.INIT,
+    message: t('inner:audit.init.database'),
+  })).catch(e => audit({
+    guildId: null,
+    type: TYPES.ERROR,
+    category: CATEGORIES.DATABASE,
+    message: stringify(e),
+  }));
 
 module.exports.db.on('error', async e => {
   module.exports.db = getNewClient();

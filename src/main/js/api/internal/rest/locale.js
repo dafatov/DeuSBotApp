@@ -1,6 +1,6 @@
 const {CATEGORIES, TYPES} = require('../../../db/repositories/audit');
-const {getResourceBundle, services, t} = require('i18next');
 const {audit} = require('../../../actions/auditor');
+const i18next = require('i18next');
 const {stringify} = require('../../../utils/string');
 
 module.exports = {
@@ -11,8 +11,8 @@ module.exports = {
           guildId: null,
           type: TYPES.INFO,
           category: CATEGORIES.LOCALE,
-          message: t('inner:audit.locale.get', {ns: req.params.ns, lng: req.params.lng}),
-        }).then(() => res.json(getResourceBundle(req.params.lng, req.params.ns)));
+          message: i18next.t('inner:audit.locale.get', {ns: req.params.ns, lng: req.params.lng}),
+        }).then(() => res.json(i18next.getResourceBundle(req.params.lng, req.params.ns)));
       } catch (e) {
         await audit({
           guildId: null,
@@ -27,14 +27,14 @@ module.exports = {
 
     app.post('/api/locales/add/:lng/:ns', async (request, response) => {
       try {
-        Object.keys(request.body).filter(k => k).forEach(key => {
-          services.backendConnector.saveMissing(request.params.lng, request.params.ns, key, request.body[key]);
+        Object.keys(request.body).filter(key => key).forEach(key => {
+          i18next.services.backendConnector.saveMissing(request.params.lng, request.params.ns, key, request.body[key]);
         });
         await audit({
           guildId: null,
           type: TYPES.WARNING,
           category: CATEGORIES.LOCALE,
-          message: t('inner:audit.locale.missing', {key: Object.keys(request.body).map(key => request.params.ns + ':' + key)}),
+          message: i18next.t('inner:audit.locale.missing', {key: Object.keys(request.body).map(key => request.params.ns + ':' + key)}),
         }).then(() => response.status(200));
       } catch (e) {
         await audit({

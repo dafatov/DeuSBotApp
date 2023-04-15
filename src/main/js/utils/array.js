@@ -1,4 +1,16 @@
-module.exports.arrayMoveMutable = (array, fromIndex, toIndex) => {
+module.exports.shuffleArray = array => {
+  let j, tmp;
+
+  // eslint-disable-next-line no-loops/no-loops
+  for (let i = array.length - 1; i > 0; i--) {
+    j = Math.floor(Math.random() * (i + 1));
+    tmp = array[j];
+    array[j] = array[i];
+    array[i] = tmp;
+  }
+};
+
+module.exports.arrayMove = (array, fromIndex, toIndex) => {
   const startIndex = fromIndex < 0
     ? array.length + fromIndex
     : fromIndex;
@@ -12,8 +24,5 @@ module.exports.arrayMoveMutable = (array, fromIndex, toIndex) => {
     array.splice(endIndex, 0, item);
   }
 };
-
-module.exports.chunk = (array, chunkSize) => Array(Math.ceil(array.length / chunkSize)).fill()
-  .map((_, index) => array.slice(index * chunkSize, index * chunkSize + chunkSize));
 
 module.exports.mapToArray = map => JSON.parse(JSON.stringify(Array.from(map)));

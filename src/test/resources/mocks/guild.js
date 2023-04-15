@@ -1,8 +1,15 @@
+const {Collection} = require('discord.js');
+
 module.exports = {
   channels: {
     resolve: jest.fn(() => ({name: 'deus-bot-news'})),
   },
   fetch: jest.fn(() => Promise.resolve({
+    channels: {
+      fetch: jest.fn(() => Promise.resolve(new Collection([
+        ['922163692940951574', {send: module.exports.send}],
+      ]))),
+    },
     id: '301783183828189184',
     members: {
       fetch: jest.fn(fetchMembersOptions => Promise.resolve([
@@ -29,5 +36,11 @@ module.exports = {
       ].filter(member => fetchMembersOptions?.user?.includes(member.user.id) ?? true))),
     },
   })),
+  id: '301783183828189184',
   name: 'CRINGE-A-LOT',
 };
+
+module.exports.send = jest.fn(args => ({
+  guildId: '301783183828189184',
+  ...args,
+}));

@@ -3,20 +3,24 @@ const {publish} = require('../../../actions/changelog');
 
 module.exports = {
   execute({socket}) {
-    socket.on('changelog:changelog', () =>
-      getAll().then(changelog => socket.emit(
-        'changelog:changelog',
-        {status: 200, data: changelog.map(c => ({...c, message: JSON.parse(c.message)}))},
-      )));
+    socket.on('changelog:changelog', () => getAll()
+      .then(changelogList => socket.emit('changelog:changelog', {
+        status: 200, data: changelogList.map(changelog => ({
+          ...changelog,
+          message: JSON.parse(changelog.message),
+        })),
+      })));
 
     socket.on('changelog:publish', (version, changelog, callback) =>
       publish(version, APPLICATIONS.DEUS_BOT_APP, changelog.isPublic, changelog.message)
-        .then(v => callback(v))
+        .then(version => callback(version))
         .then(() => cacheReset())
         .then(() => getAll())
-        .then(changelog => socket.emit(
-          'changelog:changelog',
-          changelog.map(c => ({...c, message: JSON.parse(c.message)})),
-        )));
+        .then(changelogList => socket.emit('changelog:changelog', {
+          status: 200, data: changelogList.map(changelog => ({
+            ...changelog,
+            message: JSON.parse(changelog.message),
+          })),
+        })));
   },
 };
