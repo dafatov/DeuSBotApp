@@ -1,5 +1,6 @@
-const {authForNowPlaying, authForSongs, authForVoiceMember, generateInteraction, generateInteractionWithVoiceChannel} = require('../../../utils/security');
+const {authForNowPlaying, authForSongs, authForVoiceMember} = require('../security');
 const {clear} = require('../../../actions/commands/clear');
+const {generateInteraction} = require('../../../utils/api');
 const {getAll} = require('../../../db/repositories/users');
 const {getRadios} = require('../../../actions/radios');
 const {loop} = require('../../../actions/commands/loop');
@@ -26,7 +27,7 @@ const nowPlaying = ({io, socket, client}) => {
 
   socket.on('nowPlaying:skip', (token, callback) =>
     authForVoiceMember(token, client)
-      .then(member => generateInteractionWithVoiceChannel(member))
+      .then(member => generateInteraction(member))
       .then(interaction => skip(interaction, false))
       .then(result => callback(result))
       .catch(result => callback(result))
@@ -35,7 +36,7 @@ const nowPlaying = ({io, socket, client}) => {
 
   socket.on('nowPlaying:pause', (token, callback) =>
     authForVoiceMember(token, client)
-      .then(member => generateInteractionWithVoiceChannel(member))
+      .then(member => generateInteraction(member))
       .then(interaction => pause(interaction, false))
       .then(result => callback(result))
       .catch(result => callback(result))
@@ -44,7 +45,7 @@ const nowPlaying = ({io, socket, client}) => {
 
   socket.on('nowPlaying:loop', (token, callback) =>
     authForVoiceMember(token, client)
-      .then(member => generateInteractionWithVoiceChannel(member))
+      .then(member => generateInteraction(member))
       .then(interaction => loop(interaction, false))
       .then(result => callback(result))
       .catch(result => callback(result))
@@ -57,7 +58,7 @@ const queue = ({io, socket, client}) => {
 
   socket.on('queue:remove', (token, index, callback) =>
     authForVoiceMember(token, client)
-      .then(member => generateInteractionWithVoiceChannel(member))
+      .then(member => generateInteraction(member))
       .then(interaction => remove(interaction, false, index))
       .then(result => callback(result))
       .catch(result => callback(result))
@@ -66,7 +67,7 @@ const queue = ({io, socket, client}) => {
 
   socket.on('queue:move', (token, from, to, callback) =>
     authForVoiceMember(token, client)
-      .then(member => generateInteractionWithVoiceChannel(member))
+      .then(member => generateInteraction(member))
       .then(interaction => move(interaction, false, to, from))
       .then(result => callback(result))
       .catch(result => callback(result))
@@ -77,7 +78,7 @@ const queue = ({io, socket, client}) => {
 const control = ({io, socket, client}) => {
   socket.on('control:shuffle', (token, callback) =>
     authForVoiceMember(token, client)
-      .then(member => generateInteractionWithVoiceChannel(member))
+      .then(member => generateInteraction(member))
       .then(interaction => shuffle(interaction, false))
       .then(result => callback(result))
       .catch(result => callback(result))
@@ -86,7 +87,7 @@ const control = ({io, socket, client}) => {
 
   socket.on('control:clear', (token, callback) =>
     authForVoiceMember(token, client)
-      .then(member => generateInteractionWithVoiceChannel(member))
+      .then(member => generateInteraction(member))
       .then(interaction => clear(interaction, false))
       .then(result => callback(result))
       .catch(result => callback(result))

@@ -202,20 +202,5 @@ module.exports.notifyUnbound = async (commandName, interaction, isExecute) => {
   });
 };
 
-module.exports.notifyError = async (commandName, e, interaction) => {
-  const embed = new MessageEmbed()
-    .setColor(config.colors.error)
-    .setTitle(t('discord:embed.command.notifyError.title'))
-    .setTimestamp()
-    .setDescription(`${stringify(e)}`);
-  await this.notify(interaction, {embeds: [embed]});
-  await audit({
-    guildId: interaction.guildId,
-    type: TYPES.ERROR,
-    category: CATEGORIES.COMMAND,
-    message: `[${commandName}]:\n${stringify(e)}`,
-  });
-};
-
 module.exports.getCommandsData = client =>
   Promise.all(client.commands.map(command => Promise.resolve(command.data()).then(commandData => commandData.toJSON())));

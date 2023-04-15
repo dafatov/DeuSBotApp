@@ -1,10 +1,9 @@
-const {CATEGORIES, TYPES} = require('../db/repositories/audit');
-const {getScopes, isForbidden} = require('../db/repositories/permission');
-const {audit} = require('../actions/auditor');
+const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {getScopes, isForbidden} = require('../../db/repositories/permission');
+const {audit} = require('../../actions/auditor');
 const axios = require('axios');
-const {getQueue} = require('../actions/player');
-const {stringify} = require('./string');
-const {t} = require('i18next');
+const {getQueue} = require('../../actions/player');
+const {stringify} = require('../../utils/string');
 
 //TODO добавить throw exception, когда пользователя нет или токен устарел
 const authForUserId = token =>
@@ -79,23 +78,3 @@ module.exports.authForSongs = (token, client) =>
       category: CATEGORIES.SECURITY,
       message: stringify(e),
     }));
-
-module.exports.generateInteraction = member => {
-  return new Promise((resolve, reject) => {
-    if (member) {
-      resolve({user: member.user, guildId: member.guild.id, member});
-    } else {
-      reject({result: t('inner:server.status.wrongVoiceChannel')});
-    }
-  });
-};
-
-module.exports.generateInteractionWithVoiceChannel = member => {
-  return new Promise((resolve, reject) => {
-    if (member) {
-      resolve({guildId: member.guild.id, member: {voice: {channel: {id: member.voice.channelId}}}});
-    } else {
-      reject({result: t('inner:server.status.wrongVoiceChannel')});
-    }
-  });
-};

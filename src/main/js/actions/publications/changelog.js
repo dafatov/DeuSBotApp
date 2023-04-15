@@ -63,7 +63,7 @@ const createDescription = message => {
     message.ad && `_${escaping(message.ad)}_\n`,
     message.announce && `\`\`\`\n${escaping(message.announce)}\n\`\`\``,
     message.features.length > 0 && `\n**Нововведения:**\n${getFeatures()}\n`,
-    message.bugfixes.length > 0 && `**Исправления:**\n${getBugfixes()}\n`,
+    message.bugfixes.length > 0 && `\n**Исправления:**\n${getBugfixes()}\n`,
     message.footer && `\n_${escaping(message.footer)}_`,
   ];
 

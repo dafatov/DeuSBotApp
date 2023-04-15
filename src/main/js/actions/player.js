@@ -1,9 +1,8 @@
 const {AudioPlayerStatus, NoSubscriberBehavior, VoiceConnectionStatus, createAudioPlayer, createAudioResource, joinVoiceChannel} = require('@discordjs/voice');
 const {CATEGORIES, TYPES} = require('../db/repositories/audit');
+const {arrayMove, shuffleArray} = require('../utils/array');
 const {timeFormatMilliseconds, timeFormatSeconds} = require('../utils/dateTime');
-const {arrayMoveMutable} = require('../utils/array');
 const {audit} = require('./auditor');
-const shuffle = require('lodash/shuffle');
 const {stringify} = require('../utils/string');
 const {t} = require('i18next');
 const ytdl = require('ytdl-core');
@@ -60,7 +59,7 @@ module.exports.removeQueue = (guildId, index) => {
 module.exports.moveQueue = (guildId, targetIndex, positionIndex) => {
   const target = this.getQueue(guildId).songs[targetIndex];
 
-  arrayMoveMutable(this.getQueue(guildId).songs, targetIndex, positionIndex);
+  arrayMove(this.getQueue(guildId).songs, targetIndex, positionIndex);
 
   return target;
 };
@@ -101,7 +100,7 @@ module.exports.pause = guildId => {
   return this.getQueue(guildId).nowPlaying.isPause;
 };
 
-module.exports.shuffle = guildId => shuffle(this.getQueue(guildId).songs);
+module.exports.shuffle = guildId => shuffleArray(this.getQueue(guildId).songs);
 
 module.exports.clearNowPlaying = guildId => {
   this.getQueue(guildId).nowPlaying = {};

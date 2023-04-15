@@ -4,8 +4,8 @@ const guild = require('./guild');
 module.exports = {
   commands: new Collection(),
   guilds: {
-    fetch: jest.fn(() => Promise.resolve([
-      guild, {
+    fetch: jest.fn(() => Promise.resolve(new Collection([
+      ['301783183828189184', guild], ['905052154027475004', {
         fetch: jest.fn(() => Promise.resolve({
           id: '905052154027475004',
           members: {
@@ -33,11 +33,18 @@ module.exports = {
             ].filter(member => fetchMembersOptions?.user?.includes(member.user.id) ?? true))),
           },
         })),
-      },
-    ])),
+        id: '905052154027475004',
+        name: 'Among Булок',
+      }],
+    ]))),
   },
   user: {
     id: '909473788779958363',
+  },
+  users: {
+    fetch: jest.fn(userId => Promise.resolve(new Collection([
+      ['348774809003491329', {id: '348774809003491329'}]
+    ]).get(userId))),
   },
   ws: {
     ping: 123.111,

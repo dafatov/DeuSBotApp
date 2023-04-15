@@ -9,9 +9,9 @@ const fs = require('fs');
 const {t} = require('i18next');
 
 module.exports.init = async client => {
-  const app = express();
-  app.use(bodyParser.json({type: '*/*'}));
-  app.use(cors());
+  const app = express()
+    .use(bodyParser.json({type: '*/*'}))
+    .use(cors());
   const httpServer = createServer(app);
   const io = new Server(httpServer, {cors: {origin: '*'}});
 
