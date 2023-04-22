@@ -1,10 +1,11 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
-const {addQueue, isConnected, isSameChannel, playPlayer} = require('../player');
+const {addAll, isConnected, isSameChannel, playPlayer} = require('../player');
 const {escaping, getCommandName} = require('../../utils/string');
 const {notify, notifyForbidden, notifyUnequalChannels} = require('../commands');
 const {DISCORD_OPTIONS_MAX} = require('../../utils/constants');
 const {MessageEmbed} = require('discord.js');
+const {TYPES: SONG_TYPES} = require('../../db/repositories/queue');
 const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const chunk = require('lodash/chunk');
@@ -51,14 +52,14 @@ module.exports.radio = async (interaction, isExecute, stationKey = interaction.o
     return {result: t('web:info.forbidden', {command: 'radio'})};
   }
 
-  if (isConnected(interaction.guildId) && !isSameChannel(interaction)) {
+  if (isConnected(interaction.guildId) && !isSameChannel(interaction.guildId, interaction.member.voice.channel?.id)) {
     await notifyUnequalChannels(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.unequalChannels')};
   }
 
-  const added = getStationAdded(interaction.user, stationKey);
-  const description = getAddedDescription(interaction.guildId, added.info);
-  addQueue(interaction.guildId, added);
+  const added = getStationAdded(interaction.user.id, stationKey);
+  const description = await getAddedDescription(interaction.guildId, added.info);
+  await addAll(interaction.guildId, added);
   await playPlayer(interaction);
 
   if (isExecute) {
@@ -68,11 +69,7 @@ module.exports.radio = async (interaction, isExecute, stationKey = interaction.o
       .setURL(added.info.url)
       .setDescription(description)
       .setThumbnail(added.info.preview)
-      .setTimestamp()
-      .setFooter({
-        text: t('discord:command.radio.completed.footer', {username: added.info.author.username}),
-        iconURL: added.info.author.iconURL,
-      });
+      .setTimestamp();
     await notify(interaction, {embeds: [embed]});
   }
   await audit({
@@ -84,22 +81,18 @@ module.exports.radio = async (interaction, isExecute, stationKey = interaction.o
   return {info: added.info};
 };
 
-const getStationAdded = (user, stationKey) => {
+const getStationAdded = (userId, stationKey) => {
   const station = getRadios().get(stationKey);
 
   return {
     info: {
-      id: `${new Date().getTime()}`,
-      type: 'radio',
+      type: SONG_TYPES.RADIO,
       title: stationKey,
       duration: 0,
       url: station.channel.url,
       isLive: true,
       preview: station.channel.preview,
-      author: {
-        username: user.username,
-        iconURL: user.displayAvatarURL(),
-      },
+      userId,
     },
     get songs() {
       return [this.info];

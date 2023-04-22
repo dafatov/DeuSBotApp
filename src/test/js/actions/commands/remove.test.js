@@ -30,7 +30,7 @@ describe('execute', () => {
     expect(commandsMocked.notifyUnbound).not.toHaveBeenCalled();
     expect(commandsMocked.notify).not.toHaveBeenCalled();
     expect(auditorMocked.audit).not.toHaveBeenCalled();
-    expect(playerMocked.removeQueue).not.toHaveBeenCalled();
+    expect(playerMocked.remove).not.toHaveBeenCalled();
   });
 
   test('no playing', async () => {
@@ -48,7 +48,7 @@ describe('execute', () => {
     expect(commandsMocked.notifyUnbound).not.toHaveBeenCalled();
     expect(commandsMocked.notify).not.toHaveBeenCalled();
     expect(auditorMocked.audit).not.toHaveBeenCalled();
-    expect(playerMocked.removeQueue).not.toHaveBeenCalled();
+    expect(playerMocked.remove).not.toHaveBeenCalled();
   });
 
   test('unequal channels', async () => {
@@ -62,12 +62,12 @@ describe('execute', () => {
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.remove');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
     expect(commandsMocked.notifyNoPlaying).not.toHaveBeenCalled();
-    expect(playerMocked.isSameChannel).toHaveBeenCalledWith(interaction);
+    expect(playerMocked.isSameChannel).toHaveBeenCalledWith('301783183828189184', '343847059612237824');
     expect(commandsMocked.notifyUnequalChannels).toHaveBeenCalledWith('remove', interaction, true);
     expect(commandsMocked.notifyUnbound).not.toHaveBeenCalled();
     expect(commandsMocked.notify).not.toHaveBeenCalled();
     expect(auditorMocked.audit).not.toHaveBeenCalled();
-    expect(playerMocked.removeQueue).not.toHaveBeenCalled();
+    expect(playerMocked.remove).not.toHaveBeenCalled();
   });
 
   test('unbound: {targetIndex: $targetIndex}', async () => {
@@ -79,7 +79,7 @@ describe('execute', () => {
 
     const result = await execute(interaction);
 
-    expect(result).toEqual({'result': 'Выход за пределы очереди'});
+    expect(result).toEqual({'result': 'Выход за пределы очереди или индексы равны'});
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.remove');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
     expect(commandsMocked.notifyNoPlaying).not.toHaveBeenCalled();
@@ -88,17 +88,16 @@ describe('execute', () => {
     expect(commandsMocked.notifyUnbound).toHaveBeenCalledWith('remove', interaction, true);
     expect(commandsMocked.notify).not.toHaveBeenCalled();
     expect(auditorMocked.audit).not.toHaveBeenCalled();
-    expect(playerMocked.removeQueue).not.toHaveBeenCalled();
+    expect(playerMocked.remove).not.toHaveBeenCalled();
   });
 
   test('success', async () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
-    playerMocked.getQueue.mockReturnValue({songs: [{title: 'title 1'}, {title: 'title 2'}, {title: 'title 3'}]});
     playerMocked.isLessQueue.mockReturnValueOnce(false);
     playerMocked.isSameChannel.mockReturnValueOnce(true);
     playerMocked.isValidIndex.mockReturnValueOnce(true);
     interaction.options.getInteger.mockReturnValueOnce(2);
-    playerMocked.removeQueue.mockReturnValueOnce({title: 'title 2'});
+    playerMocked.remove.mockReturnValueOnce({title: 'title 2'});
 
     const result = await execute(interaction);
 
@@ -109,7 +108,7 @@ describe('execute', () => {
     expect(commandsMocked.notifyUnequalChannels).not.toHaveBeenCalled();
     expect(commandsMocked.notifyUnbound).not.toHaveBeenCalled();
     expect(commandsMocked.notify).toHaveBeenCalledWith(...expectedSuccess);
-    expect(playerMocked.removeQueue).toHaveBeenCalledWith('301783183828189184', 1);
+    expect(playerMocked.remove).toHaveBeenCalledWith('301783183828189184', 1);
     expect(auditorMocked.audit).toHaveBeenCalled();
   });
 });
@@ -117,11 +116,10 @@ describe('execute', () => {
 describe('remove', () => {
   test('success', async () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
-    playerMocked.getQueue.mockReturnValue({songs: [{title: 'title 1'}, {title: 'title 2'}, {title: 'title 3'}]});
     playerMocked.isLessQueue.mockReturnValueOnce(false);
     playerMocked.isSameChannel.mockReturnValueOnce(true);
     playerMocked.isValidIndex.mockReturnValueOnce(true);
-    playerMocked.removeQueue.mockReturnValueOnce({title: 'title 2'});
+    playerMocked.remove.mockReturnValueOnce({title: 'title 2'});
 
     const result = await remove(interaction, false, 1);
 
@@ -132,7 +130,7 @@ describe('remove', () => {
     expect(commandsMocked.notifyUnequalChannels).not.toHaveBeenCalled();
     expect(commandsMocked.notifyUnbound).not.toHaveBeenCalled();
     expect(commandsMocked.notify).not.toHaveBeenCalled();
-    expect(playerMocked.removeQueue).toHaveBeenCalledWith('301783183828189184', 1);
+    expect(playerMocked.remove).toHaveBeenCalledWith('301783183828189184', 1);
     expect(auditorMocked.audit).toHaveBeenCalled();
   });
 });

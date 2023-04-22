@@ -1,25 +1,20 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
-const {clearConnection, clearNowPlaying, clearQueue, getQueue} = require('../../actions/player');
-const {VoiceConnectionStatus} = require('@discordjs/voice');
+const {destroyConnection, isConnected, isSameChannel} = require('../../actions/player');
 const {audit} = require('../../actions/auditor');
 const {t} = require('i18next');
 
 module.exports.execute = async ({client, newState}) => {
-  const queue = getQueue(newState.guild.id);
-
-  if (!queue.connection || queue.connection._state.status === VoiceConnectionStatus.Destroyed) {
+  if (!isConnected(newState.guild.id)) {
     return;
   }
 
-  if ((newState?.channelId === queue.voiceChannel.id || newState.id !== client.user.id)
-    && queue.voiceChannel.members.filter(member => !member.user.bot).size >= 1) {
+  if ((isSameChannel(newState.guild.id, newState?.channelId) || newState.id !== client.user.id)
+    && await newState.guild.channels.fetch(newState?.channelId)
+      .then(channel => channel.members.filter(member => !member.user.bot).size >= 1)) {
     return;
   }
 
-  queue.connection.destroy();
-  clearNowPlaying(newState.guild.id);
-  clearQueue(newState.guild.id);
-  clearConnection(newState.guild.id);
+  await destroyConnection(newState.guild.id);
   await audit({
     guildId: newState.guild.id,
     type: TYPES.INFO,

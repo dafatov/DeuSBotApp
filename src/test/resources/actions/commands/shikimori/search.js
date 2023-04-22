@@ -8,10 +8,7 @@ module.exports = [
       'url': 'https://www.youtube.com/watch?v=ypqppXrR1qI',
       'isLive': false,
       'preview': 'https://i.ytimg.com/vi/ypqppXrR1qI/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLCotxSMS4u12D6Wigjn-paq40OdnQ',
-      'author': {
-        'username': 'DemetriouS',
-        'iconURL': 'https://cdn.discordapp.com/avatars/348774809003491329/98e046c34d87c1b00cf6a9bf0f132959.webp'
-      }
+      'userId': '348774809003491329',
     },
     'songs': [
       {
@@ -22,10 +19,7 @@ module.exports = [
         'url': 'https://www.youtube.com/watch?v=ypqppXrR1qI',
         'isLive': false,
         'preview': 'https://i.ytimg.com/vi/ypqppXrR1qI/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLCotxSMS4u12D6Wigjn-paq40OdnQ',
-        'author': {
-          'username': 'DemetriouS',
-          'iconURL': 'https://cdn.discordapp.com/avatars/348774809003491329/98e046c34d87c1b00cf6a9bf0f132959.webp'
-        }
+        'userId': '348774809003491329',
       }
     ]
   },
@@ -38,10 +32,7 @@ module.exports = [
       'url': 'https://www.youtube.com/watch?v=2IazvA6R0pY',
       'isLive': false,
       'preview': 'https://i.ytimg.com/vi/2IazvA6R0pY/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLAOwNrC5smkQN4yNSsuqN8mnP-w3g',
-      'author': {
-        'username': 'DemetriouS',
-        'iconURL': 'https://cdn.discordapp.com/avatars/348774809003491329/98e046c34d87c1b00cf6a9bf0f132959.webp'
-      }
+      'userId': '348774809003491329',
     },
     'songs': [
       {
@@ -52,10 +43,7 @@ module.exports = [
         'url': 'https://www.youtube.com/watch?v=2IazvA6R0pY',
         'isLive': false,
         'preview': 'https://i.ytimg.com/vi/2IazvA6R0pY/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLAOwNrC5smkQN4yNSsuqN8mnP-w3g',
-        'author': {
-          'username': 'DemetriouS',
-          'iconURL': 'https://cdn.discordapp.com/avatars/348774809003491329/98e046c34d87c1b00cf6a9bf0f132959.webp'
-        }
+        'userId': '348774809003491329',
       }
     ]
   }

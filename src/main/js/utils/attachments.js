@@ -1,21 +1,21 @@
 const {createCanvas, loadImage} = require('canvas');
-const {getQueue, hasLive} = require('../actions/player');
 const {MessageAttachment} = require('discord.js');
 const axios = require('axios');
 const config = require('../configs/config.js');
 const {getStatusIcon} = require('./resources');
+const {hasLive} = require('../actions/player');
 const {remained} = require('./calc');
 const {t} = require('i18next');
 const {timeFormatMilliseconds} = require('./dateTime.js');
 const xml2js = require('xml2js');
 
-module.exports.createStatus = async guildId => {
+module.exports.createStatus = async (guildId, nowPlaying) => {
   const canvas = createCanvas(510, 40);
   const context = canvas.getContext('2d');
 
-  const remainedTmp = `-${hasLive(getQueue(guildId))
+  const remainedTmp = `-${await hasLive(guildId)
     ? t('common:player.noRemained')
-    : timeFormatMilliseconds(remained(getQueue(guildId)))}`;
+    : timeFormatMilliseconds(await remained(guildId, nowPlaying))}`;
   context.font = '24px sans-serif';
 
   context.fillStyle = '#2F3136';
@@ -24,7 +24,7 @@ module.exports.createStatus = async guildId => {
   context.fillStyle = config.colors.info;
   context.fillRect(0, 0, 5, 40);
 
-  const status = await loadImage(`./src/main/resources/icons/${getStatusIcon(getQueue(guildId).nowPlaying)}.png`);
+  const status = await loadImage(`./src/main/resources/icons/${getStatusIcon(nowPlaying)}.png`);
   context.drawImage(status, 9, 4, 32, 32);
 
   context.fillStyle = config.colors.info;
@@ -67,14 +67,13 @@ module.exports.createCalendar = async (guild, birthdays, monthDate, {month, year
         context.fillText(monthDate.getDate().toString(), x + wCard - 4 - context.measureText(monthDate.getDate().toString()).width, y + hCard - 8);
 
         context.globalAlpha = 1;
-        const users = birthdays.map(b => ({u: b.user_id, d: new Date(b.date)}))
-          .filter(b => b.d.getDate() === monthDate.getDate()
-            && b.d.getMonth() === monthDate.getMonth())
-          .map(b => b.u);
-        await Promise.all(users.map(async (user, index) => {
+        const users = birthdays.map(birthday => ({userId: birthday.user_id, date: new Date(birthday.date)}))
+          .filter(birthday => birthday.date.getDate() === monthDate.getDate()
+            && birthday.date.getMonth() === monthDate.getMonth())
+          .map(birthday => birthday.userId);
+        await Promise.all(users.map(async (userId, index) => {
           const avatar = await loadImage((await guild.members.fetch())
-            .map(m => m.user)
-            .find(u => u.id === user)
+            .find(member => member.user.id === userId)
             .displayAvatarURL({format: 'jpg'}));
 
           context.save();

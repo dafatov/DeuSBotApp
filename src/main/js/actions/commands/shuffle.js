@@ -22,17 +22,17 @@ module.exports.shuffle = async (interaction, isExecute) => {
     return {result: t('web:info.forbidden', {command: getCommandName(__filename)})};
   }
 
-  if (isLessQueue(interaction.guildId, 2)) {
+  if (await isLessQueue(interaction.guildId, 2)) {
     await notifyNoPlaying(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.noPlaying')};
   }
 
-  if (!isSameChannel(interaction)) {
+  if (!isSameChannel(interaction.guildId, interaction.member.voice.channel?.id)) {
     await notifyUnequalChannels(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.unequalChannels')};
   }
 
-  shuffle(interaction.guildId);
+  await shuffle(interaction.guildId);
 
   if (isExecute) {
     const embed = new MessageEmbed()

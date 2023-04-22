@@ -1,4 +1,4 @@
-const {options} = require('../../actions/player');
+const {TYPES} = require('../../db/repositories/queue');
 const ytdl = require('ytdl-core');
 const ytpl = require('ytpl');
 const ytsr = require('ytsr');
@@ -6,20 +6,36 @@ const ytsr = require('ytsr');
 module.exports.getPlaylist = (interaction, audio) =>
   ytpl.getPlaylistID(audio)
     .then(playlistId => ytpl(playlistId, {limit: Infinity, ...options()})
-      .then(playlist => generatePlaylistInfo(interaction.user, playlist)));
+      .then(playlist => generatePlaylistInfo(interaction.user.id, playlist)));
 
 module.exports.getSong = (interaction, audio) =>
   ytdl.getBasicInfo(audio, options())
-    .then(video => generateSongInfo(interaction.user, video));
+    .then(video => generateSongInfo(interaction.user.id, video));
 
 module.exports.getSearch = (interaction, audio) =>
   ytsr.getFilters(audio, options())
     .then(filters => filters.get('Type').get('Video').url)
     .then(url => ytsr(url, {gl: 'RU', hl: 'ru', limit: 1}, options()))
     .then(videos => ytdl.getBasicInfo(videos.items[0].url, options()))
-    .then(video => generateSongInfo(interaction.user, video));
+    .then(video => generateSongInfo(interaction.user.id, video));
 
-const generatePlaylistInfo = (user, playlist) => playlist.items.reduce((acc, video, index) => ({
+module.exports.getStream = url => ytdl(url, {
+  ...options(),
+  filter: 'audioonly',
+  quality: 'highestaudio',
+  highWaterMark: 1 << 25,
+});
+
+const options = () => ({
+  requestOptions: {
+    headers: {
+      Cookie: process.env.YOUTUBE_COOKIE,
+      'x-youtube-identity-token': process.env.YOUTUBE_ID_TOKEN,
+    },
+  },
+});
+
+const generatePlaylistInfo = (userId, playlist) => playlist.items.reduce((acc, video) => ({
   info: {
     ...acc.info,
     duration: acc.info.duration + parseInt(video.durationSec),
@@ -27,17 +43,13 @@ const generatePlaylistInfo = (user, playlist) => playlist.items.reduce((acc, vid
   songs: [
     ...(acc.songs ?? []),
     {
-      id: `${new Date().getTime()}-${index}`,
-      type: 'youtube',
+      type: TYPES.YOUTUBE,
       title: video.title,
       duration: parseInt(video.durationSec),
       url: video.shortUrl,
       isLive: video.isLive,
       preview: video.bestThumbnail.url,
-      author: {
-        username: user.username,
-        iconURL: user.displayAvatarURL(),
-      },
+      userId,
     },
   ],
 }), {
@@ -48,26 +60,19 @@ const generatePlaylistInfo = (user, playlist) => playlist.items.reduce((acc, vid
     url: playlist.url,
     isLive: playlist.items.some(video => video.isLive),
     preview: playlist.bestThumbnail.url,
-    author: {
-      username: user.username,
-      iconURL: user.displayAvatarURL(),
-    },
+    userId,
   },
 });
 
-const generateSongInfo = (user, video) => ({
+const generateSongInfo = (userId, video) => ({
   info: {
-    id: `${new Date().getTime()}`,
-    type: 'youtube',
+    type: TYPES.YOUTUBE,
     title: video.videoDetails.title,
     duration: parseInt(video.videoDetails.lengthSeconds),
     url: video.videoDetails.video_url,
     isLive: video.videoDetails.isLiveContent,
     preview: video.videoDetails.thumbnails[0].url,
-    author: {
-      username: user.username,
-      iconURL: user.displayAvatarURL(),
-    },
+    userId,
   },
   get songs() {
     return [this.info];

@@ -32,14 +32,14 @@ describe('execute', () => {
 
   test('no playing', async () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
-    playerMocked.isEmptyQueue.mockReturnValueOnce(true);
+    playerMocked.isEmpty.mockReturnValueOnce(true);
 
     const result = await execute(interaction);
 
     expect(result).toEqual({'result': 'Плеер не играет или в очереди не достаточно композиций'});
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.clear');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
-    expect(playerMocked.isEmptyQueue).toHaveBeenCalledWith('301783183828189184');
+    expect(playerMocked.isEmpty).toHaveBeenCalledWith('301783183828189184');
     expect(commandsMocked.notifyNoPlaying).toHaveBeenCalledWith('clear', interaction, true);
     expect(commandsMocked.notifyUnequalChannels).not.toHaveBeenCalled();
     expect(playerMocked.clearQueue).not.toHaveBeenCalled();
@@ -47,7 +47,7 @@ describe('execute', () => {
 
   test('unequal channels', async () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
-    playerMocked.isEmptyQueue.mockReturnValueOnce(false);
+    playerMocked.isEmpty.mockReturnValueOnce(false);
     playerMocked.isSameChannel.mockReturnValueOnce(false);
 
     const result = await execute(interaction);
@@ -56,14 +56,14 @@ describe('execute', () => {
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.clear');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
     expect(commandsMocked.notifyNoPlaying).not.toHaveBeenCalled();
-    expect(playerMocked.isSameChannel).toHaveBeenCalledWith(interaction);
+    expect(playerMocked.isSameChannel).toHaveBeenCalledWith('301783183828189184', '343847059612237824');
     expect(commandsMocked.notifyUnequalChannels).toHaveBeenCalledWith('clear', interaction, true);
     expect(playerMocked.clearQueue).not.toHaveBeenCalled();
   });
 
   test('success', async () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
-    playerMocked.isEmptyQueue.mockReturnValueOnce(false);
+    playerMocked.isEmpty.mockReturnValueOnce(false);
     playerMocked.isSameChannel.mockReturnValueOnce(true);
 
     const result = await execute(interaction);
@@ -82,7 +82,7 @@ describe('execute', () => {
 describe('clear', () => {
   test('success', async () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
-    playerMocked.isEmptyQueue.mockReturnValueOnce(false);
+    playerMocked.isEmpty.mockReturnValueOnce(false);
     playerMocked.isSameChannel.mockReturnValueOnce(true);
 
     const result = await clear(interaction, false);

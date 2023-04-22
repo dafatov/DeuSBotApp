@@ -6,13 +6,9 @@ module.exports = [
     embeds: [
       new MessageEmbed({
         color: 16777040,
-        description: '00:00:23/00:00:50—_username_\n■■■■■■■■■■■■■■■■■■□□□□□□□□□□□□□□□□□□□□□□ [46%]',
+        description: '00:00:23/00:00:50—_DemetriouS_\n■■■■■■■■■■■■■■■■■■□□□□□□□□□□□□□□□□□□□□□□ [46%]',
         'thumbnail': {
           'url': 'https://urlThumnail.com',
-        },
-        'footer': {
-          'icon_url': 'https://urlIcon.com',
-          'text': 'Играет композиция от username',
         },
         timestamp: new Date('2023-02-06T10:20:27.013Z'),
         title: 'title',

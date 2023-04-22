@@ -63,7 +63,7 @@ describe('execute', () => {
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.loop');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
     expect(commandsMocked.notifyNoPlaying).not.toHaveBeenCalled();
-    expect(playerMocked.isSameChannel).toHaveBeenCalledWith(interaction);
+    expect(playerMocked.isSameChannel).toHaveBeenCalledWith('301783183828189184', '343847059612237824');
     expect(commandsMocked.notifyUnequalChannels).toHaveBeenCalledWith('loop', interaction, true);
     expect(commandsMocked.notifyIsLive).not.toHaveBeenCalled();
     expect(commandsMocked.notify).not.toHaveBeenCalled();
@@ -75,7 +75,7 @@ describe('execute', () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
     playerMocked.isPlaying.mockReturnValueOnce(true);
     playerMocked.isSameChannel.mockReturnValueOnce(true);
-    playerMocked.isPlayingLive.mockReturnValueOnce(true);
+    playerMocked.isLive.mockReturnValueOnce(true);
 
     const result = await execute(interaction);
 
@@ -84,7 +84,7 @@ describe('execute', () => {
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
     expect(commandsMocked.notifyNoPlaying).not.toHaveBeenCalled();
     expect(commandsMocked.notifyUnequalChannels).not.toHaveBeenCalled();
-    expect(playerMocked.isPlayingLive).toHaveBeenCalledWith('301783183828189184');
+    expect(playerMocked.isLive).toHaveBeenCalledWith('301783183828189184');
     expect(commandsMocked.notifyIsLive).toHaveBeenCalledWith('loop', interaction, true);
     expect(commandsMocked.notify).not.toHaveBeenCalled();
     expect(playerMocked.loop).not.toHaveBeenCalled();
@@ -98,7 +98,7 @@ describe('execute', () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
     playerMocked.isPlaying.mockReturnValueOnce(true);
     playerMocked.isSameChannel.mockReturnValueOnce(true);
-    playerMocked.isPlayingLive.mockReturnValueOnce(false);
+    playerMocked.isLive.mockReturnValueOnce(false);
     playerMocked.loop.mockReturnValueOnce(!isLoop);
 
     const result = await execute(interaction);
@@ -123,7 +123,7 @@ describe('loop', () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
     playerMocked.isPlaying.mockReturnValueOnce(true);
     playerMocked.isSameChannel.mockReturnValueOnce(true);
-    playerMocked.isPlayingLive.mockReturnValueOnce(false);
+    playerMocked.isLive.mockReturnValueOnce(false);
     playerMocked.loop.mockReturnValueOnce(!isLoop);
 
     const result = await loop(interaction, false);

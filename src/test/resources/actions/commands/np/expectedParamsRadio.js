@@ -10,10 +10,6 @@ module.exports = [
         'thumbnail': {
           'url': 'https://urlThumnail.com',
         },
-        'footer': {
-          'icon_url': 'https://urlIcon.com',
-          'text': 'Играет композиция от username',
-        },
         timestamp: new Date('2023-02-06T10:20:27.013Z'),
         title: 'title',
         url: 'https://url.com',

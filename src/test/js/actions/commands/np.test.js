@@ -55,13 +55,13 @@ describe('execute', () => {
   });
 
   test.each([
-    {nowPlaying: nowPlayingLive, expected: expectedSuccessLive},
-    {nowPlaying: nowPlayingRadio, expected: expectedSuccessRadio},
-    {nowPlaying: nowPlayingElse, expected: expectedSuccessElse}
+    {type: 'live', nowPlaying: nowPlayingLive, expected: expectedSuccessLive},
+    {type: 'radio', nowPlaying: nowPlayingRadio, expected: expectedSuccessRadio},
+    {type: 'else', nowPlaying: nowPlayingElse, expected: expectedSuccessElse}
   ])('success: $type', async ({nowPlaying, expected}) => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
     playerMocked.isPlaying.mockReturnValueOnce(true);
-    playerMocked.getQueue.mockReturnValue({nowPlaying});
+    playerMocked.getNowPlaying.mockReturnValueOnce(nowPlaying);
     attachmentsMocked.createStatus.mockResolvedValueOnce([32, 43, 11, 55]);
     radiosMocked.getRadios.mockReturnValueOnce({
       get: jest.fn().mockReturnValueOnce({
@@ -74,7 +74,7 @@ describe('execute', () => {
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.np');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
     expect(commandsMocked.notifyNoPlaying).not.toHaveBeenCalled();
-    expect(attachmentsMocked.createStatus).toHaveBeenCalledWith('301783183828189184');
+    expect(attachmentsMocked.createStatus).toHaveBeenCalledWith('301783183828189184', nowPlaying);
     expect(commandsMocked.notify).toHaveBeenCalledWith(...expected);
     expect(auditorMocked.audit).toHaveBeenCalled();
   });

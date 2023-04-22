@@ -1,6 +1,6 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
-const {addQueue, isConnected, isSameChannel, playPlayer} = require('../player');
+const {addAll, isConnected, isSameChannel, playPlayer} = require('../player');
 const {escaping, getCommandName} = require('../../utils/string');
 const {getPlaylist, getSearch, getSong} = require('../../api/external/youtube');
 const {notify, notifyForbidden, notifyUnequalChannels} = require('../commands');
@@ -28,7 +28,7 @@ module.exports.play = async (interaction, isExecute, audio = interaction.options
     return {result: t('web:info.forbidden', {command: 'play'})};
   }
 
-  if (isConnected(interaction.guildId) && !isSameChannel(interaction)) {
+  if (isConnected(interaction.guildId) && !isSameChannel(interaction.guildId, interaction.member.voice.channel?.id)) {
     await notifyUnequalChannels(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.unequalChannels')};
   }
@@ -36,9 +36,9 @@ module.exports.play = async (interaction, isExecute, audio = interaction.options
   const added = await getPlaylist(interaction, audio)
     .catch(() => getSong(interaction, audio))
     .catch(() => getSearch(interaction, audio));
-  const description = getAddedDescription(interaction.guildId, added.info);
+  const description = await getAddedDescription(interaction.guildId, added.info);
 
-  addQueue(interaction.guildId, added);
+  await addAll(interaction.guildId, added);
   await playPlayer(interaction);
 
   if (isExecute) {
@@ -48,11 +48,7 @@ module.exports.play = async (interaction, isExecute, audio = interaction.options
       .setDescription(description)
       .setURL(added.info.url)
       .setThumbnail(added.info.preview)
-      .setTimestamp()
-      .setFooter({
-        text: t('discord:command.play.completed.footer', {username: added.info.author.username}),
-        iconURL: added.info.author.iconURL,
-      });
+      .setTimestamp();
     await notify(interaction, {embeds: [embed]});
   }
   await audit({

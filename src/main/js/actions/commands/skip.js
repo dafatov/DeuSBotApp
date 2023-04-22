@@ -28,7 +28,7 @@ module.exports.skip = async (interaction, isExecute) => {
     return {result: t('web:info.noPlaying')};
   }
 
-  if (!isSameChannel(interaction)) {
+  if (!isSameChannel(interaction.guildId, interaction.member.voice.channel?.id)) {
     await notifyUnequalChannels(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.unequalChannels')};
   }

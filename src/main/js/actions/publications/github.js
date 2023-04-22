@@ -64,22 +64,31 @@ const getEventsData = async (afterTimestamp = 0) => {
   let data = [];
   let page = 0;
 
-  // eslint-disable-next-line no-loops/no-loops
-  do {
-    partialData = (await octokit.request('/repos/{owner}/{repo}/issues/events', {
-      owner: process.env.GITHUB_LOGIN,
-      repo: process.env.GITHUB_REPOSITORY,
-      per_page: PER_PAGE,
-      page: ++page,
-    })).data;
+  try {
+    // eslint-disable-next-line no-loops/no-loops
+    do {
+      partialData = (await octokit.request('/repos/{owner}/{repo}/issues/events', {
+        owner: process.env.GITHUB_LOGIN,
+        repo: process.env.GITHUB_REPOSITORY,
+        per_page: PER_PAGE,
+        page: ++page,
+      })).data;
 
-    data = [
-      ...data,
-      ...partialData
-        .filter(event => EVENTS_LISTEN.includes(event.event))
-        .filter(event => new Date(event.created_at).getTime() > new Date(afterTimestamp).getTime()),
-    ];
-  } while (partialData.length >= PER_PAGE);
+      data = [
+        ...data,
+        ...partialData
+          .filter(event => EVENTS_LISTEN.includes(event.event))
+          .filter(event => new Date(event.created_at).getTime() > new Date(afterTimestamp).getTime()),
+      ];
+    } while (partialData.length >= PER_PAGE);
+  } catch (e) {
+    await audit({
+      guildId: null,
+      type: TYPES.ERROR,
+      category: CATEGORIES.PUBLICIST,
+      message: stringify(e),
+    });
+  }
 
   return data;
 };

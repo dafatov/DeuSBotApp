@@ -60,7 +60,7 @@ describe('execute', () => {
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.skip');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
     expect(commandsMocked.notifyNoPlaying).not.toHaveBeenCalled();
-    expect(playerMocked.isSameChannel).toHaveBeenCalledWith(interaction);
+    expect(playerMocked.isSameChannel).toHaveBeenCalledWith('301783183828189184', '343847059612237824');
     expect(commandsMocked.notifyUnequalChannels).toHaveBeenCalledWith('skip', interaction, true);
     expect(commandsMocked.notify).not.toHaveBeenCalled();
     expect(playerMocked.skip).not.toHaveBeenCalled();

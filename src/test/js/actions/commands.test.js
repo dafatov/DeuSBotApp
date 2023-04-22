@@ -256,7 +256,7 @@ describe('notifyUnbound', () => {
   });
 
   test('success', async () => {
-    playerMocked.getQueue.mockReturnValueOnce({songs: [{}, {}]});
+    playerMocked.getSize.mockResolvedValueOnce(2);
     jest.spyOn(commands, 'notify').mockReturnValueOnce();
 
     await commands.notifyUnbound('test', interaction,true);

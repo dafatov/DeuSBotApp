@@ -28,7 +28,6 @@ beforeAll(() => locale.init());
 describe('init', () => {
   test('emptyContent', async () => {
     const guilds = [{guildId: '301783183828189184', channelId: '922163692940951574'}];
-    jest.useFakeTimers();
     jest.spyOn(global, 'setTimeout').mockReturnValueOnce();
     birthdayMocked.content.mockResolvedValueOnce(null);
     birthdayMocked.condition.mockResolvedValueOnce(true);
@@ -56,7 +55,6 @@ describe('init', () => {
   });
 
   test('false condition', async () => {
-    jest.useFakeTimers();
     jest.spyOn(global, 'setTimeout').mockReturnValueOnce();
     birthdayMocked.condition.mockResolvedValueOnce(false);
     changelogMocked.condition.mockResolvedValueOnce(false);
@@ -76,7 +74,6 @@ describe('init', () => {
 
   test('success', async () => {
     const guilds = [{guildId: '301783183828189184', channelId: '922163692940951574'}];
-    jest.useFakeTimers();
     jest.spyOn(global, 'setTimeout').mockReturnValueOnce();
     birthdayMocked.content.mockResolvedValueOnce(birthdayContent);
     birthdayMocked.condition.mockResolvedValueOnce(true);
