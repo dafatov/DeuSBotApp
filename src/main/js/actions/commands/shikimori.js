@@ -1,6 +1,6 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
-const {addQueue, isConnected, isSameChannel, playPlayer} = require('../player');
+const {addAll, isConnected, isSameChannel, playPlayer} = require('../player');
 const {escaping, getCommandName, stringify} = require('../../utils/string');
 const {notify, notifyForbidden, notifyUnequalChannels, updateCommands} = require('../commands');
 const {MessageEmbed} = require('discord.js');
@@ -87,7 +87,7 @@ module.exports.play = async (interaction, isExecute,
     return {result: t('web:info.forbidden', {command: getCommandName(__filename)})};
   }
 
-  if (isConnected(interaction.guildId) && !isSameChannel(interaction)) {
+  if (isConnected(interaction.guildId) && !isSameChannel(interaction.guildId, interaction.member.voice.channel?.id)) {
     await notifyUnequalChannels(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.unequalChannels')};
   }
@@ -286,11 +286,11 @@ const search = async (interaction, audios, login, isExecute) => {
     ).then(info => {
       counter++;
       return info;
-    }), initialInfo(interaction, audios));
+    }), initialInfo(interaction.user.id, audios));
 
-  const description = getAddedDescription(interaction.guildId, added.info);
+  const description = await getAddedDescription(interaction.guildId, added.info);
   clearInterval(intervalId);
-  addQueue(interaction.guildId, added);
+  await addAll(interaction.guildId, added);
   await playPlayer(interaction);
 
   if (isExecute) {
@@ -300,11 +300,7 @@ const search = async (interaction, audios, login, isExecute) => {
       .setURL(`${process.env.SHIKIMORI_URL}/${login}/list/anime/mylist/completed,watching/order-by/ranked`)
       .setDescription(description)
       .setThumbnail('https://i.ibb.co/PGFbnkS/Afk-W8-Fi-E-400x400.png')
-      .setTimestamp()
-      .setFooter({
-        text: t('inner:audit.command.play.shikimori', {username: added.info.author.username}),
-        iconURL: added.info.author.iconURL,
-      });
+      .setTimestamp();
     await interaction.editReply({embeds: [embed]});
   }
 };
@@ -320,13 +316,10 @@ const reduceInfo = (acc, info) => ({
   ],
 });
 
-const initialInfo = (interaction, audios) => Promise.resolve({
+const initialInfo = (userId, audios) => Promise.resolve({
   info: {
     length: audios.length,
     duration: 0,
-    author: {
-      username: interaction.user.username,
-      iconURL: interaction.user.displayAvatarURL(),
-    },
+    userId,
   },
 });

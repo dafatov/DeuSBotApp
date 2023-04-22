@@ -50,7 +50,7 @@ describe('execute', () => {
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.play');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
     expect(playerMocked.isConnected).toHaveBeenCalledWith('301783183828189184');
-    expect(playerMocked.isSameChannel).toHaveBeenCalledWith(interaction);
+    expect(playerMocked.isSameChannel).toHaveBeenCalledWith('301783183828189184', '343847059612237824');
     expect(commandsMocked.notifyUnequalChannels).toHaveBeenCalledWith('play', interaction, true);
     expect(commandsMocked.notify).not.toHaveBeenCalled();
     expect(auditorMocked.audit).not.toHaveBeenCalled();
@@ -60,7 +60,9 @@ describe('execute', () => {
     test('playlist', async () => {
       interaction.options.getString.mockReturnValueOnce('playlistUrl');
       permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
-      playerMocked.getQueue.mockReturnValue({nowPlaying: {}, songs: []});
+      playerMocked.getNowPlaying.mockResolvedValueOnce({});
+      playerMocked.getSize.mockResolvedValueOnce(0);
+      playerMocked.getDuration.mockResolvedValueOnce(0);
       playerMocked.isConnected.mockReturnValueOnce(false);
       playerMocked.isSameChannel.mockReturnValueOnce(true);
       youtubeMocked.getPlaylist.mockResolvedValueOnce(playlist);
@@ -72,7 +74,7 @@ describe('execute', () => {
       expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
       expect(commandsMocked.notifyUnequalChannels).not.toHaveBeenCalled();
       expect(youtubeMocked.getPlaylist).toHaveBeenCalledWith(interaction, 'playlistUrl');
-      expect(playerMocked.addQueue).toHaveBeenCalledWith('301783183828189184', expectedPlaylist);
+      expect(playerMocked.addAll).toHaveBeenCalledWith('301783183828189184', expectedPlaylist);
       expect(playerMocked.playPlayer).toHaveBeenCalledWith(interaction);
       expect(commandsMocked.notify).toHaveBeenCalledWith(...expectedParamsPlaylist);
       expect(auditorMocked.audit).toHaveBeenCalled();
@@ -81,7 +83,9 @@ describe('execute', () => {
     test('song', async () => {
       interaction.options.getString.mockReturnValueOnce('songUrl');
       permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
-      playerMocked.getQueue.mockReturnValue({nowPlaying: {}, songs: []});
+      playerMocked.getNowPlaying.mockResolvedValueOnce({});
+      playerMocked.getSize.mockResolvedValueOnce(0);
+      playerMocked.getDuration.mockResolvedValueOnce(0);
       playerMocked.isConnected.mockReturnValueOnce(false);
       playerMocked.isSameChannel.mockReturnValueOnce(true);
       youtubeMocked.getPlaylist.mockRejectedValueOnce();
@@ -95,7 +99,7 @@ describe('execute', () => {
       expect(commandsMocked.notifyUnequalChannels).not.toHaveBeenCalled();
       expect(youtubeMocked.getPlaylist).toHaveBeenCalledWith(interaction, 'songUrl');
       expect(youtubeMocked.getSong).toHaveBeenCalledWith(interaction, 'songUrl');
-      expect(playerMocked.addQueue).toHaveBeenCalledWith('301783183828189184', expectedSong);
+      expect(playerMocked.addAll).toHaveBeenCalledWith('301783183828189184', expectedSong);
       expect(playerMocked.playPlayer).toHaveBeenCalledWith(interaction);
       expect(commandsMocked.notify).toHaveBeenCalledWith(...expectedParamsSong);
       expect(auditorMocked.audit).toHaveBeenCalled();
@@ -104,7 +108,9 @@ describe('execute', () => {
     test('search', async () => {
       interaction.options.getString.mockReturnValueOnce('search');
       permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
-      playerMocked.getQueue.mockReturnValue({nowPlaying: {}, songs: []});
+      playerMocked.getNowPlaying.mockResolvedValueOnce({});
+      playerMocked.getSize.mockResolvedValueOnce(0);
+      playerMocked.getDuration.mockResolvedValueOnce(0);
       playerMocked.isConnected.mockReturnValueOnce(false);
       playerMocked.isSameChannel.mockReturnValueOnce(true);
       youtubeMocked.getPlaylist.mockRejectedValueOnce();
@@ -120,7 +126,7 @@ describe('execute', () => {
       expect(youtubeMocked.getPlaylist).toHaveBeenCalledWith(interaction, 'search');
       expect(youtubeMocked.getSong).toHaveBeenCalledWith(interaction, 'search');
       expect(youtubeMocked.getSearch).toHaveBeenCalledWith(interaction, 'search');
-      expect(playerMocked.addQueue).toHaveBeenCalledWith('301783183828189184', expectedSearch);
+      expect(playerMocked.addAll).toHaveBeenCalledWith('301783183828189184', expectedSearch);
       expect(playerMocked.playPlayer).toHaveBeenCalledWith(interaction);
       expect(commandsMocked.notify).toHaveBeenCalledWith(...expectedParamsSearch);
       expect(auditorMocked.audit).toHaveBeenCalled();
@@ -131,7 +137,9 @@ describe('execute', () => {
 describe('play', () => {
   test('success: song', async () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
-    playerMocked.getQueue.mockReturnValue({nowPlaying: {}, songs: []});
+    playerMocked.getNowPlaying.mockResolvedValueOnce({});
+    playerMocked.getSize.mockResolvedValueOnce(0);
+    playerMocked.getDuration.mockResolvedValueOnce(0);
     playerMocked.isConnected.mockReturnValueOnce(false);
     playerMocked.isSameChannel.mockReturnValueOnce(true);
     youtubeMocked.getPlaylist.mockRejectedValueOnce();
@@ -145,7 +153,7 @@ describe('play', () => {
     expect(commandsMocked.notifyUnequalChannels).not.toHaveBeenCalled();
     expect(youtubeMocked.getPlaylist).toHaveBeenCalledWith(interaction, 'songUrl');
     expect(youtubeMocked.getSong).toHaveBeenCalledWith(interaction, 'songUrl');
-    expect(playerMocked.addQueue).toHaveBeenCalledWith('301783183828189184', expectedSong);
+    expect(playerMocked.addAll).toHaveBeenCalledWith('301783183828189184', expectedSong);
     expect(playerMocked.playPlayer).toHaveBeenCalledWith(interaction);
     expect(commandsMocked.notify).not.toHaveBeenCalled();
     expect(auditorMocked.audit).toHaveBeenCalled();

@@ -45,7 +45,7 @@ describe('execute', () => {
     expect(playerMocked.shuffle).not.toHaveBeenCalled();
   });
 
-  test('unequal channels: $channel', async () => {
+  test('unequal channels', async () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
     playerMocked.isLessQueue.mockReturnValueOnce(false);
     playerMocked.isSameChannel.mockReturnValueOnce(false);
@@ -56,7 +56,7 @@ describe('execute', () => {
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.shuffle');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
     expect(commandsMocked.notifyNoPlaying).not.toHaveBeenCalled();
-    expect(playerMocked.isSameChannel).toHaveBeenCalledWith(interaction);
+    expect(playerMocked.isSameChannel).toHaveBeenCalledWith('301783183828189184', '343847059612237824');
     expect(commandsMocked.notifyUnequalChannels).toHaveBeenCalledWith('shuffle', interaction, true);
     expect(playerMocked.shuffle).not.toHaveBeenCalled();
   });
@@ -65,7 +65,6 @@ describe('execute', () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
     playerMocked.isLessQueue.mockReturnValueOnce(false);
     playerMocked.isSameChannel.mockReturnValueOnce(true);
-    playerMocked.getQueue.mockReturnValue({songs: [{}, {}, {}]});
 
     const result = await execute(interaction);
 
@@ -85,7 +84,6 @@ describe('shuffle', () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
     playerMocked.isLessQueue.mockReturnValueOnce(false);
     playerMocked.isSameChannel.mockReturnValueOnce(true);
-    playerMocked.getQueue.mockReturnValue({songs: [{}, {}, {}]});
 
     const result = await shuffle(interaction, false);
 

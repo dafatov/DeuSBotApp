@@ -4,10 +4,7 @@ module.exports = {
     type: 'radio',
     isLive: true,
     duration: 0,
-    author: {
-      username: 'username',
-      iconURL: 'https://urlIcon.com',
-    },
+    userId: '348774809003491329',
     url: 'https://url.com',
     preview: 'https://urlThumnail.com',
   }, resource: {

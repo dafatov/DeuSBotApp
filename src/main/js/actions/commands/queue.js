@@ -2,7 +2,7 @@ const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {Control, Pagination} = require('../../utils/components');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {escaping, getCommandName} = require('../../utils/string');
-const {getQueue, isPlaying} = require('../player');
+const {getAll, getNowPlaying, getSize, isPlaying} = require('../player');
 const {notify, notifyForbidden} = require('../commands');
 const {MessageEmbed} = require('discord.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
@@ -29,8 +29,8 @@ const queue = async interaction => {
     return;
   }
 
-  const songs = getQueue(interaction.guildId).songs;
-  const pagination = Pagination.getComponent(start, count, songs.length);
+  const songsCount = await getSize(interaction.guildId);
+  const pagination = Pagination.getComponent(start, count, songsCount);
 
   if (!isPlaying(interaction.guildId)) {
     const embed = new MessageEmbed()
@@ -38,7 +38,7 @@ const queue = async interaction => {
       .setTitle(t('discord:embed.noPlaying.title'))
       .setDescription(t('discord:embed.noPlaying.description'))
       .setTimestamp()
-      .setFooter({text: Pagination.getFooter(start, count, songs.length)});
+      .setFooter({text: Pagination.getFooter(start, count, songsCount)});
     await notify(interaction, {embeds: [embed], components: [pagination]});
     await audit({
       guildId: interaction.guildId,
@@ -49,17 +49,18 @@ const queue = async interaction => {
     return;
   }
 
-  const control = Control.getComponent(interaction);
-  const status = await createStatus(interaction.guildId);
+  const nowPlaying = getNowPlaying(interaction.guildId);
+  const control = Control.getComponent(interaction, nowPlaying);
+  const status = await createStatus(interaction.guildId, nowPlaying);
 
   const embed = new MessageEmbed()
     .setColor(config.colors.info)
-    .setTitle(escaping(getQueue(interaction.guildId).nowPlaying.song.title))
-    .setDescription(await getDescription(getQueue(interaction.guildId), start, count))
+    .setTitle(escaping(nowPlaying.song.title))
+    .setDescription(await getDescription(interaction, start, count, songsCount, nowPlaying))
     .setTimestamp()
-    .setURL(getQueue(interaction.guildId).nowPlaying.song.url)
-    .setThumbnail(getQueue(interaction.guildId).nowPlaying.song.preview)
-    .setFooter({text: Pagination.getFooter(start, count, songs.length)});
+    .setURL(nowPlaying.song.url)
+    .setThumbnail(nowPlaying.song.preview)
+    .setFooter({text: Pagination.getFooter(start, count, songsCount)});
   await notify(interaction, {files: [status], embeds: [embed], components: [pagination, control]});
   await audit({
     guildId: interaction.guildId,
@@ -75,17 +76,18 @@ const onQueue = async interaction => {
     return;
   }
 
-  const songs = getQueue(interaction.guildId).songs;
+  const songsCount = await getSize(interaction.guildId);
   const embed = interaction.message.embeds[0];
   const pagination = interaction.message.components[0];
   const pages = Pagination.getPages(embed.footer.text);
-  const start = Pagination.update(interaction, pages, songs.length);
-  const control = getQueue(interaction.guildId).nowPlaying?.song
-    ? Control.getComponent(interaction)
+  const start = Pagination.update(interaction, pages, songsCount);
+  const nowPlaying = getNowPlaying(interaction.guildId);
+  const control = nowPlaying?.song
+    ? Control.getComponent(interaction, nowPlaying)
     : interaction.message.components[1];
 
   if (control) {
-    await Control.update(interaction, control);
+    await Control.update(interaction, control, nowPlaying);
   }
 
   if (!isPlaying(interaction.guildId)) {
@@ -94,7 +96,7 @@ const onQueue = async interaction => {
       .setTitle(t('discord:embed.noPlaying.title'))
       .setDescription(t('discord:embed.noPlaying.description'))
       .setTimestamp()
-      .setFooter({text: Pagination.getFooter(start, pages.count, songs.length)});
+      .setFooter({text: Pagination.getFooter(start, pages.count, songsCount)});
     await interaction.message.removeAttachments();
     await interaction.update({embeds: [embed], components: [pagination]});
     await audit({
@@ -106,36 +108,41 @@ const onQueue = async interaction => {
     return;
   }
 
-  const status = await createStatus(interaction.guildId);
+  const status = await createStatus(interaction.guildId, nowPlaying);
 
   embed
-    .setTitle(escaping(getQueue(interaction.guildId).nowPlaying.song.title))
-    .setDescription(await getDescription(getQueue(interaction.guildId), start, count))
-    .setURL(getQueue(interaction.guildId).nowPlaying.song.url)
-    .setThumbnail(getQueue(interaction.guildId).nowPlaying.song.preview)
+    .setColor(config.colors.info)
+    .setTitle(escaping(nowPlaying.song.title))
+    .setDescription(await getDescription(interaction, start, count, songsCount, nowPlaying))
+    .setURL(nowPlaying.song.url)
+    .setThumbnail(nowPlaying.song.preview)
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
-    .setFooter({text: Pagination.getFooter(start, pages.count, songs.length)});
+    .setFooter({text: Pagination.getFooter(start, pages.count, songsCount)});
   await interaction.message.removeAttachments();
   await interaction.update({files: [status], embeds: [embed], components: [pagination, control]});
 };
 
-const getDescription = async (queue, start, count) => {
+const getDescription = async (interaction, start, count, songsCount, nowPlaying) => {
   const getCounter = index => String(start + index + 1)
-    .padStart(String(queue.songs.length).length, '0');
+    .padStart(String(songsCount ?? 0).length, '0');
+  const getTitle = song => `[${escaping(song.title)}](${song.url})`;
   const getDuration = song => song.isLive
     ? t('common:player.stream')
     : timeFormatSeconds(song.duration);
-  const getTitle = song => `[${escaping(song.title)}](${song.url})`;
 
-  const nowPlaying = await getNowPlayingDescription(queue.nowPlaying);
-  const songs = queue.songs
-    .slice(start, start + count)
-    .map((song, index) => t('discord:command.queue.completed.song', {
-      counter: getCounter(index),
-      title: getTitle(song),
-      duration: getDuration(song),
-      author: song.author.username,
-    }));
+  const nowPlayingDescription = await getNowPlayingDescription(interaction, nowPlaying);
+  const songs = await getAll(interaction.guildId)
+    .then(songs => Promise.all(songs
+      .sort((a, b) => a.index - b.index)
+      .slice(start, start + count)
+      .map(async (song, index) => t('discord:command.queue.completed.song', {
+        counter: getCounter(index),
+        title: getTitle(song),
+        duration: getDuration(song),
+        author: await interaction.guild.fetch()
+          .then(guild => guild.members.fetch(nowPlaying.song.userId))
+          .then(member => member.displayName),
+      }))));
 
-  return [nowPlaying, ...songs].join('\n\n');
+  return [nowPlayingDescription, ...songs].join('\n\n');
 };

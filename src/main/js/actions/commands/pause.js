@@ -1,6 +1,6 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
-const {isPlaying, isPlayingLive, isSameChannel, pause} = require('../player');
+const {isLive, isPlaying, isSameChannel, pause} = require('../player');
 const {notify, notifyForbidden, notifyIsLive, notifyNoPlaying, notifyUnequalChannels} = require('../commands');
 const {MessageEmbed} = require('discord.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
@@ -27,12 +27,12 @@ module.exports.pause = async (interaction, isExecute) => {
     return {result: t('web:info.noPlaying')};
   }
 
-  if (!isSameChannel(interaction)) {
+  if (!isSameChannel(interaction.guildId, interaction.member.voice.channel?.id)) {
     await notifyUnequalChannels(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.unequalChannels')};
   }
 
-  if (isPlayingLive(interaction.guildId)) {
+  if (isLive(interaction.guildId)) {
     await notifyIsLive(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.live')};
   }

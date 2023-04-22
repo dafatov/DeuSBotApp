@@ -1,8 +1,8 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {getAll, getNowPlaying} = require('../../actions/player');
 const {getScopes, isForbidden} = require('../../db/repositories/permission');
 const {audit} = require('../../actions/auditor');
 const axios = require('axios');
-const {getQueue} = require('../../actions/player');
 const {stringify} = require('../../utils/string');
 
 //TODO добавить throw exception, когда пользователя нет или токен устарел
@@ -50,15 +50,15 @@ module.exports.authForVoiceMember = (token, client) =>
 module.exports.authForNowPlaying = (token, client) =>
   this.authForVoiceMember(token, client)
     .then(member => member?.guild.id)
-    .then(guildId => getQueue(guildId))
-    .then(queue => queue?.nowPlaying?.song
+    .then(guildId => getNowPlaying(guildId))
+    .then(nowPlaying => nowPlaying?.song
       ? {
         song: {
-          ...queue.nowPlaying?.song ?? {},
-          playbackDuration: queue.nowPlaying?.resource?.playbackDuration ?? 0,
+          ...nowPlaying?.song ?? {},
+          playbackDuration: nowPlaying?.resource?.playbackDuration ?? 0,
         },
-        isPause: queue.nowPlaying?.isPause ?? false,
-        isLoop: queue.nowPlaying?.isLoop ?? false,
+        isPause: nowPlaying?.isPause ?? false,
+        isLoop: nowPlaying?.isLoop ?? false,
       }
       : {})
     .catch(e => audit({
@@ -71,7 +71,7 @@ module.exports.authForNowPlaying = (token, client) =>
 module.exports.authForSongs = (token, client) =>
   this.authForVoiceMember(token, client)
     .then(member => member?.guild.id)
-    .then(guildId => getQueue(guildId)?.songs ?? [])
+    .then(guildId => getAll(guildId))
     .catch(e => audit({
       guildId: null,
       type: TYPES.ERROR,

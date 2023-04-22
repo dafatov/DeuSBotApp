@@ -1,6 +1,6 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
-const {clearQueue, isEmptyQueue, isSameChannel} = require('../player');
+const {clearQueue, isEmpty, isSameChannel} = require('../player');
 const {notify, notifyForbidden, notifyNoPlaying, notifyUnequalChannels} = require('../commands');
 const {MessageEmbed} = require('discord.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
@@ -22,17 +22,17 @@ module.exports.clear = async (interaction, isExecute) => {
     return {result: t('web:info.forbidden', {command: getCommandName(__filename)})};
   }
 
-  if (isEmptyQueue(interaction.guildId)) {
+  if (await isEmpty(interaction.guildId)) {
     await notifyNoPlaying(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.noPlaying')};
   }
 
-  if (!isSameChannel(interaction)) {
+  if (!isSameChannel(interaction.guildId, interaction.member.voice.channel?.id)) {
     await notifyUnequalChannels(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.unequalChannels')};
   }
 
-  clearQueue(interaction.guildId);
+  await clearQueue(interaction.guildId);
 
   if (isExecute) {
     const embed = new MessageEmbed()

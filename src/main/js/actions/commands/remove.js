@@ -1,7 +1,7 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {escaping, getCommandName} = require('../../utils/string');
-const {isLessQueue, isSameChannel, isValidIndex, removeQueue} = require('../player');
+const {isLessQueue, isSameChannel, isValidIndex, remove} = require('../player');
 const {notify, notifyForbidden, notifyNoPlaying, notifyUnbound, notifyUnequalChannels} = require('../commands');
 const {MessageEmbed} = require('discord.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
@@ -28,22 +28,22 @@ module.exports.remove = async (interaction, isExecute,
     return {result: t('web:info.forbidden', {command: getCommandName(__filename)})};
   }
 
-  if (isLessQueue(interaction.guildId, 1)) {
+  if (await isLessQueue(interaction.guildId, 1)) {
     await notifyNoPlaying(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.noPlaying')};
   }
 
-  if (!isSameChannel(interaction)) {
+  if (!isSameChannel(interaction.guildId, interaction.member.voice.channel?.id)) {
     await notifyUnequalChannels(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.unequalChannels')};
   }
 
-  if (!isValidIndex(interaction.guildId, targetIndex)) {
+  if (!await isValidIndex(interaction.guildId, targetIndex)) {
     await notifyUnbound(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.unbound')};
   }
 
-  const target = removeQueue(interaction.guildId, targetIndex);
+  const target = await remove(interaction.guildId, targetIndex);
 
   if (isExecute) {
     const embed = new MessageEmbed()

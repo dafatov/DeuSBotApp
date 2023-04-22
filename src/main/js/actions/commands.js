@@ -6,7 +6,7 @@ const {Routes} = require('discord-api-types/v9');
 const {audit} = require('./auditor');
 const config = require('../configs/config');
 const fs = require('fs');
-const {getQueue} = require('./player');
+const {getSize} = require('./player');
 const {t} = require('i18next');
 
 module.exports.init = async client => {
@@ -190,7 +190,7 @@ module.exports.notifyUnbound = async (commandName, interaction, isExecute) => {
     const embed = new MessageEmbed()
       .setColor(config.colors.warning)
       .setTitle(t('discord:embed.unbound.title'))
-      .setDescription(t('discord:embed.unbound.description', {length: getQueue(interaction.guildId).songs.length}))
+      .setDescription(t('discord:embed.unbound.description', {length: await getSize(interaction.guildId)}))
       .setTimestamp();
     await this.notify(interaction, {embeds: [embed]});
   }

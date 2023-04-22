@@ -28,7 +28,7 @@ describe('execute', () => {
     expect(result).toEqual({'result': 'Доступ к команде radio запрещен'});
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.radio');
     expect(commandsMocked.notifyForbidden).toHaveBeenCalledWith('radio', interaction);
-    expect(playerMocked.addQueue).not.toHaveBeenCalled();
+    expect(playerMocked.addAll).not.toHaveBeenCalled();
     expect(playerMocked.playPlayer).not.toHaveBeenCalled();
     expect(commandsMocked.notify).not.toHaveBeenCalledWith();
     expect(auditorMocked.audit).not.toHaveBeenCalled();
@@ -45,9 +45,9 @@ describe('execute', () => {
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.radio');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
     expect(playerMocked.isConnected).toHaveBeenCalledWith('301783183828189184');
-    expect(playerMocked.isSameChannel).toHaveBeenCalledWith(interaction);
+    expect(playerMocked.isSameChannel).toHaveBeenCalledWith('301783183828189184', '343847059612237824');
     expect(commandsMocked.notifyUnequalChannels).toHaveBeenCalledWith('radio', interaction, true);
-    expect(playerMocked.addQueue).not.toHaveBeenCalled();
+    expect(playerMocked.addAll).not.toHaveBeenCalled();
     expect(playerMocked.playPlayer).not.toHaveBeenCalled();
     expect(commandsMocked.notify).not.toHaveBeenCalled();
     expect(auditorMocked.audit).not.toHaveBeenCalled();
@@ -56,7 +56,8 @@ describe('execute', () => {
   test('success', async () => {
     interaction.options.getString.mockReturnValue('stationKey');
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
-    playerMocked.getQueue.mockReturnValue({songs: [], nowPlaying: {}});
+    playerMocked.getNowPlaying.mockReturnValue({});
+    playerMocked.getSize.mockReturnValue(0);
     playerMocked.isConnected.mockReturnValueOnce(false);
     playerMocked.isSameChannel.mockReturnValueOnce(true);
     radiosMocked.getRadios.mockReturnValue({
@@ -71,24 +72,20 @@ describe('execute', () => {
     const result = await execute(interaction);
 
     expect(result).toEqual({
-      'info': {
-        'author': {
-          'iconURL': 'https://cdn.discordapp.com/avatars/348774809003491329/98e046c34d87c1b00cf6a9bf0f132959.webp',
-          'username': 'DemetriouS',
-        },
-        'duration': 0,
-        'id': '1675678827013',
-        'isLive': true,
-        'preview': 'preview',
-        'title': 'stationKey',
-        'type': 'radio',
-        'url': 'url',
+      info: {
+        duration: 0,
+        isLive: true,
+        preview: 'preview',
+        title: 'stationKey',
+        type: 'radio',
+        url: 'url',
+        userId: '348774809003491329',
       },
     });
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.radio');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
     expect(commandsMocked.notifyUnequalChannels).not.toHaveBeenCalled();
-    expect(playerMocked.addQueue).toHaveBeenCalledWith('301783183828189184', expectedRadio);
+    expect(playerMocked.addAll).toHaveBeenCalledWith('301783183828189184', expectedRadio);
     expect(playerMocked.playPlayer).toHaveBeenCalledWith(interaction);
     expect(commandsMocked.notify).toHaveBeenCalledWith(...expectedParamsRadio);
     expect(auditorMocked.audit).toHaveBeenCalled();

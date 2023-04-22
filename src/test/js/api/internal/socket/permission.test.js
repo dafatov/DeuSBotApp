@@ -135,7 +135,7 @@ describe('execute', () => {
     test('success', () => new Promise(done => {
       connection.client.emit('permission:getUsers', data => {
         expect(data).toEqual([
-          {id: '348774809003491329'},
+          {id: '348774809003491329', username: 'DemetriouS'},
           {id: '233923369685352449'},
           {id: '381845173384249356'},
           {id: '229605426327584769'},

@@ -44,7 +44,8 @@ describe('execute', () => {
 
   test('no playing', async () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
-    playerMocked.getQueue.mockReturnValue({songs: []});
+    playerMocked.getSize.mockResolvedValueOnce(0);
+    playerMocked.getAll.mockResolvedValueOnce([]);
     playerMocked.isPlaying.mockReturnValueOnce(false);
 
     await execute(commandInteraction);
@@ -65,10 +66,11 @@ describe('execute', () => {
     'success: {songs: $songs, songType: $songType, songIsLive: $songIsLive}',
     async ({songs, songType, songIsLive, expected}) => {
       permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
+      playerMocked.getSize.mockResolvedValueOnce(songs.length);
       playerMocked.isPlaying.mockReturnValueOnce(true);
-      playerMocked.getQueue.mockReturnValue(queue);
-      attachmentsMocked.createStatus.mockReturnValueOnce([67, 43, 89, 13]);
-      jest.replaceProperty(queue, 'songs', songs);
+      playerMocked.getNowPlaying.mockReturnValueOnce(queue.nowPlaying);
+      playerMocked.getAll.mockResolvedValueOnce(songs);
+      attachmentsMocked.createStatus.mockResolvedValueOnce([67, 43, 89, 13]);
       jest.replaceProperty(queue.nowPlaying.song, 'type', songType);
       jest.replaceProperty(queue.nowPlaying.song, 'isLive', songIsLive);
       radiosMocked.getRadios.mockReturnValueOnce({
@@ -81,7 +83,7 @@ describe('execute', () => {
 
       expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.queue');
       expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
-      expect(attachmentsMocked.createStatus).toHaveBeenCalledWith('301783183828189184');
+      expect(attachmentsMocked.createStatus).toHaveBeenCalledWith('301783183828189184', queue.nowPlaying);
       expect(commandsMocked.notify).toHaveBeenCalledWith(...expected);
       expect(auditorMocked.audit).toHaveBeenCalled();
     },
@@ -102,14 +104,16 @@ describe('listener', () => {
   });
 
   test('no playing', async () => {
-    playerMocked.getQueue.mockReturnValue(queue);
+    playerMocked.getNowPlaying.mockReturnValue(queue.nowPlaying);
+    playerMocked.getSize.mockResolvedValueOnce(queue.songs.length);
+    playerMocked.getAll.mockResolvedValueOnce(queue.songs);
     jest.replaceProperty(buttonInteraction, 'customId', 'next');
     jest.replaceProperty(buttonInteraction, 'message', {
       ...buttonInteraction.message,
       ...expectedSuccessRadio[1],
     });
     jest.replaceProperty(queue, 'nowPlaying', {});
-    attachmentsMocked.createStatus.mockReturnValueOnce([67, 43, 89, 13]);
+    attachmentsMocked.createStatus.mockResolvedValueOnce([67, 43, 89, 13]);
     radiosMocked.getRadios.mockReturnValueOnce({
       get: jest.fn().mockReturnValueOnce({
         getInfo: jest.fn().mockResolvedValueOnce('\nИсточник: **artist**\nКомпозиция: **song**'),
@@ -127,15 +131,17 @@ describe('listener', () => {
   });
 
   test('success', async () => {
+    playerMocked.getSize.mockResolvedValueOnce(queue.songs.length);
+    playerMocked.getNowPlaying.mockReturnValueOnce(queue.nowPlaying);
     playerMocked.isPlaying.mockReturnValueOnce(true);
-    playerMocked.getQueue.mockReturnValue(queue);
+    playerMocked.getAll.mockResolvedValueOnce(queue.songs);
     jest.replaceProperty(buttonInteraction, 'customId', 'next');
     jest.replaceProperty(buttonInteraction, 'message', {
       ...buttonInteraction.message,
       ...expectedSuccessRadio[1],
     });
     jest.replaceProperty(queue, 'nowPlaying', queue.nowPlaying);
-    attachmentsMocked.createStatus.mockReturnValueOnce([67, 43, 89, 13]);
+    attachmentsMocked.createStatus.mockResolvedValueOnce([67, 43, 89, 13]);
     radiosMocked.getRadios.mockReturnValueOnce({
       get: jest.fn().mockReturnValueOnce({
         getInfo: jest.fn().mockResolvedValueOnce('\nИсточник: **artist**\nКомпозиция: **song**'),

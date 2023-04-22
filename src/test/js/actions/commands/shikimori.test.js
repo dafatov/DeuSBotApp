@@ -2,6 +2,7 @@ const animesJson = require('../../../resources/actions/commands/shikimori/animes
 const expectedPlayNoRandom = require('../../../resources/actions/commands/shikimori/expectedParamsPlayNoRandom');
 const expectedPlaySearch = require('../../../resources/actions/commands/shikimori/expectedParamsPlaySearch');
 const expectedPlaySuccess = require('../../../resources/actions/commands/shikimori/expectedPlaySuccess');
+const expectedPlaySuccessAdded = require('../../../resources/actions/commands/shikimori/expectedPlaySuccessAdded');
 const expectedPlayUnboundCount = require('../../../resources/actions/commands/shikimori/expectedParamsPlayUnboundCount');
 const expectedRemoveSuccess = require('../../../resources/actions/commands/shikimori/expectedParamsRemoveSuccess');
 const expectedSetNonExistLogin = require('../../../resources/actions/commands/shikimori/expectedParamsSetNonExistLogin');
@@ -60,7 +61,7 @@ describe('execute', () => {
       expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.shikimori.play');
       expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
       expect(playerMocked.isConnected).toHaveBeenCalledWith('301783183828189184');
-      expect(playerMocked.isSameChannel).toHaveBeenCalledWith(interaction);
+      expect(playerMocked.isSameChannel).toHaveBeenCalledWith('301783183828189184', '343847059612237824');
       expect(commandsMocked.notifyUnequalChannels).toHaveBeenCalledWith('shikimori', interaction, true);
       expect(commandsMocked.notify).not.toHaveBeenCalled();
       expect(auditorMocked.audit).not.toHaveBeenCalled();
@@ -114,7 +115,8 @@ describe('execute', () => {
       interaction.options.getInteger.mockReturnValueOnce(2);
       interaction.options.getString.mockReturnValueOnce('login');
       axiosMocked.get.mockResolvedValue({data: animesJson});
-      playerMocked.getQueue.mockReturnValue({nowPlaying: {}, songs: []});
+      playerMocked.getNowPlaying.mockReturnValue({});
+      playerMocked.getSize.mockReturnValueOnce(0);
       playerMocked.isConnected.mockReturnValueOnce(false);
       playerMocked.isSameChannel.mockReturnValueOnce(true);
       randomOrgMocked.mockImplementationOnce(() => ({
@@ -134,6 +136,7 @@ describe('execute', () => {
       expect(youtubeMocked.getSearch).toHaveBeenCalledTimes(2);
       expect(youtubeMocked.getSearch).toHaveBeenNthCalledWith(1, interaction, 'Steins;Gate +ending 1 +full');
       expect(youtubeMocked.getSearch).toHaveBeenNthCalledWith(2, interaction, 'Code Geass: Hangyaku no Lelouch R2 +opening 1 +full');
+      expect(playerMocked.addAll).toHaveBeenCalledWith('301783183828189184', expectedPlaySuccessAdded);
       expect(interaction.editReply).toHaveBeenCalledWith(expectedPlaySuccess);
       expect(playerMocked.playPlayer).toHaveBeenCalledWith(interaction);
     });
@@ -269,8 +272,7 @@ describe('play', () => {
     interaction.options.getInteger.mockReturnValueOnce(2);
     interaction.options.getString.mockReturnValueOnce('login');
     axiosMocked.get.mockResolvedValue({data: animesJson});
-    playerMocked.getQueue.mockReturnValue({nowPlaying: {}, songs: []});
-    playerMocked.options.mockReturnValue({requestOptions: {headers: {}}});
+    playerMocked.getSize.mockReturnValue(0);
     randomOrgMocked.mockImplementationOnce(() => ({
       generateIntegers: jest.fn().mockResolvedValue({requestsLeft: 3, random: {data: [1, 4]}}),
     }));
@@ -288,6 +290,7 @@ describe('play', () => {
     expect(youtubeMocked.getSearch).toHaveBeenCalledTimes(2);
     expect(youtubeMocked.getSearch).toHaveBeenNthCalledWith(1, interaction, 'Steins;Gate +ending 1 +full');
     expect(youtubeMocked.getSearch).toHaveBeenNthCalledWith(2, interaction, 'Code Geass: Hangyaku no Lelouch R2 +opening 1 +full');
+    expect(playerMocked.addAll).toHaveBeenCalledWith('301783183828189184', expectedPlaySuccessAdded);
     expect(interaction.editReply).not.toHaveBeenCalled();
     expect(playerMocked.playPlayer).toHaveBeenCalledWith(interaction);
   });

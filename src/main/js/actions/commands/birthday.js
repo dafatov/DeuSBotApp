@@ -169,7 +169,7 @@ const ignore = async interaction => {
 
   const embed = new MessageEmbed()
     .setColor(config.colors.info)
-    .setTitle(t('discord:command.birthday.ignore.completed.title', {username: interaction.user.username}))
+    .setTitle(t('discord:command.birthday.ignore.completed.title', {username: interaction.member.displayName}))
     .setDescription(t('discord:command.birthday.ignore.completed.description', {
       not: current?.ignored ?? false
         ? 'НЕ '

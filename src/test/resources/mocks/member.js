@@ -1,6 +1,7 @@
 const user = require('./user');
 
 module.exports = {
+  displayName: 'DemetriouS',
   guild: {
     id: '301783183828189184',
   },

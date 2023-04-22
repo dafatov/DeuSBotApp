@@ -1,5 +1,4 @@
 const {MessageActionRow, MessageButton} = require('discord.js');
-const {getQueue} = require('../actions/player');
 const {loop} = require('../actions/commands/loop');
 const {pause} = require('../actions/commands/pause');
 const {skip} = require('../actions/commands/skip');
@@ -81,32 +80,32 @@ module.exports.Pagination = {
 };
 
 module.exports.Control = {
-  getComponent: interaction => new MessageActionRow()
+  getComponent: (interaction, nowPlaying) => new MessageActionRow()
     .addComponents(
       new MessageButton()
         .setCustomId('pause')
-        .setLabel(getQueue(interaction.guildId).nowPlaying?.isPause
+        .setLabel(nowPlaying?.isPause
           ? t('common:player.toResume')
           : t('common:player.toPause'))
-        .setStyle(getQueue(interaction.guildId).nowPlaying?.isPause
+        .setStyle(nowPlaying?.isPause
           ? 'SUCCESS'
           : 'DANGER')
-        .setDisabled(getQueue(interaction.guildId).nowPlaying?.song.isLive),
+        .setDisabled(nowPlaying?.song.isLive),
       new MessageButton()
         .setCustomId('skip')
         .setLabel(t('common:player.skip'))
         .setStyle('PRIMARY'),
       new MessageButton()
         .setCustomId('loop')
-        .setLabel(getQueue(interaction.guildId).nowPlaying?.isLoop
+        .setLabel(nowPlaying?.isLoop
           ? t('common:player.toUnloop')
           : t('common:player.toLoop'))
-        .setStyle(getQueue(interaction.guildId).nowPlaying?.isLoop
+        .setStyle(nowPlaying?.isLoop
           ? 'DANGER'
           : 'SUCCESS')
-        .setDisabled(getQueue(interaction.guildId).nowPlaying?.song.isLive),
+        .setDisabled(nowPlaying?.song.isLive),
     ),
-  update: async (interaction, Control) => {
+  update: async (interaction, Control, nowPlaying) => {
     if (interaction.customId === 'pause') {
       await pause(interaction);
     }
@@ -119,22 +118,22 @@ module.exports.Control = {
 
     Control.components.forEach(b => {
       if (b.customId === 'pause') {
-        b.setLabel(getQueue(interaction.guildId).nowPlaying?.isPause
+        b.setLabel(nowPlaying?.isPause
           ? t('common:player.toResume')
           : t('common:player.toPause'));
-        b.setStyle(getQueue(interaction.guildId).nowPlaying?.isPause
+        b.setStyle(nowPlaying?.isPause
           ? 'SUCCESS'
           : 'DANGER');
-        b.setDisabled(getQueue(interaction.guildId).nowPlaying?.song?.isLive ?? true);
+        b.setDisabled(nowPlaying?.song?.isLive ?? true);
       }
       if (b.customId === 'loop') {
-        b.setLabel(getQueue(interaction.guildId).nowPlaying?.isLoop
+        b.setLabel(nowPlaying?.isLoop
           ? t('common:player.toUnloop')
           : t('common:player.toLoop'));
-        b.setStyle(getQueue(interaction.guildId).nowPlaying?.isLoop
+        b.setStyle(nowPlaying?.isLoop
           ? 'DANGER'
           : 'SUCCESS');
-        b.setDisabled(getQueue(interaction.guildId).nowPlaying?.song?.isLive ?? true);
+        b.setDisabled(nowPlaying?.song?.isLive ?? true);
       }
     });
   },
