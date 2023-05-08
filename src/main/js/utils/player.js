@@ -13,13 +13,13 @@ module.exports.getAddedDescription = async (guildId, info) => {
     count: info.length ?? 1,
     duration: info.isLive
       ? t('common:player.stream')
-      : timeFormatSeconds(info.duration),
+      : timeFormatSeconds(info.duration) ?? t('common:player.overDay'),
     length: await getSize(guildId) + 1,
     beginIn: await hasLive(guildId)
       ? t('common:player.noRemained')
       : remainedValue === 0
         ? t('common:player.beginNow')
-        : timeFormatMilliseconds(remainedValue),
+        : timeFormatMilliseconds(remainedValue) ?? t('common:player.overDay'),
   });
 };
 
@@ -35,8 +35,8 @@ module.exports.getNowPlayingDescription = async (interaction, nowPlaying) => {
     );
 
     return t('discord:embed.player.nowPlaying.description.withBar', {
-      playbackDuration: timeFormatMilliseconds(nowPlaying.resource.playbackDuration),
-      length: timeFormatSeconds(nowPlaying.song.duration),
+      playbackDuration: timeFormatMilliseconds(nowPlaying.resource.playbackDuration) ?? t('common:player.overDay'),
+      length: timeFormatSeconds(nowPlaying.song.duration) ?? t('common:player.overDay'),
       author: await interaction.guild.fetch()
         .then(guild => guild.members.fetch(nowPlaying.song.userId))
         .then(member => member.displayName),

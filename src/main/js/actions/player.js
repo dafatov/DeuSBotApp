@@ -1,6 +1,6 @@
 const {AudioPlayerStatus, NoSubscriberBehavior, VoiceConnectionStatus, createAudioPlayer, createAudioResource, joinVoiceChannel} = require('@discordjs/voice');
 const {CATEGORIES, TYPES} = require('../db/repositories/audit');
-const {TYPES: SONG_TYPES, addAll, getAll, getCount, getDuration, move, remove, removeAll, shuffle} = require('../db/repositories/queue');
+const {TYPES: SONG_TYPES, addAll, getAll, getCount, getDuration, getPage, hasLive, move, remove, removeAll, shuffle} = require('../db/repositories/queue');
 const {timeFormatMilliseconds, timeFormatSeconds} = require('../utils/dateTime');
 const {audit} = require('./auditor');
 const {getStream} = require('../api/external/youtube');
@@ -40,6 +40,8 @@ module.exports.addAll = (guildId, added) => addAll(guildId, added.songs);
 
 module.exports.getAll = getAll;
 
+module.exports.getPage = getPage;
+
 module.exports.remove = remove;
 
 module.exports.move = move;
@@ -55,7 +57,7 @@ module.exports.skip = async guildId => {
     message: t('inner:audit.player.skip', {song: skipped.title}),
   });
   // Дублирует логику в onIdle. Нужно, чтобы не ждать ивента для обновления команды queue
-  this.getNowPlaying(guildId).song = (await this.getAll(guildId))[0];
+  this.getNowPlaying(guildId).song = (await this.getPage(guildId, 0, 1))[0];
 
   return skipped;
 };
@@ -82,8 +84,7 @@ module.exports.shuffle = shuffle;
 module.exports.clearQueue = removeAll;
 
 module.exports.hasLive = async guildId => {
-  return this.getNowPlaying(guildId).song?.isLive
-    || (await this.getAll()).some(song => song.isLive);
+  return this.getNowPlaying(guildId).song?.isLive || await hasLive(guildId);
 };
 
 module.exports.isEmpty = guildId => this.isLessQueue(guildId, 0);
@@ -93,7 +94,9 @@ module.exports.isPlaying = guildId => !!this.getNowPlaying(guildId).song;
 module.exports.isLive = guildId => !!this.getNowPlaying(guildId).song.isLive;
 
 module.exports.isSameChannel = (guildId, channelId) => !!channelId
-  && getJukebox(guildId).connection?.joinConfig.channelId === channelId;
+  && this.getChannelId(guildId) === channelId;
+
+module.exports.getChannelId = guildId => getJukebox(guildId).connection?.joinConfig.channelId;
 
 module.exports.isValidIndex = async (guildId, index) => !isNaN(index)
   && index >= 0 && index < await this.getSize(guildId);
@@ -220,7 +223,10 @@ const onPlayerIdle = guildId => async oldState => {
     category: CATEGORIES.PLAYER,
     message: t(
       'inner:audit.player.idle.finished',
-      {current: timeFormatMilliseconds(oldState.playbackDuration), total: timeFormatSeconds(nowPlaying.song?.duration)},
+      {
+        current: timeFormatMilliseconds(oldState.playbackDuration) ?? t('common:player.overDay'),
+        total: timeFormatSeconds(nowPlaying.song?.duration) ?? t('common:player.overDay'),
+      },
     ),
   });
 

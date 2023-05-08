@@ -15,7 +15,7 @@ module.exports.createStatus = async (guildId, nowPlaying) => {
 
   const remainedTmp = `-${await hasLive(guildId)
     ? t('common:player.noRemained')
-    : timeFormatMilliseconds(await remained(guildId, nowPlaying))}`;
+    : timeFormatMilliseconds(await remained(guildId, nowPlaying)) ?? t('common:player.overDay')}`;
   context.font = '24px sans-serif';
 
   context.fillStyle = '#2F3136';

@@ -2,7 +2,7 @@ const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {Control, Pagination} = require('../../utils/components');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {escaping, getCommandName} = require('../../utils/string');
-const {getAll, getNowPlaying, getSize, isPlaying} = require('../player');
+const {getNowPlaying, getPage, getSize, isPlaying} = require('../player');
 const {notify, notifyForbidden} = require('../commands');
 const {MessageEmbed} = require('discord.js');
 const {SlashCommandBuilder} = require('@discordjs/builders');
@@ -128,13 +128,12 @@ const getDescription = async (interaction, start, count, songsCount, nowPlaying)
   const getTitle = song => `[${escaping(song.title)}](${song.url})`;
   const getDuration = song => song.isLive
     ? t('common:player.stream')
-    : timeFormatSeconds(song.duration);
+    : timeFormatSeconds(song.duration) ?? t('common:player.overDay');
 
   const nowPlayingDescription = await getNowPlayingDescription(interaction, nowPlaying);
-  const songs = await getAll(interaction.guildId)
+  const songs = await getPage(interaction.guildId, start, start + count)
     .then(songs => Promise.all(songs
       .sort((a, b) => a.index - b.index)
-      .slice(start, start + count)
       .map(async (song, index) => t('discord:command.queue.completed.song', {
         counter: getCounter(index),
         title: getTitle(song),

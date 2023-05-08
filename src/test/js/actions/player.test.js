@@ -114,7 +114,7 @@ describe('move', () => {
 describe('skip', () => {
   test('success', async () => {
     const expected = jukebox.nowPlaying.song;
-    queueDbMocked.getAll.mockResolvedValueOnce([{title: 'song_2'}]);
+    queueDbMocked.getPage.mockResolvedValueOnce([{title: 'song_2'}]);
 
     const result = await player.skip('301783183828189184');
 
@@ -126,6 +126,7 @@ describe('skip', () => {
         song: {title: 'song_2'},
       },
     });
+    expect(queueDbMocked.getPage).toHaveBeenCalledWith('301783183828189184', 0, 1);
     expect(player.getJukebox('301783183828189184').player.stop).toHaveBeenCalledWith();
     expect(auditorMocked.audit).toHaveBeenCalled();
   });
@@ -200,13 +201,12 @@ describe('clearQueue', () => {
 
 describe('hasLive', () => {
   test.each([
-    {isLive: true, queue: [], expected: true},
-    {isLive: true, queue: [{isLive: true}], expected: true},
-    {isLive: undefined, queue: [{isLive: true}], expected: true},
-    {isLive: false, queue: [], expected: false},
-    {isLive: false, queue: [{isLive: false}], expected: false},
-  ])('success: {$isLive, $queue}', async ({isLive, queue, expected}) => {
-    !isLive && queueDbMocked.getAll.mockResolvedValueOnce(queue);
+    {isLive: true, hasLive: false, expected: true},
+    {isLive: true, hasLive: true, expected: true},
+    {isLive: undefined, hasLive: true, expected: true},
+    {isLive: false, hasLive: false, expected: false},
+  ])('success: {$isLive, $queue}', async ({isLive, hasLive, expected}) => {
+    !isLive && queueDbMocked.hasLive.mockResolvedValueOnce(hasLive);
     jest.replaceProperty(player.getJukebox('301783183828189184').nowPlaying.song, 'isLive', isLive);
 
     const result = await player.hasLive('301783183828189184');
@@ -264,6 +264,14 @@ describe('isSameChannel', () => {
     const result = await player.isSameChannel('301783183828189184', argChannelId);
 
     expect(result).toEqual(expected);
+  });
+});
+
+describe('getChannelId', () => {
+  test('success', async () => {
+    const result = await player.getChannelId('301783183828189184');
+
+    expect(result).toEqual(jukebox.connection.joinConfig.channelId);
   });
 });
 

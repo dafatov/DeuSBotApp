@@ -4,13 +4,17 @@ const {spell} = require('./string');
 module.exports.timeFormatSeconds = s => {
   const time = new Date(0, 0, 0, 0, 0, s);
 
-  return time.toLocaleTimeString('en-GB');
+  return time.getTime() < new Date(0, 0, 1).getTime()
+    ? time.toLocaleTimeString('en-GB')
+    : null;
 };
 
 module.exports.timeFormatMilliseconds = ms => {
   const time = new Date(0, 0, 0, 0, 0, 0, ms);
 
-  return time.toLocaleTimeString('en-GB');
+  return time.getTime() < new Date(0, 0, 1).getTime()
+    ? time.toLocaleTimeString('en-GB')
+    : null;
 };
 
 module.exports.localePostgresInterval = postgresInterval => {
@@ -27,7 +31,7 @@ module.exports.comparePostgresInterval = (a, b, isDescending = false) => {
   const keys = ['years', 'months', 'days', 'hours', 'minutes', 'seconds', 'milliseconds'];
   const mapPostgresInterval = interval => keys.reduce((acc, key) => ({
     ...acc,
-    [key]: interval[key] ?? 0
+    [key]: interval[key] ?? 0,
   }), {});
 
   a = mapPostgresInterval(a);

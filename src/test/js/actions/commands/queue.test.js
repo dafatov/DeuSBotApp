@@ -45,7 +45,6 @@ describe('execute', () => {
   test('no playing', async () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
     playerMocked.getSize.mockResolvedValueOnce(0);
-    playerMocked.getAll.mockResolvedValueOnce([]);
     playerMocked.isPlaying.mockReturnValueOnce(false);
 
     await execute(commandInteraction);
@@ -53,6 +52,7 @@ describe('execute', () => {
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.queue');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
     expect(attachmentsMocked.createStatus).not.toHaveBeenCalled();
+    expect(playerMocked.getSize).toHaveBeenCalledWith('301783183828189184');
     expect(playerMocked.isPlaying).toHaveBeenCalledWith('301783183828189184');
     expect(commandsMocked.notify).toHaveBeenCalledWith(...expectedNoPlaying);
     expect(auditorMocked.audit).toHaveBeenCalled();
@@ -69,7 +69,7 @@ describe('execute', () => {
       playerMocked.getSize.mockResolvedValueOnce(songs.length);
       playerMocked.isPlaying.mockReturnValueOnce(true);
       playerMocked.getNowPlaying.mockReturnValueOnce(queue.nowPlaying);
-      playerMocked.getAll.mockResolvedValueOnce(songs);
+      playerMocked.getPage.mockResolvedValueOnce(songs.slice(0, 5));
       attachmentsMocked.createStatus.mockResolvedValueOnce([67, 43, 89, 13]);
       jest.replaceProperty(queue.nowPlaying.song, 'type', songType);
       jest.replaceProperty(queue.nowPlaying.song, 'isLive', songIsLive);
@@ -83,6 +83,8 @@ describe('execute', () => {
 
       expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.queue');
       expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
+      expect(playerMocked.getPage).toHaveBeenCalledWith('301783183828189184', 0, 5);
+      expect(playerMocked.getSize).toHaveBeenCalledWith('301783183828189184');
       expect(attachmentsMocked.createStatus).toHaveBeenCalledWith('301783183828189184', queue.nowPlaying);
       expect(commandsMocked.notify).toHaveBeenCalledWith(...expected);
       expect(auditorMocked.audit).toHaveBeenCalled();
@@ -106,7 +108,6 @@ describe('listener', () => {
   test('no playing', async () => {
     playerMocked.getNowPlaying.mockReturnValue(queue.nowPlaying);
     playerMocked.getSize.mockResolvedValueOnce(queue.songs.length);
-    playerMocked.getAll.mockResolvedValueOnce(queue.songs);
     jest.replaceProperty(buttonInteraction, 'customId', 'next');
     jest.replaceProperty(buttonInteraction, 'message', {
       ...buttonInteraction.message,
@@ -124,6 +125,7 @@ describe('listener', () => {
 
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.queue');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
+    expect(playerMocked.getSize).toHaveBeenCalledWith('301783183828189184');
     expect(buttonInteraction.update).toHaveBeenCalledWith(...expectedOnSuccessNoPlaying);
     expect(buttonInteraction.message.removeAttachments).toHaveBeenCalled();
     expect(attachmentsMocked.createStatus).not.toHaveBeenCalled();
@@ -134,7 +136,7 @@ describe('listener', () => {
     playerMocked.getSize.mockResolvedValueOnce(queue.songs.length);
     playerMocked.getNowPlaying.mockReturnValueOnce(queue.nowPlaying);
     playerMocked.isPlaying.mockReturnValueOnce(true);
-    playerMocked.getAll.mockResolvedValueOnce(queue.songs);
+    playerMocked.getPage.mockResolvedValueOnce(queue.songs.slice(5, 10));
     jest.replaceProperty(buttonInteraction, 'customId', 'next');
     jest.replaceProperty(buttonInteraction, 'message', {
       ...buttonInteraction.message,
@@ -153,6 +155,8 @@ describe('listener', () => {
 
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.queue');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
+    expect(playerMocked.getSize).toHaveBeenCalledWith('301783183828189184');
+    expect(playerMocked.getPage).toHaveBeenCalledWith('301783183828189184', 5, 10);
     expect(buttonInteraction.update).toHaveBeenCalledWith(...expectedOnSuccessRadio);
     expect(buttonInteraction.message.removeAttachments).toHaveBeenCalled();
     expect(attachmentsMocked.createStatus).toHaveBeenCalled();

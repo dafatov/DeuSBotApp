@@ -13,6 +13,12 @@ module.exports.getAll = async guildId => {
   return rows.map(row => ({...row, guildId: row.guild_id, userId: row.user_id, isLive: row.is_live}));
 };
 
+module.exports.getPage = async (guildId, start, finish) => {
+  const rows = (await db.query('SELECT * FROM queue WHERE guild_id=$1 AND index >= $2 AND index < $3', [guildId, start, finish])).rows ?? [];
+
+  return rows.map(row => ({...row, guildId: row.guild_id, userId: row.user_id, isLive: row.is_live}));
+};
+
 module.exports.getCount = async guildId => {
   return (await db.query('SELECT count(*)::integer AS count FROM queue WHERE guild_id=$1', [guildId])).rows[0].count ?? 0;
 };
@@ -73,4 +79,8 @@ module.exports.shuffle = async guildId => {
         [id, type, title, duration, url, is_live, preview, user_id, index, guild_id]),
     ));
   });
+};
+
+module.exports.hasLive = async guildId => {
+  return (await db.query('SELECT count(*) != 0 as has_live FROM queue WHERE guild_id=$1 AND is_live', [guildId])).rows[0].has_live ?? false;
 };

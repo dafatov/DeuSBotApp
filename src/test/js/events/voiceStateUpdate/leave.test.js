@@ -33,7 +33,7 @@ describe('execute', () => {
     await execute({
       client,
       newState: {
-        id, channelId, guild: {
+        channelId, guild: {
           id: '301783183828189184', channels: {
             fetch: () => Promise.resolve({
               members: new Collection([
@@ -41,7 +41,7 @@ describe('execute', () => {
               ]),
             }),
           },
-        },
+        }, member: {user: {id}},
       },
     });
 
@@ -55,8 +55,8 @@ describe('execute', () => {
     await execute({
       client,
       newState: {
-        id: '909473788779958363', channelId: '-68558230535929877',
-        guild: {id: '301783183828189184'},
+        channelId: '-68558230535929877', guild: {id: '301783183828189184'},
+        member: {user: {id: '909473788779958363'}},
       },
     });
 

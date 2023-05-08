@@ -1,5 +1,5 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
-const {destroyConnection, isConnected, isSameChannel} = require('../../actions/player');
+const {destroyConnection, getChannelId, isConnected, isSameChannel} = require('../../actions/player');
 const {audit} = require('../../actions/auditor');
 const {t} = require('i18next');
 
@@ -8,8 +8,8 @@ module.exports.execute = async ({client, newState}) => {
     return;
   }
 
-  if ((isSameChannel(newState.guild.id, newState?.channelId) || newState.id !== client.user.id)
-    && await newState.guild.channels.fetch(newState?.channelId)
+  if ((isSameChannel(newState.guild.id, newState?.channelId) || newState.member.user.id !== client.user.id)
+    && await newState.guild.channels.fetch(getChannelId(newState.guild.id))
       .then(channel => channel.members.filter(member => !member.user.bot).size >= 1)) {
     return;
   }
