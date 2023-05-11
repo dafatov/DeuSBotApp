@@ -1,9 +1,8 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {EmbedBuilder, SlashCommandBuilder} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {isPlaying, isSameChannel, skip} = require('../player');
 const {notify, notifyForbidden, notifyNoPlaying, notifyUnequalChannels} = require('../commands');
-const {MessageEmbed} = require('discord.js');
-const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const {escaping} = require('../../utils/string');
@@ -36,7 +35,7 @@ module.exports.skip = async (interaction, isExecute) => {
   const skipped = await skip(interaction.guildId);
 
   if (isExecute) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(config.colors.info)
       .setTitle(t('discord:command.skip.completed.title'))
       .setDescription(t('discord:command.skip.completed.description', {title: escaping(skipped.title)}))

@@ -1,9 +1,8 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {EmbedBuilder, SlashCommandBuilder} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {isLive, isPlaying, isSameChannel, loop} = require('../player');
 const {notify, notifyForbidden, notifyIsLive, notifyNoPlaying, notifyUnequalChannels} = require('../commands');
-const {MessageEmbed} = require('discord.js');
-const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const {getCommandName} = require('../../utils/string');
@@ -40,7 +39,7 @@ module.exports.loop = async (interaction, isExecute) => {
   const isLoop = loop(interaction.guildId);
 
   if (isExecute) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(config.colors.info)
       .setTitle(t('discord:command.loop.completed.title', {
         status: isLoop

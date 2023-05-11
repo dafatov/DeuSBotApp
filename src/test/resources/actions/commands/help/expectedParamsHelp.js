@@ -1,10 +1,10 @@
-const {MessageEmbed} = require('discord.js');
+const {EmbedBuilder} = require('discord.js');
 const interaction = require('../../../mocks/commandInteraction');
 
 module.exports = [
   interaction, {
     embeds: [
-      new MessageEmbed({
+      new EmbedBuilder({
         color: 16777040,
         description: 'Команда позволяет вывести, как информацию по боту, так и по любой существующей команде',
         footer: {

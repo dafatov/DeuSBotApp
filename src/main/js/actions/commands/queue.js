@@ -1,11 +1,10 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {Control, Pagination} = require('../../utils/components');
+const {EmbedBuilder, SlashCommandBuilder} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {escaping, getCommandName} = require('../../utils/string');
 const {getNowPlaying, getPage, getSize, isPlaying} = require('../player');
 const {notify, notifyForbidden} = require('../commands');
-const {MessageEmbed} = require('discord.js');
-const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const {createStatus} = require('../../utils/attachments');
@@ -33,7 +32,7 @@ const queue = async interaction => {
   const pagination = Pagination.getComponent(start, count, songsCount);
 
   if (!isPlaying(interaction.guildId)) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(config.colors.warning)
       .setTitle(t('discord:embed.noPlaying.title'))
       .setDescription(t('discord:embed.noPlaying.description'))
@@ -50,10 +49,10 @@ const queue = async interaction => {
   }
 
   const nowPlaying = getNowPlaying(interaction.guildId);
-  const control = Control.getComponent(interaction, nowPlaying);
+  const control = Control.getComponent(nowPlaying);
   const status = await createStatus(interaction.guildId, nowPlaying);
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(escaping(nowPlaying.song.title))
     .setDescription(await getDescription(interaction, start, count, songsCount, nowPlaying))
@@ -77,21 +76,14 @@ const onQueue = async interaction => {
   }
 
   const songsCount = await getSize(interaction.guildId);
-  const embed = interaction.message.embeds[0];
-  const pagination = interaction.message.components[0];
-  const pages = Pagination.getPages(embed.footer.text);
-  const start = Pagination.update(interaction, pages, songsCount);
+  const embed = EmbedBuilder.from(interaction.message.embeds[0]);
+  const pages = Pagination.getPages(embed);
+  const {start, pagination} = Pagination.update(interaction, pages, songsCount);
   const nowPlaying = getNowPlaying(interaction.guildId);
-  const control = nowPlaying?.song
-    ? Control.getComponent(interaction, nowPlaying)
-    : interaction.message.components[1];
-
-  if (control) {
-    await Control.update(interaction, control, nowPlaying);
-  }
+  const control = await Control.update(interaction, nowPlaying);
 
   if (!isPlaying(interaction.guildId)) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(config.colors.warning)
       .setTitle(t('discord:embed.noPlaying.title'))
       .setDescription(t('discord:embed.noPlaying.description'))

@@ -1,8 +1,8 @@
-const {MessageEmbed} = require('discord.js');
+const {EmbedBuilder} = require('discord.js');
 
 module.exports = {
   embeds: [
-    new MessageEmbed({
+    new EmbedBuilder({
       color: 16777040,
       timestamp: new Date('2023-02-06T10:20:27.013Z'),
       description: 'Количество композиций: **2**\nДлительность: **01:31:23**\nМесто в очереди: **1**\nНачнется через: **<Сейчас>**',

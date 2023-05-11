@@ -1,38 +1,40 @@
-const {MessageActionRow, MessageButton} = require('discord.js');
+const {ActionRowBuilder, ButtonBuilder, ButtonStyle} = require('discord.js');
 const {loop} = require('../actions/commands/loop');
 const {pause} = require('../actions/commands/pause');
 const {skip} = require('../actions/commands/skip');
 const {t} = require('i18next');
 
 module.exports.Pagination = {
-  getComponent: (start, count, dataLength) => new MessageActionRow()
+  getComponent: (start, count, dataLength) => new ActionRowBuilder()
     .addComponents(
-      new MessageButton()
+      new ButtonBuilder()
         .setCustomId('first')
         .setLabel(t('common:pagination.first'))
-        .setStyle('PRIMARY')
+        .setStyle(ButtonStyle.Primary)
         .setDisabled(start <= 0),
-      new MessageButton()
+      new ButtonBuilder()
         .setCustomId('previous')
         .setLabel(t('common:pagination.previous'))
-        .setStyle('PRIMARY')
+        .setStyle(ButtonStyle.Primary)
         .setDisabled(start <= 0),
-      new MessageButton()
+      new ButtonBuilder()
         .setCustomId('update')
         .setLabel(t('common:pagination.update'))
-        .setStyle('PRIMARY'),
-      new MessageButton()
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
         .setCustomId('next')
         .setLabel(t('common:pagination.next'))
-        .setStyle('PRIMARY')
+        .setStyle(ButtonStyle.Primary)
         .setDisabled(start + count >= dataLength),
-      new MessageButton()
+      new ButtonBuilder()
         .setCustomId('last')
         .setLabel(t('common:pagination.last'))
-        .setStyle('PRIMARY')
+        .setStyle(ButtonStyle.Primary)
         .setDisabled(start + count >= dataLength),
     ),
   update: (interaction, {start, count}, dataLength) => {
+    const pagination = ActionRowBuilder.from(interaction.message.components[0]);
+
     if (interaction.customId === 'next') {
       start += count;
     }
@@ -49,22 +51,22 @@ module.exports.Pagination = {
       start = count * Math.floor((dataLength - 1) / count);
     }
 
-    interaction.message.components[0].components.forEach(b => {
-      if (b.customId === 'next') {
-        b.setDisabled(start + count >= dataLength);
+    pagination.components.forEach(button => {
+      if (button.data.custom_id === 'next') {
+        button.setDisabled(start + count >= dataLength);
       }
-      if (b.customId === 'previous') {
-        b.setDisabled(start <= 0);
+      if (button.data.custom_id === 'previous') {
+        button.setDisabled(start <= 0);
       }
-      if (b.customId === 'first') {
-        b.setDisabled(start <= 0);
+      if (button.data.custom_id === 'first') {
+        button.setDisabled(start <= 0);
       }
-      if (b.customId === 'last') {
-        b.setDisabled(start + count >= dataLength);
+      if (button.data.custom_id === 'last') {
+        button.setDisabled(start + count >= dataLength);
       }
     });
 
-    return start;
+    return {start, pagination};
   },
   getFooter: (start, count, dataLength) => t('common:pagination.footer', {
     start: Math.min(start + 1, dataLength),
@@ -72,69 +74,77 @@ module.exports.Pagination = {
     total: dataLength,
     step: count,
   }),
-  getPages: footer => {
-    const array = footer.split(' ');
+  getPages: embed => {
+    const array = embed.data.footer.text.split(' ');
 
     return {start: Math.max(array[0], 1) - 1, count: parseInt(array[6])};
   },
 };
 
 module.exports.Control = {
-  getComponent: (interaction, nowPlaying) => new MessageActionRow()
+  getComponent: nowPlaying => new ActionRowBuilder()
     .addComponents(
-      new MessageButton()
+      new ButtonBuilder()
         .setCustomId('pause')
         .setLabel(nowPlaying?.isPause
           ? t('common:player.toResume')
           : t('common:player.toPause'))
         .setStyle(nowPlaying?.isPause
-          ? 'SUCCESS'
-          : 'DANGER')
+          ? ButtonStyle.Success
+          : ButtonStyle.Danger)
         .setDisabled(nowPlaying?.song.isLive),
-      new MessageButton()
+      new ButtonBuilder()
         .setCustomId('skip')
         .setLabel(t('common:player.skip'))
-        .setStyle('PRIMARY'),
-      new MessageButton()
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
         .setCustomId('loop')
         .setLabel(nowPlaying?.isLoop
           ? t('common:player.toUnloop')
           : t('common:player.toLoop'))
         .setStyle(nowPlaying?.isLoop
-          ? 'DANGER'
-          : 'SUCCESS')
+          ? ButtonStyle.Danger
+          : ButtonStyle.Success)
         .setDisabled(nowPlaying?.song.isLive),
     ),
-  update: async (interaction, Control, nowPlaying) => {
-    if (interaction.customId === 'pause') {
-      await pause(interaction);
-    }
-    if (interaction.customId === 'skip') {
-      await skip(interaction);
-    }
-    if (interaction.customId === 'loop') {
-      await loop(interaction);
-    }
+  get update() {
+    return async (interaction, nowPlaying) => {
+      const control = nowPlaying?.song
+        ? this.getComponent(nowPlaying)
+        : ActionRowBuilder.from(interaction.message.components[1]);
 
-    Control.components.forEach(b => {
-      if (b.customId === 'pause') {
-        b.setLabel(nowPlaying?.isPause
-          ? t('common:player.toResume')
-          : t('common:player.toPause'));
-        b.setStyle(nowPlaying?.isPause
-          ? 'SUCCESS'
-          : 'DANGER');
-        b.setDisabled(nowPlaying?.song?.isLive ?? true);
+      if (interaction.customId === 'pause') {
+        await pause(interaction);
       }
-      if (b.customId === 'loop') {
-        b.setLabel(nowPlaying?.isLoop
-          ? t('common:player.toUnloop')
-          : t('common:player.toLoop'));
-        b.setStyle(nowPlaying?.isLoop
-          ? 'DANGER'
-          : 'SUCCESS');
-        b.setDisabled(nowPlaying?.song?.isLive ?? true);
+      if (interaction.customId === 'skip') {
+        await skip(interaction);
       }
-    });
+      if (interaction.customId === 'loop') {
+        await loop(interaction);
+      }
+
+      control.components.forEach(button => {
+        if (button.data.custom_id === 'pause') {
+          button.setLabel(nowPlaying?.isPause
+            ? t('common:player.toResume')
+            : t('common:player.toPause'));
+          button.setStyle(nowPlaying?.isPause
+            ? ButtonStyle.Success
+            : ButtonStyle.Danger);
+          button.setDisabled(nowPlaying?.song?.isLive ?? true);
+        }
+        if (button.data.custom_id === 'loop') {
+          button.setLabel(nowPlaying?.isLoop
+            ? t('common:player.toUnloop')
+            : t('common:player.toLoop'));
+          button.setStyle(nowPlaying?.isLoop
+            ? ButtonStyle.Danger
+            : ButtonStyle.Success);
+          button.setDisabled(nowPlaying?.song?.isLive ?? true);
+        }
+      });
+
+      return control;
+    };
   },
 };

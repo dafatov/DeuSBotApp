@@ -1,6 +1,6 @@
 const {APPLICATIONS, getUnshown, shown} = require('../../db/repositories/changelog');
 const {escaping, isVersionUpdated} = require('../../utils/string');
-const {MessageEmbed} = require('discord.js');
+const {EmbedBuilder} = require('discord.js');
 const config = require('../../configs/config');
 const {t} = require('i18next');
 
@@ -18,7 +18,7 @@ module.exports = {
     return {
       default: {
         embeds: changelogs.map(changelog =>
-          new MessageEmbed()
+          new EmbedBuilder()
             .setColor(config.colors.info)
             .setTitle(createTitle(changelog.version, changelog.application))
             .setThumbnail('https://i.ibb.co/dK5VJcd/ancient.png')

@@ -1,10 +1,9 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {EmbedBuilder, SlashCommandBuilder} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {escaping, getCommandName} = require('../../utils/string');
 const {getNowPlaying, isPlaying} = require('../player');
 const {notify, notifyForbidden, notifyNoPlaying} = require('../commands');
-const {MessageEmbed} = require('discord.js');
-const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const {createStatus} = require('../../utils/attachments');
@@ -31,7 +30,7 @@ const np = async interaction => {
 
   const nowPlaying = getNowPlaying(interaction.guildId);
   const status = await createStatus(interaction.guildId, nowPlaying);
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(escaping(nowPlaying.song.title))
     .setDescription(await getNowPlayingDescription(interaction, nowPlaying))

@@ -1,12 +1,11 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {EmbedBuilder, SlashCommandBuilder} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {addAll, isConnected, isSameChannel, playPlayer} = require('../player');
 const {escaping, getCommandName} = require('../../utils/string');
 const {notify, notifyForbidden, notifyUnequalChannels} = require('../commands');
 const {DISCORD_OPTIONS_MAX} = require('../../utils/constants');
-const {MessageEmbed} = require('discord.js');
 const {TYPES: SONG_TYPES} = require('../../db/repositories/queue');
-const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const chunk = require('lodash/chunk');
 const config = require('../../configs/config');
@@ -63,7 +62,7 @@ module.exports.radio = async (interaction, isExecute, stationKey = interaction.o
   await playPlayer(interaction);
 
   if (isExecute) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(config.colors.info)
       .setTitle(escaping(added.info.title))
       .setURL(added.info.url)

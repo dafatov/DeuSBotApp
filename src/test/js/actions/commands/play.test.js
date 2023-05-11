@@ -1,11 +1,13 @@
+const commandInteraction = require('../../../resources/mocks/commandInteraction');
+const expectedModal = require('../../../resources/actions/commands/play/expectedModal');
 const expectedParamsPlaylist = require('../../../resources/actions/commands/play/expectedParamsPlaylist');
 const expectedParamsSearch = require('../../../resources/actions/commands/play/expectedParamsSearch');
 const expectedParamsSong = require('../../../resources/actions/commands/play/expectedParamsSong');
 const expectedPlaylist = require('../../../resources/actions/commands/play/expectedPlaylist');
 const expectedSearch = require('../../../resources/actions/commands/play/expectedSearch');
 const expectedSong = require('../../../resources/actions/commands/play/expectedSong');
-const interaction = require('../../../resources/mocks/commandInteraction');
 const locale = require('../../configs/locale');
+const modalSubmitInteraction = require('../../../resources/mocks/modalSubmitInteraction');
 const playlist = require('../../../resources/actions/commands/play/playlist');
 const search = require('../../../resources/actions/commands/play/search');
 const song = require('../../../resources/actions/commands/play/song');
@@ -22,19 +24,33 @@ const playerMocked = jest.mock(playerModuleName).requireMock(playerModuleName);
 const youtubeMocked = jest.mock(youtubeModuleName).requireMock(youtubeModuleName);
 
 // eslint-disable-next-line sort-imports-requires/sort-requires
-const {execute, play} = require('../../../../main/js/actions/commands/play');
+const play = require('../../../../main/js/actions/commands/play');
 
 beforeAll(() => locale.init());
+
+describe('isDeferReply', () => {
+  test.each([
+    {audio: undefined, expected: false},
+    {audio: '', expected: false},
+    {audio: 'test', expected: true}
+  ])('success: $audio', ({audio, expected}) => {
+    commandInteraction.options.getString.mockReturnValueOnce(audio);
+
+    const result = play.isDeferReply(commandInteraction);
+
+    expect(result).toEqual(expected);
+  });
+});
 
 describe('execute', () => {
   test('forbidden', async () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(true));
 
-    const result = await execute(interaction);
+    const result = await play.execute(commandInteraction);
 
     expect(result).toEqual({'result': 'Доступ к команде play запрещен'});
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.play');
-    expect(commandsMocked.notifyForbidden).toHaveBeenCalledWith('play', interaction);
+    expect(commandsMocked.notifyForbidden).toHaveBeenCalledWith('play', commandInteraction);
     expect(commandsMocked.notify).not.toHaveBeenCalledWith();
     expect(auditorMocked.audit).not.toHaveBeenCalled();
   });
@@ -44,21 +60,41 @@ describe('execute', () => {
     playerMocked.isConnected.mockReturnValueOnce(true);
     playerMocked.isSameChannel.mockReturnValueOnce(false);
 
-    const result = await execute(interaction);
+    const result = await play.execute(commandInteraction);
 
     expect(result).toEqual({'result': 'Не совпадают каналы'});
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.play');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
     expect(playerMocked.isConnected).toHaveBeenCalledWith('301783183828189184');
     expect(playerMocked.isSameChannel).toHaveBeenCalledWith('301783183828189184', '343847059612237824');
-    expect(commandsMocked.notifyUnequalChannels).toHaveBeenCalledWith('play', interaction, true);
+    expect(commandsMocked.notifyUnequalChannels).toHaveBeenCalledWith('play', commandInteraction, true);
     expect(commandsMocked.notify).not.toHaveBeenCalled();
     expect(auditorMocked.audit).not.toHaveBeenCalled();
   });
 
+  test('opening modal', async () => {
+    permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
+    playerMocked.isConnected.mockReturnValueOnce(true);
+    playerMocked.isSameChannel.mockReturnValueOnce(true);
+
+    const result = await play.execute(commandInteraction);
+
+    expect(result).toBeUndefined();
+    expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.play');
+    expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
+    expect(playerMocked.isConnected).toHaveBeenCalledWith('301783183828189184');
+    expect(playerMocked.isSameChannel).toHaveBeenCalledWith('301783183828189184', '343847059612237824');
+    expect(commandsMocked.notifyUnequalChannels).not.toHaveBeenCalled();
+    expect(commandsMocked.notify).not.toHaveBeenCalled();
+    expect(commandInteraction.showModal).toHaveBeenCalledWith(expectedModal);
+    expect(playerMocked.addAll).not.toHaveBeenCalled();
+    expect(playerMocked.playPlayer).not.toHaveBeenCalled();
+    expect(auditorMocked.audit).toHaveBeenCalled();
+  });
+
   describe('success', () => {
     test('playlist', async () => {
-      interaction.options.getString.mockReturnValueOnce('playlistUrl');
+      commandInteraction.options.getString.mockReturnValueOnce('playlistUrl');
       permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
       playerMocked.getNowPlaying.mockResolvedValueOnce({});
       playerMocked.getSize.mockResolvedValueOnce(0);
@@ -67,21 +103,21 @@ describe('execute', () => {
       playerMocked.isSameChannel.mockReturnValueOnce(true);
       youtubeMocked.getPlaylist.mockResolvedValueOnce(playlist);
 
-      const result = await execute(interaction);
+      const result = await play.execute(commandInteraction);
 
       expect(result).toEqual({added: expectedPlaylist.info});
       expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.play');
       expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
       expect(commandsMocked.notifyUnequalChannels).not.toHaveBeenCalled();
-      expect(youtubeMocked.getPlaylist).toHaveBeenCalledWith(interaction, 'playlistUrl');
+      expect(youtubeMocked.getPlaylist).toHaveBeenCalledWith(commandInteraction, 'playlistUrl');
       expect(playerMocked.addAll).toHaveBeenCalledWith('301783183828189184', expectedPlaylist);
-      expect(playerMocked.playPlayer).toHaveBeenCalledWith(interaction);
+      expect(playerMocked.playPlayer).toHaveBeenCalledWith(commandInteraction);
       expect(commandsMocked.notify).toHaveBeenCalledWith(...expectedParamsPlaylist);
       expect(auditorMocked.audit).toHaveBeenCalled();
     });
 
     test('song', async () => {
-      interaction.options.getString.mockReturnValueOnce('songUrl');
+      commandInteraction.options.getString.mockReturnValueOnce('songUrl');
       permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
       playerMocked.getNowPlaying.mockResolvedValueOnce({});
       playerMocked.getSize.mockResolvedValueOnce(0);
@@ -91,22 +127,22 @@ describe('execute', () => {
       youtubeMocked.getPlaylist.mockRejectedValueOnce();
       youtubeMocked.getSong.mockResolvedValueOnce(song);
 
-      const result = await execute(interaction);
+      const result = await play.execute(commandInteraction);
 
       expect(result).toEqual({added: expectedSong.info});
       expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.play');
       expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
       expect(commandsMocked.notifyUnequalChannels).not.toHaveBeenCalled();
-      expect(youtubeMocked.getPlaylist).toHaveBeenCalledWith(interaction, 'songUrl');
-      expect(youtubeMocked.getSong).toHaveBeenCalledWith(interaction, 'songUrl');
+      expect(youtubeMocked.getPlaylist).toHaveBeenCalledWith(commandInteraction, 'songUrl');
+      expect(youtubeMocked.getSong).toHaveBeenCalledWith(commandInteraction, 'songUrl');
       expect(playerMocked.addAll).toHaveBeenCalledWith('301783183828189184', expectedSong);
-      expect(playerMocked.playPlayer).toHaveBeenCalledWith(interaction);
+      expect(playerMocked.playPlayer).toHaveBeenCalledWith(commandInteraction);
       expect(commandsMocked.notify).toHaveBeenCalledWith(...expectedParamsSong);
       expect(auditorMocked.audit).toHaveBeenCalled();
     });
 
     test('search', async () => {
-      interaction.options.getString.mockReturnValueOnce('search');
+      commandInteraction.options.getString.mockReturnValueOnce('search');
       permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
       playerMocked.getNowPlaying.mockResolvedValueOnce({});
       playerMocked.getSize.mockResolvedValueOnce(0);
@@ -117,20 +153,39 @@ describe('execute', () => {
       youtubeMocked.getSong.mockRejectedValueOnce();
       youtubeMocked.getSearch.mockResolvedValue(search);
 
-      const result = await execute(interaction);
+      const result = await play.execute(commandInteraction);
 
       expect(result).toEqual({added: expectedSearch.info});
       expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.play');
       expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
       expect(commandsMocked.notifyUnequalChannels).not.toHaveBeenCalled();
-      expect(youtubeMocked.getPlaylist).toHaveBeenCalledWith(interaction, 'search');
-      expect(youtubeMocked.getSong).toHaveBeenCalledWith(interaction, 'search');
-      expect(youtubeMocked.getSearch).toHaveBeenCalledWith(interaction, 'search');
+      expect(youtubeMocked.getPlaylist).toHaveBeenCalledWith(commandInteraction, 'search');
+      expect(youtubeMocked.getSong).toHaveBeenCalledWith(commandInteraction, 'search');
+      expect(youtubeMocked.getSearch).toHaveBeenCalledWith(commandInteraction, 'search');
       expect(playerMocked.addAll).toHaveBeenCalledWith('301783183828189184', expectedSearch);
-      expect(playerMocked.playPlayer).toHaveBeenCalledWith(interaction);
+      expect(playerMocked.playPlayer).toHaveBeenCalledWith(commandInteraction);
       expect(commandsMocked.notify).toHaveBeenCalledWith(...expectedParamsSearch);
       expect(auditorMocked.audit).toHaveBeenCalled();
     });
+  });
+});
+
+describe('modal', () => {
+  test('success', async () => {
+    jest.replaceProperty(modalSubmitInteraction.fields, 'fields', [
+      {value: 'value1'}, {value: 'value2'}, {value: 'value3'}, {value: ''}, {value: undefined}
+    ]);
+    jest.spyOn(play, 'play')
+      .mockResolvedValueOnce()
+      .mockResolvedValueOnce()
+      .mockResolvedValueOnce();
+
+    await play.modal(modalSubmitInteraction);
+
+    expect(play.play).toHaveBeenCalledTimes(3);
+    expect(play.play).toHaveBeenNthCalledWith(1, modalSubmitInteraction, true, 'value1');
+    expect(play.play).toHaveBeenNthCalledWith(2, modalSubmitInteraction, true, 'value2');
+    expect(play.play).toHaveBeenNthCalledWith(3, modalSubmitInteraction, true, 'value3');
   });
 });
 
@@ -145,16 +200,16 @@ describe('play', () => {
     youtubeMocked.getPlaylist.mockRejectedValueOnce();
     youtubeMocked.getSong.mockResolvedValueOnce(song);
 
-    const result = await play(interaction, false, 'songUrl');
+    const result = await play.play(commandInteraction, false, 'songUrl');
 
     expect(result).toEqual({added: expectedSong.info});
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.play');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
     expect(commandsMocked.notifyUnequalChannels).not.toHaveBeenCalled();
-    expect(youtubeMocked.getPlaylist).toHaveBeenCalledWith(interaction, 'songUrl');
-    expect(youtubeMocked.getSong).toHaveBeenCalledWith(interaction, 'songUrl');
+    expect(youtubeMocked.getPlaylist).toHaveBeenCalledWith(commandInteraction, 'songUrl');
+    expect(youtubeMocked.getSong).toHaveBeenCalledWith(commandInteraction, 'songUrl');
     expect(playerMocked.addAll).toHaveBeenCalledWith('301783183828189184', expectedSong);
-    expect(playerMocked.playPlayer).toHaveBeenCalledWith(interaction);
+    expect(playerMocked.playPlayer).toHaveBeenCalledWith(commandInteraction);
     expect(commandsMocked.notify).not.toHaveBeenCalled();
     expect(auditorMocked.audit).toHaveBeenCalled();
   });

@@ -5,3 +5,16 @@ module.exports.bigIntReplacer = (key, value) => {
     return value;
   }
 };
+
+module.exports.promiseAllSequence = functions => {
+  const results = [];
+
+  return (async () => {
+    // eslint-disable-next-line no-loops/no-loops
+    for (const func of functions) {
+      results.push(await func());
+    }
+
+    return Promise.resolve(results);
+  })();
+};

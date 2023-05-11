@@ -1,8 +1,8 @@
-const {MessageActionRow, MessageEmbed} = require('discord.js');
+const {ActionRowBuilder, EmbedBuilder} = require('discord.js');
 
 module.exports = {
   components: [
-    new MessageActionRow({
+    new ActionRowBuilder({
       components: [
         {
           custom_id: 'first',
@@ -20,7 +20,6 @@ module.exports = {
         },
         {
           custom_id: 'update',
-          disabled: false,
           label: 'Обновить',
           style: 1,
           type: 2,
@@ -44,7 +43,7 @@ module.exports = {
     }),
   ],
   embeds: [
-    new MessageEmbed({
+    new EmbedBuilder({
       color: 16777040,
       description: '<@531429539176513546>\n0\n\n<@155149108183695360>\n0',
       timestamp: new Date('2023-02-06T10:20:27.013Z'),

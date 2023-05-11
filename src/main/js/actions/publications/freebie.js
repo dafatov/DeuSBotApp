@@ -1,6 +1,6 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {getCommandName, stringify} = require('../../utils/string');
-const {MessageEmbed} = require('discord.js');
+const {EmbedBuilder} = require('discord.js');
 const Parser = require('rss-parser');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
@@ -25,7 +25,7 @@ module.exports = {
       return {
         default: {
           embeds: freebies.map(f =>
-            new MessageEmbed()
+            new EmbedBuilder()
               .setColor(config.colors.info)
               .setTitle(f.title)
               .setThumbnail(getThumbnail(f.categories))

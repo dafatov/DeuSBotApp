@@ -1,10 +1,10 @@
-const {MessageEmbed} = require('discord.js');
+const {EmbedBuilder} = require('discord.js');
 const interaction = require('../../../mocks/commandInteraction');
 
 module.exports = [
   interaction, {
     embeds: [
-      new MessageEmbed({
+      new EmbedBuilder({
         color: 16777040,
         description: 'Количество композиций: **2**\nДлительность: **00:09:05**\nМесто в очереди: **1**\nНачнется через: **<Сейчас>**',
         thumbnail: {

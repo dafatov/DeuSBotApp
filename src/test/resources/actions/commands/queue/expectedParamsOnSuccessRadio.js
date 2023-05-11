@@ -1,9 +1,9 @@
-const {MessageActionRow, MessageEmbed} = require('discord.js');
+const {ActionRowBuilder, EmbedBuilder} = require('discord.js');
 
 module.exports = [
   {
     components: [
-      new MessageActionRow({
+      new ActionRowBuilder({
         components: [
           {
             custom_id: 'first',
@@ -21,7 +21,6 @@ module.exports = [
           },
           {
             custom_id: 'update',
-            disabled: false,
             label: 'Обновить',
             style: 1,
             type: 2,
@@ -43,7 +42,7 @@ module.exports = [
         ],
         type: 1,
       }),
-      new MessageActionRow({
+      new ActionRowBuilder({
         components: [
           {
             custom_id: 'pause',
@@ -54,7 +53,6 @@ module.exports = [
           },
           {
             custom_id: 'skip',
-            disabled: false,
             label: 'Пропустить',
             style: 1,
             type: 2,
@@ -71,7 +69,7 @@ module.exports = [
       }),
     ],
     embeds: [
-      new MessageEmbed({
+      new EmbedBuilder({
         color: 16777040,
         description: '\nИсточник: **artist**\nКомпозиция: **song**\n\n06). [YUREI DECO - Opening \\| 1,000,000,000,000,000,000,000,000 LOVE](https://www.youtube.com/watch?v=jN8tcrzSQNc)\n`00:01:40`—_`DemetriouS`_\n\n07). [Spice and Wolf OP 1 FULL (with lyrics)](https://www.youtube.com/watch?v=W6q1AWnjNiU)\n`00:04:52`—_`DemetriouS`_\n\n08). [Hacking To The Gate (Steins;Gate OP synthwave 80s remix) by Astrophysics](https://www.youtube.com/watch?v=ERlBHyOjeLI)\n`00:04:13`—_`DemetriouS`_\n\n09). [No Man’s Dawn \\| OVERLORD S4 ED [FULL ENGLISH COVER]](https://www.youtube.com/watch?v=bvAR0Ec6tnk)\n`00:05:07`—_`DemetriouS`_\n\n10). [Seishun Complex \\| BOCCHI THE ROCK! [FULL ENGLISH COVER]](https://www.youtube.com/watch?v=2Fkq-n-lZQk)\n`00:04:13`—_`DemetriouS`_',
         footer: {

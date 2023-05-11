@@ -1,10 +1,9 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {EmbedBuilder, SlashCommandBuilder} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {escaping, getCommandName} = require('../../utils/string');
 const {isLessQueue, isSameChannel, isValidIndex, move} = require('../player');
 const {notify, notifyForbidden, notifyNoPlaying, notifyUnbound, notifyUnequalChannels} = require('../commands');
-const {MessageEmbed} = require('discord.js');
-const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const {t} = require('i18next');
@@ -52,7 +51,7 @@ module.exports.move = async (interaction, isExecute,
   const target = await move(interaction.guildId, targetIndex, positionIndex);
 
   if (isExecute) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(config.colors.info)
       .setTitle(t('discord:command.move.completed.title'))
       .setDescription(t('discord:command.move.completed.description', {

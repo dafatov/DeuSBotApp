@@ -1,9 +1,8 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {EmbedBuilder, SlashCommandBuilder} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {clearQueue, isEmpty, isSameChannel} = require('../player');
 const {notify, notifyForbidden, notifyNoPlaying, notifyUnequalChannels} = require('../commands');
-const {MessageEmbed} = require('discord.js');
-const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const {getCommandName} = require('../../utils/string');
@@ -35,7 +34,7 @@ module.exports.clear = async (interaction, isExecute) => {
   await clearQueue(interaction.guildId);
 
   if (isExecute) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(config.colors.info)
       .setTitle(t('discord:command.clear.completed.title'))
       .setDescription(t('discord:command.clear.completed.description'))

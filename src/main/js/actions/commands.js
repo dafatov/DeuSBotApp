@@ -1,8 +1,6 @@
 const {CATEGORIES, TYPES} = require('../db/repositories/audit');
-const {Collection, MessageEmbed} = require('discord.js');
+const {Collection, EmbedBuilder, REST, Routes} = require('discord.js');
 const {getCommandName, stringify} = require('../utils/string');
-const {REST} = require('@discordjs/rest');
-const {Routes} = require('discord-api-types/v9');
 const {audit} = require('./auditor');
 const config = require('../configs/config');
 const fs = require('fs');
@@ -28,7 +26,7 @@ module.exports.init = async client => {
 };
 
 module.exports.updateCommands = async client => {
-  const rest = new REST({version: '9'}).setToken(process.env.DISCORD_TOKEN);
+  const rest = new REST({version: '10'}).setToken(process.env.DISCORD_TOKEN);
 
   await client.guilds.fetch()
     .then(guilds => Promise.all(guilds.map(async guild => rest.put(
@@ -65,7 +63,10 @@ module.exports.execute = async interaction => {
   }
 
   try {
-    await interaction.deferReply();
+    if (command.isDeferReply?.(interaction) ?? true) {
+      await interaction.deferReply();
+    }
+
     await command.execute(interaction);
     await audit({
       guildId: interaction.guildId,
@@ -105,7 +106,7 @@ module.exports.notify = async (interaction, content) => {
 };
 
 module.exports.notifyForbidden = async (commandName, interaction) => {
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.warning)
     .setTitle(t('discord:embed.forbidden.title', {command: commandName}))
     .setTimestamp()
@@ -120,7 +121,7 @@ module.exports.notifyForbidden = async (commandName, interaction) => {
 };
 
 module.exports.notifyRestricted = async (commandName, interaction) => {
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.warning)
     .setTitle(t('discord:embed.restricted.title', {command: commandName}))
     .setTimestamp()
@@ -136,7 +137,7 @@ module.exports.notifyRestricted = async (commandName, interaction) => {
 
 module.exports.notifyNoPlaying = async (commandName, interaction, isExecute = true) => {
   if (isExecute) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(config.colors.warning)
       .setTitle(t('discord:embed.noPlaying.title'))
       .setDescription(t('discord:embed.noPlaying.description'))
@@ -153,7 +154,7 @@ module.exports.notifyNoPlaying = async (commandName, interaction, isExecute = tr
 
 module.exports.notifyUnequalChannels = async (commandName, interaction, isExecute) => {
   if (isExecute) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(config.colors.warning)
       .setTitle(t('discord:embed.unequalChannels.title'))
       .setDescription(t('discord:embed.unequalChannels.description'))
@@ -170,7 +171,7 @@ module.exports.notifyUnequalChannels = async (commandName, interaction, isExecut
 
 module.exports.notifyIsLive = async (commandName, interaction, isExecute) => {
   if (isExecute) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(config.colors.warning)
       .setTitle(t('discord:embed.isLive.title'))
       .setDescription(t('discord:embed.isLive.description'))
@@ -187,7 +188,7 @@ module.exports.notifyIsLive = async (commandName, interaction, isExecute) => {
 
 module.exports.notifyUnbound = async (commandName, interaction, isExecute) => {
   if (isExecute) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(config.colors.warning)
       .setTitle(t('discord:embed.unbound.title'))
       .setDescription(t('discord:embed.unbound.description', {length: await getSize(interaction.guildId)}))

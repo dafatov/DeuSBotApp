@@ -22,5 +22,6 @@ module.exports = {
   },
   replied: null,
   reply: jest.fn(),
+  showModal: jest.fn(),
   user,
 };
