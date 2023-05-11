@@ -1,8 +1,7 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {EmbedBuilder, SlashCommandBuilder} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {notify, notifyForbidden} = require('../commands');
-const {MessageEmbed} = require('discord.js');
-const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const {getCommandName} = require('../../utils/string');
@@ -30,7 +29,7 @@ const help = async interaction => {
 
   const command = interaction.options.getString('command');
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.help.completed.title', {source: command ?? 'боту Deus'}))
     .setDescription(helps.get(command)

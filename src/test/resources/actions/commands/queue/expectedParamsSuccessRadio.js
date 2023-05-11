@@ -1,10 +1,10 @@
-const {MessageActionRow, MessageEmbed} = require('discord.js');
+const {ActionRowBuilder, EmbedBuilder} = require('discord.js');
 const interaction = require('../../../mocks/commandInteraction');
 
 module.exports = [
   interaction, {
     components: [
-      new MessageActionRow({
+      new ActionRowBuilder({
         components: [
           {
             custom_id: 'first',
@@ -22,7 +22,6 @@ module.exports = [
           },
           {
             custom_id: 'update',
-            disabled: false,
             label: 'Обновить',
             style: 1,
             type: 2,
@@ -44,7 +43,7 @@ module.exports = [
         ],
         type: 1,
       }),
-      new MessageActionRow({
+      new ActionRowBuilder({
         components: [
           {
             custom_id: 'pause',
@@ -55,7 +54,6 @@ module.exports = [
           },
           {
             custom_id: 'skip',
-            disabled: false,
             label: 'Пропустить',
             style: 1,
             type: 2,
@@ -72,7 +70,7 @@ module.exports = [
       }),
     ],
     embeds: [
-      new MessageEmbed({
+      new EmbedBuilder({
         color: 16777040,
         description: '\nИсточник: **artist**\nКомпозиция: **song**\n\n01). [Hacking To The Gate (Steins;Gate OP synthwave 80s remix) by Astrophysics](https://www.youtube.com/watch?v=ERlBHyOjeLI)\n`<Стрим>`—_`DemetriouS`_\n\n02). [No Man’s Dawn \\| OVERLORD S4 ED [FULL ENGLISH COVER]](https://www.youtube.com/watch?v=bvAR0Ec6tnk)\n`00:05:07`—_`DemetriouS`_\n\n03). [Seishun Complex \\| BOCCHI THE ROCK! [FULL ENGLISH COVER]](https://www.youtube.com/watch?v=2Fkq-n-lZQk)\n`<Стрим>`—_`DemetriouS`_\n\n04). [HAMEFURA OP \\| Otome no Route wa Hitotsu Janai! [ENGLISH COVER]](https://www.youtube.com/watch?v=sPl_q_NoOGs)\n`00:02:45`—_`DemetriouS`_\n\n05). [Shikimori\'s Not Just a Cutie - Opening \\| Honey Jet Coaster](https://www.youtube.com/watch?v=Bme2siFikIs)\n`00:01:41`—_`DemetriouS`_',
         footer: {

@@ -1,10 +1,10 @@
-const {MessageEmbed} = require('discord.js');
+const {EmbedBuilder} = require('discord.js');
 const interaction = require('../../mocks/commandInteraction');
 
 module.exports = [
   interaction, {
     embeds: [
-      new MessageEmbed({
+      new EmbedBuilder({
         color: 16746496,
         description: 'По техническим или каким-либо еще причинам команда была запрещена для все пользователей независимо от ролей. Если Вы считаете, что это бред собачий - да, это он, но к этому что-то привело и это "что-то" доставляет мне больше проблем, так как именно мне это преодолевать, а не Вам, так что держи свое раздражение при себе, у меня свое. Когда проблема решится, то команда будет снова доступна',
         timestamp: new Date('2023-02-06T10:20:27.013Z'),

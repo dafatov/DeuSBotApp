@@ -1,5 +1,5 @@
 const {createCanvas, loadImage} = require('canvas');
-const {MessageAttachment} = require('discord.js');
+const {AttachmentBuilder} = require('discord.js');
 const axios = require('axios');
 const config = require('../configs/config.js');
 const {getStatusIcon} = require('./resources');
@@ -30,7 +30,7 @@ module.exports.createStatus = async (guildId, nowPlaying) => {
   context.fillStyle = config.colors.info;
   context.fillText(remainedTmp, 45, 28);
 
-  return new MessageAttachment(canvas.toBuffer(), 'status.png');
+  return new AttachmentBuilder(canvas.toBuffer(), {name: 'status.png'});
 };
 
 module.exports.createCalendar = async (guild, birthdays, monthDate, {month, year}) => {
@@ -74,7 +74,7 @@ module.exports.createCalendar = async (guild, birthdays, monthDate, {month, year
         await Promise.all(users.map(async (userId, index) => {
           const avatar = await loadImage((await guild.members.fetch())
             .find(member => member.user.id === userId)
-            .displayAvatarURL({format: 'jpg'}));
+            .displayAvatarURL({extension: 'jpg'}));
 
           context.save();
           context.beginPath();
@@ -88,7 +88,7 @@ module.exports.createCalendar = async (guild, birthdays, monthDate, {month, year
       monthDate.setDate(monthDate.getDate() + 1);
     }
   }
-  return new MessageAttachment(canvas.toBuffer(), 'calendar.png');
+  return new AttachmentBuilder(canvas.toBuffer(), {name: 'calendar.png'});
 };
 
 module.exports.createShikimoriXml = nickname => axios.get(`${process.env.SHIKIMORI_URL}/${nickname}/list_export/animes.xml`)
@@ -104,4 +104,4 @@ module.exports.createShikimoriXml = nickname => axios.get(`${process.env.SHIKIMO
     },
   }))
   .then(animeList => new xml2js.Builder().buildObject(animeList))
-  .then(xml => new MessageAttachment(Buffer.from(xml, 'utf8'), `${nickname}_animes.xml`));
+  .then(xml => new AttachmentBuilder(Buffer.from(xml, 'utf8'), {name: `${nickname}_animes.xml`}));

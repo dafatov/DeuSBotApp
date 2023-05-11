@@ -1,9 +1,8 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {EmbedBuilder, SlashCommandBuilder} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {notify, notifyForbidden} = require('../commands');
-const {MessageEmbed} = require('discord.js');
 const {Octokit} = require('@octokit/core');
-const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const {getCommandName} = require('../../utils/string');
@@ -54,7 +53,7 @@ const issue = async interaction => {
     labels: [`<@${interaction.user.id}>`, data.type, 'discord-auto'],
   });
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.issue.completed.title', {title: data.title}))
     .setDescription(data.details)

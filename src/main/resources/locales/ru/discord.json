@@ -124,6 +124,12 @@
     },
     "play": {
       "description": "Воспроизвести в боте аудио",
+      "modal": {
+        "textInput": {
+          "title": "#{{number}}"
+        },
+        "title": "Добавление в очередь плеера"
+      },
       "option": {
         "audio": {
           "description": "Url или наименование видео записи с youtube"

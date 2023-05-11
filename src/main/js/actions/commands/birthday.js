@@ -1,10 +1,9 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {EmbedBuilder, SlashCommandBuilder} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {getCommandName, toFirstUpperCase} = require('../../utils/string');
 const {getFixedT, t} = require('i18next');
 const {notify, notifyForbidden} = require('../commands');
-const {MessageEmbed} = require('discord.js');
-const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const {createCalendar} = require('../../utils/attachments');
@@ -73,7 +72,7 @@ const set = async interaction => {
   const tmpDateStr = `${`${day}`.padStart(2, '0')}.${`${month}`.padStart(2, '0')}.${year}`;
 
   if (year < 1900 || tmpDate >= new Date() || tmpDate.toLocaleDateString('ru-RU') !== tmpDateStr) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(config.colors.warning)
       .setTitle(t('discord:command.birthday.set.wrongData.title'))
       .setDescription(t('discord:command.birthday.set.wrongData.description'))
@@ -90,7 +89,7 @@ const set = async interaction => {
 
   await db.set(interaction.user.id, `${year}-${month}-${day}`);
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.birthday.set.completed.title'))
     .setDescription(t('discord:command.birthday.set.completed.description', {date: tmpDate.toLocaleDateString('ru-RU')}))
@@ -112,7 +111,7 @@ const remove = async interaction => {
 
   await db.remove(interaction.user.id);
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.birthday.remove.completed.title'))
     .setDescription(t('discord:command.birthday.remove.completed.description'))
@@ -167,7 +166,7 @@ const ignore = async interaction => {
 
   const current = await db.ignore(interaction.user.id);
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.birthday.ignore.completed.title', {username: interaction.member.displayName}))
     .setDescription(t('discord:command.birthday.ignore.completed.description', {

@@ -63,8 +63,8 @@ describe('execute', () => {
     radiosMocked.getRadios.mockReturnValue({
       get: jest.fn().mockReturnValue({
         channel: {
-          url: 'url',
-          preview: 'preview',
+          url: 'https://youtube.com',
+          preview: 'https://youtube.com/preview',
         },
       }),
     });
@@ -75,10 +75,10 @@ describe('execute', () => {
       info: {
         duration: 0,
         isLive: true,
-        preview: 'preview',
+        preview: 'https://youtube.com/preview',
         title: 'stationKey',
         type: 'radio',
-        url: 'url',
+        url: 'https://youtube.com',
         userId: '348774809003491329',
       },
     });

@@ -1,5 +1,5 @@
 const {CATEGORIES, TYPES} = require('./db/repositories/audit');
-const {Client, Intents} = require('discord.js');
+const {Client, GatewayIntentBits} = require('discord.js');
 const {audit} = require('./actions/auditor');
 const locale = require('./configs/locale');
 const {t} = require('i18next');
@@ -7,10 +7,10 @@ const {version} = require('../../../package.json');
 
 const client = new Client({
   intents: [
-    Intents.FLAGS.GUILDS,
-    Intents.FLAGS.GUILD_MESSAGES,
-    Intents.FLAGS.GUILD_VOICE_STATES,
-    Intents.FLAGS.GUILD_MEMBERS,
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildMembers,
   ],
 });
 
@@ -39,6 +39,8 @@ client.on('interactionCreate', async interaction => {
     await require('./actions/commands').execute(interaction);
   } else if (interaction.isButton()) {
     await require('./actions/listeners').execute(interaction);
+  } else if (interaction.isModalSubmit()) {
+    await require('./actions/modals').execute(interaction);
   }
 });
 

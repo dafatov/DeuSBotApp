@@ -1,10 +1,10 @@
-const {MessageActionRow, MessageEmbed} = require('discord.js');
+const {ActionRowBuilder, EmbedBuilder} = require('discord.js');
 const interaction = require('../../../mocks/commandInteraction');
 
 module.exports = [
   interaction, {
     components: [
-      new MessageActionRow({
+      new ActionRowBuilder({
         components: [
           {
             'custom_id': 'first',
@@ -22,7 +22,6 @@ module.exports = [
           },
           {
             'custom_id': 'update',
-            'disabled': false,
             'label': 'Обновить',
             'style': 1,
             'type': 2,
@@ -46,7 +45,7 @@ module.exports = [
       }),
     ],
     embeds: [
-      new MessageEmbed({
+      new EmbedBuilder({
         color: 16746496,
         description: 'Может ли существовать мир без музыки? Каким бы он был...\nАх да! Таким, в котором сейчас живешь ты~~',
         footer: {

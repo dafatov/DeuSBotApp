@@ -1,11 +1,11 @@
-const {MessageEmbed} = require('discord.js');
+const {EmbedBuilder} = require('discord.js');
 const interaction = require('../../../mocks/commandInteraction');
 const {version} = require('../../../../../../package.json');
 
 module.exports = [
   interaction, {
     embeds: [
-      new MessageEmbed({
+      new EmbedBuilder({
         color: 16777040,
         description: `Данный бот (Deus v${version}) был разработан DemetriouS (aka dafatov) в рамках частного проекта специально для дискорд сервера на чистом энтузиазме\n\nСайт бота: https://discord-bot-deus-web.onrender.com/`,
         footer: {

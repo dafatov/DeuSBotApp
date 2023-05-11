@@ -33,7 +33,7 @@ describe('execute', () => {
     interaction.options.getString.mockReturnValueOnce('type')
       .mockReturnValueOnce('title').mockReturnValueOnce('details');
     octokitMocked.Octokit.mockImplementationOnce(() => ({
-      request: requestMocked.mockImplementationOnce(() => Promise.resolve({data: {html_url: 'html_url'}})),
+      request: requestMocked.mockImplementationOnce(() => Promise.resolve({data: {html_url: 'https://youtube.com'}})),
     }));
     process.env.GITHUB_LOGIN = 'login';
     process.env.GITHUB_REPOSITORY = 'repository';

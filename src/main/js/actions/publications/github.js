@@ -1,6 +1,6 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {getAll, set} = require('../../db/repositories/variables');
-const {MessageEmbed} = require('discord.js');
+const {EmbedBuilder} = require('discord.js');
 const {Octokit} = require('@octokit/core');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
@@ -27,7 +27,7 @@ module.exports = {
               [guild.id]: {
                 content: getNotifyingUsers(events),
                 embeds: events.map(event =>
-                  new MessageEmbed()
+                  new EmbedBuilder()
                     .setColor(config.colors.info)
                     .setTitle(t('discord:embed.publicist.github.title', {state: getStateLocale(event)}))
                     .setDescription(t('discord:embed.publicist.github.description', {

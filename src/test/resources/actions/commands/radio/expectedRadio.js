@@ -2,10 +2,10 @@ module.exports = {
   info: {
     duration: 0,
     isLive: true,
-    preview: 'preview',
+    preview: 'https://youtube.com/preview',
     title: 'stationKey',
     type: 'radio',
-    url: 'url',
+    url: 'https://youtube.com',
     userId: '348774809003491329',
 
   },
@@ -13,10 +13,10 @@ module.exports = {
     {
       duration: 0,
       isLive: true,
-      preview: 'preview',
+      preview: 'https://youtube.com/preview',
       title: 'stationKey',
       type: 'radio',
-      url: 'url',
+      url: 'https://youtube.com',
       userId: '348774809003491329',
     },
   ],

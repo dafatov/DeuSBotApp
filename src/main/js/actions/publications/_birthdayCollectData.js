@@ -1,5 +1,5 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
-const {MessageEmbed} = require('discord.js');
+const {EmbedBuilder} = require('discord.js');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const db = require('../../db/repositories/birthday');
@@ -28,7 +28,7 @@ module.exports = {
         [(await guild.fetch()).id]: {
           content: users.map(user => `<@${user.id}>`).join(''),
           embeds: [
-            new MessageEmbed()
+            new EmbedBuilder()
               .setColor(config.colors.info)
               .setTitle(t('discord:embed.publicist.birthdayCollectData.title'))
               .setThumbnail('https://risovach.ru/upload/2016/11/mem/tobi-maguaer-plachet_130325677_orig_.jpg')

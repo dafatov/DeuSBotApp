@@ -1,10 +1,9 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {EmbedBuilder, SlashCommandBuilder} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {comparePostgresInterval, localePostgresInterval} = require('../../utils/dateTime');
 const {notify, notifyForbidden} = require('../commands');
-const {MessageEmbed} = require('discord.js');
 const {Pagination} = require('../../utils/components');
-const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const {getAll: getAllSessions} = require('../../db/repositories/session');
@@ -62,7 +61,7 @@ const session = async interaction => {
   const sessions = await getSessions(interaction.guildId);
   const pagination = Pagination.getComponent(start, count, sessions.length);
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.statistics.session.completed.title'))
     .setDescription(getSessionsDescription(sessions, start, count))
@@ -84,10 +83,9 @@ const onSession = async interaction => {
   }
 
   const sessions = await getSessions(interaction.guildId);
-  const embed = interaction.message.embeds[0];
-  const pagination = interaction.message.components[0];
-  const pages = Pagination.getPages(embed.footer.text);
-  const start = Pagination.update(interaction, pages, sessions.length);
+  const embed = EmbedBuilder.from(interaction.message.embeds[0]);
+  const pages = Pagination.getPages(embed);
+  const {start, pagination} = Pagination.update(interaction, pages, sessions.length);
 
   embed
     .setDescription(getSessionsDescription(sessions, start, pages.count))
@@ -106,7 +104,7 @@ const messages = async interaction => {
   const messages = await getMessages(interaction.guildId);
   const pagination = Pagination.getComponent(start, count, messages.length);
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.statistics.messages.completed.title'))
     .setDescription(getMessagesDescription(messages, start, count))
@@ -128,10 +126,9 @@ const onMessages = async interaction => {
   }
 
   const messages = await getMessages(interaction.guildId);
-  const embed = interaction.message.embeds[0];
-  const pagination = interaction.message.components[0];
-  const pages = Pagination.getPages(embed.footer.text);
-  const start = Pagination.update(interaction, pages, messages.length);
+  const embed = EmbedBuilder.from(interaction.message.embeds[0]);
+  const pages = Pagination.getPages(embed);
+  const {start, pagination} = Pagination.update(interaction, pages, messages.length);
 
   embed
     .setDescription(getMessagesDescription(messages, start, pages.count))
@@ -150,7 +147,7 @@ const voices = async interaction => {
   const voices = await getVoices(interaction.guildId);
   const pagination = Pagination.getComponent(start, count, voices.length);
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.statistics.voices.completed.title'))
     .setDescription(getVoicesDescription(voices, start, count))
@@ -172,10 +169,9 @@ const onVoices = async interaction => {
   }
 
   const voices = await getVoices(interaction.guildId);
-  const embed = interaction.message.embeds[0];
-  const pagination = interaction.message.components[0];
-  const pages = Pagination.getPages(embed.footer.text);
-  const start = Pagination.update(interaction, pages, voices.length);
+  const embed = EmbedBuilder.from(interaction.message.embeds[0]);
+  const pages = Pagination.getPages(embed);
+  const {start, pagination} = Pagination.update(interaction, pages, voices.length);
 
   embed
     .setDescription(getVoicesDescription(voices, start, pages.count))

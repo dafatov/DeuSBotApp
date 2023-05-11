@@ -223,7 +223,7 @@ module.exports = [
       {
         'description': 'Url или наименование видео записи с youtube',
         'name': 'audio',
-        'required': true,
+        'required': false,
         'type': 3,
       },
     ],

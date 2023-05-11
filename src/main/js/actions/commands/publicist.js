@@ -1,8 +1,7 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {EmbedBuilder, SlashCommandBuilder} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {notify, notifyForbidden} = require('../commands');
-const {MessageEmbed} = require('discord.js');
-const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const db = require('../../db/repositories/publicist');
@@ -50,7 +49,7 @@ const set = async interaction => {
 
   await db.set(interaction.guildId, channel.id);
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.publicist.set.completed.title'))
     .setDescription(t('discord:command.publicist.set.completed.description', {channel: channel.name}))
@@ -72,7 +71,7 @@ const remove = async interaction => {
 
   await db.remove(interaction.guildId);
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.publicist.remove.completed.title'))
     .setDescription(t('discord:command.publicist.remove.completed.description'))
@@ -95,7 +94,7 @@ const show = async interaction => {
   const channelId = await db.getAll()
     .then(pairs => pairs.find(pair => pair.guildId === interaction.guildId)?.channelId);
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.publicist.show.completed.title', {name: interaction.guild.name}))
     .setDescription(t('discord:command.publicist.show.completed.description', {name: interaction.guild.channels.resolve(channelId)?.name}))

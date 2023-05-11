@@ -1,11 +1,10 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {EmbedBuilder, SlashCommandBuilder} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {addAll, isConnected, isSameChannel, playPlayer} = require('../player');
 const {escaping, getCommandName, stringify} = require('../../utils/string');
 const {notify, notifyForbidden, notifyUnequalChannels, updateCommands} = require('../commands');
-const {MessageEmbed} = require('discord.js');
 const RandomOrg = require('random-org');
-const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const axios = require('axios');
 const config = require('../../configs/config');
@@ -94,7 +93,7 @@ module.exports.play = async (interaction, isExecute,
 
   if (count < 1 || count > MAX_COUNT) {
     if (isExecute) {
-      const embed = new MessageEmbed()
+      const embed = new EmbedBuilder()
         .setColor(config.colors.warning)
         .setTitle(t('discord:command.shikimori.play.unboundCount.title'))
         .setDescription(t('discord:command.shikimori.play.unboundCount.description', {max: MAX_COUNT}))
@@ -144,7 +143,7 @@ module.exports.play = async (interaction, isExecute,
 
   if (requestsLeft <= 0) {
     if (isExecute) {
-      const embed = new MessageEmbed()
+      const embed = new EmbedBuilder()
         .setColor(config.colors.warning)
         .setTitle(t('discord:command.shikimori.play.noRandom.title'))
         .setDescription(t('discord:command.shikimori.play.noRandom.description'))
@@ -161,7 +160,7 @@ module.exports.play = async (interaction, isExecute,
   }
 
   if (isExecute) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(config.colors.info)
       .setTitle(t('discord:command.shikimori.play.completed.title'))
       .setDescription(t('discord:command.shikimori.play.completed.description'))
@@ -189,7 +188,7 @@ const set = async interaction => {
   try {
     await axios.get(`${process.env.SHIKIMORI_URL}/${login}`);
   } catch (e) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(config.colors.info)
       .setTitle(t('discord:command.shikimori.set.nonExistLogin.title'))
       .setDescription(t('discord:command.shikimori.set.nonExistLogin.description', {login}))
@@ -209,7 +208,7 @@ const set = async interaction => {
   await db.set({login, nickname});
   await updateCommands(interaction.client);
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.shikimori.set.completed.title'))
     .setTimestamp()
@@ -234,7 +233,7 @@ const remove = async interaction => {
   await db.removeByLogin(login);
   await updateCommands(interaction.client);
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.shikimori.remove.completed.title'))
     .setTimestamp()
@@ -270,7 +269,7 @@ const search = async (interaction, audios, login, isExecute) => {
   let counter = 0;
 
   if (isExecute) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(config.colors.info)
       .setTitle(t('discord:command.play.searching.title'));
     intervalId = setInterval(async () => {
@@ -294,7 +293,7 @@ const search = async (interaction, audios, login, isExecute) => {
   await playPlayer(interaction);
 
   if (isExecute) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle(t('discord:command.play.shikimori.title', {login}))
       .setColor(config.colors.info)
       .setURL(`${process.env.SHIKIMORI_URL}/${login}/list/anime/mylist/completed,watching/order-by/ranked`)

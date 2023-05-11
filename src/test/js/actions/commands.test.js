@@ -1,8 +1,8 @@
-const {SlashCommandBuilder} = require('@discordjs/builders');
+const {SlashCommandBuilder} = require('discord.js');
 const client = require('../../resources/mocks/client');
 const expectedCommands = require('../../resources/actions/commands/expectedCommands');
 const expectedCommandsData = require('../../resources/actions/commands/expectedCommandsData');
-const expectedParamsNotifyForbiden = require('../../resources/actions/commands/expectedParamsNotifyForbidden');
+const expectedParamsNotifyForbidden = require('../../resources/actions/commands/expectedParamsNotifyForbidden');
 const expectedParamsNotifyIsLive = require('../../resources/actions/commands/expectedParamsNotifyIsLive');
 const expectedParamsNotifyNoPlaying = require('../../resources/actions/commands/expectedParamsNotifyNoPlaying');
 const expectedParamsNotifyRestricted = require('../../resources/actions/commands/expectedParamsNotifyRestricted');
@@ -18,7 +18,10 @@ const fsMocked = jest.mock('fs').requireMock('fs');
 const auditorMocked = jest.mock(auditorModuleName).requireMock(auditorModuleName);
 const playerMocked = jest.mock(playerModuleName).requireMock(playerModuleName);
 const usersDbMocked = jest.mock(usersDbModuleName).requireMock(usersDbModuleName);
-const discordRest = jest.mock('@discordjs/rest').requireMock('@discordjs/rest');
+const discordMocked = jest.mock('discord.js', () => ({
+  ...jest.requireActual('discord.js'),
+  REST: jest.fn(),
+})).requireMock('discord.js');
 
 // eslint-disable-next-line sort-imports-requires/sort-requires
 const commands = require('../../../main/js/actions/commands');
@@ -67,7 +70,7 @@ describe('updateCommands', () => {
         .setDescription('test description'),
     });
     const putMocked = jest.fn();
-    discordRest.REST.mockImplementationOnce(() => ({
+    discordMocked.REST.mockImplementationOnce(() => ({
       put: putMocked,
       setToken: jest.fn().mockReturnThis(),
     }));
@@ -92,6 +95,21 @@ describe('execute', () => {
     await commands.execute(interaction);
 
     expect(interaction.deferReply).toHaveBeenCalled();
+    expect(executeMocked).toHaveBeenCalledWith(interaction);
+    expect(auditorMocked.audit).toHaveBeenCalled();
+  });
+
+  test('without defer reply', async () => {
+    const executeMocked = jest.fn();
+    const isDeferReplyMocked = jest.fn().mockReturnValueOnce(false);
+    jest.spyOn(interaction.client.commands, 'get').mockReturnValueOnce({
+      execute: executeMocked, isDeferReply: isDeferReplyMocked,
+    });
+
+    await commands.execute(interaction);
+
+    expect(interaction.deferReply).not.toHaveBeenCalled();
+    expect(isDeferReplyMocked).toHaveBeenCalledWith(interaction);
     expect(executeMocked).toHaveBeenCalledWith(interaction);
     expect(auditorMocked.audit).toHaveBeenCalled();
   });
@@ -177,7 +195,7 @@ describe('notifyForbidden', () => {
 
     await commands.notifyForbidden('test', interaction);
 
-    expect(commands.notify).toHaveBeenCalledWith(...expectedParamsNotifyForbiden);
+    expect(commands.notify).toHaveBeenCalledWith(...expectedParamsNotifyForbidden);
     expect(auditorMocked.audit).toHaveBeenCalled();
   });
 });
@@ -222,7 +240,7 @@ describe('notifyUnequalChannels', () => {
   test('success', async () => {
     jest.spyOn(commands, 'notify').mockReturnValueOnce();
 
-    await commands.notifyUnequalChannels('test', interaction,true);
+    await commands.notifyUnequalChannels('test', interaction, true);
 
     expect(commands.notify).toHaveBeenCalledWith(...expectedParamsNotifyUnequalChannels);
     expect(auditorMocked.audit).toHaveBeenCalled();
@@ -240,7 +258,7 @@ describe('notifyIsLive', () => {
   test('success', async () => {
     jest.spyOn(commands, 'notify').mockReturnValueOnce();
 
-    await commands.notifyIsLive('test', interaction,true);
+    await commands.notifyIsLive('test', interaction, true);
 
     expect(commands.notify).toHaveBeenCalledWith(...expectedParamsNotifyIsLive);
     expect(auditorMocked.audit).toHaveBeenCalled();
@@ -259,7 +277,7 @@ describe('notifyUnbound', () => {
     playerMocked.getSize.mockResolvedValueOnce(2);
     jest.spyOn(commands, 'notify').mockReturnValueOnce();
 
-    await commands.notifyUnbound('test', interaction,true);
+    await commands.notifyUnbound('test', interaction, true);
 
     expect(commands.notify).toHaveBeenCalledWith(...expectedParamsNotifyUnbound);
     expect(auditorMocked.audit).toHaveBeenCalled();

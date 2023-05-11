@@ -1,10 +1,10 @@
-const {MessageActionRow, MessageEmbed} = require('discord.js');
+const {ActionRowBuilder, EmbedBuilder} = require('discord.js');
 const interaction = require('../../../mocks/commandInteraction');
 
 module.exports = [
   interaction, {
     components: [
-      new MessageActionRow({
+      new ActionRowBuilder({
         components: [
           {
             custom_id: 'first',
@@ -22,7 +22,6 @@ module.exports = [
           },
           {
             custom_id: 'update',
-            disabled: false,
             label: 'Обновить',
             style: 1,
             type: 2,
@@ -44,7 +43,7 @@ module.exports = [
         ],
         type: 1,
       }),
-      new MessageActionRow({
+      new ActionRowBuilder({
         components: [
           {
             custom_id: 'pause',
@@ -55,7 +54,6 @@ module.exports = [
           },
           {
             custom_id: 'skip',
-            disabled: false,
             label: 'Пропустить',
             style: 1,
             type: 2,
@@ -72,7 +70,7 @@ module.exports = [
       }),
     ],
     embeds: [
-      new MessageEmbed({
+      new EmbedBuilder({
         color: 16777040,
         description: '<Стрим>\n\\u200B\\n',
         footer: {

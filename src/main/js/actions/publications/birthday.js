@@ -1,4 +1,4 @@
-const {MessageEmbed} = require('discord.js');
+const {EmbedBuilder} = require('discord.js');
 const config = require('../../configs/config');
 const db = require('../../db/repositories/birthday');
 const {isExactlyTime} = require('../../utils/dateTime');
@@ -22,7 +22,7 @@ module.exports = {
               [guild.id]: {
                 content: '@here',
                 embeds: [
-                  new MessageEmbed()
+                  new EmbedBuilder()
                     .setColor(config.colors.info)
                     .setTitle(t('discord:embed.publicist.birthday.title'))
                     .setThumbnail('https://i.ibb.co/8m1FGzr/maxresdefault.png')

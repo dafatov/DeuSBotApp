@@ -1,10 +1,9 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {EmbedBuilder, SlashCommandBuilder} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {escaping, getCommandName, stringify} = require('../../utils/string');
 const {notify, notifyForbidden} = require('../commands');
-const {MessageEmbed} = require('discord.js');
 const {Pagination} = require('../../utils/components');
-const {SlashCommandBuilder} = require('@discordjs/builders');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const db = require('../../db/repositories/responses');
@@ -66,7 +65,7 @@ const set = async interaction => {
   try {
     'test'.match(response.regex);
   } catch (e) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(config.colors.error)
       .setTitle(t('discord:command.response.set.wrongRegex.title'))
       .setTimestamp()
@@ -83,7 +82,7 @@ const set = async interaction => {
 
   await db.set(interaction.guildId, response);
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.response.set.completed.title'))
     .setTimestamp()
@@ -107,7 +106,7 @@ const remove = async interaction => {
 
   await db.remove(interaction.guildId, regex);
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.response.remove.completed.title'))
     .setTimestamp()
@@ -130,7 +129,7 @@ const show = async interaction => {
   const rules = await db.getAll(interaction.guildId);
   const pagination = Pagination.getComponent(start, count, rules.length);
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.response.show.completed.title'))
     .setTimestamp()
@@ -152,10 +151,9 @@ const onShow = async interaction => {
   }
 
   const rules = await db.getAll(interaction.guildId);
-  const embed = interaction.message.embeds[0];
-  const pagination = interaction.message.components[0];
-  const pages = Pagination.getPages(embed.footer.text);
-  const start = Pagination.update(interaction, pages, rules.length);
+  const embed = EmbedBuilder.from(interaction.message.embeds[0]);
+  const pages = Pagination.getPages(embed);
+  const {start, pagination} = Pagination.update(interaction, pages, rules.length);
 
   embed
     .setFields(getRulesFields(rules, start, count))
