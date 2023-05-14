@@ -101,7 +101,7 @@ module.exports.getChannelId = guildId => getJukebox(guildId).connection?.joinCon
 module.exports.isValidIndex = async (guildId, index) => !isNaN(index)
   && index >= 0 && index < await this.getSize(guildId);
 
-module.exports.isConnected = guildId => !!getJukebox(guildId).connection
+module.exports.isConnected = guildId => !!getJukebox(guildId)?.connection
   && getJukebox(guildId).connection._state.status !== VoiceConnectionStatus.Destroyed;
 
 module.exports.isLessQueue = (guildId, count) => this.getSize(guildId).then(size => size < count);
