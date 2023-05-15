@@ -10,7 +10,7 @@ let changelogs;
 
 module.exports.getAll = async () => {
   if (!changelogs) {
-    changelogs = (await db.query('SELECT * FROM CHANGELOG')).rows || [];
+    changelogs = (await db.query('SELECT * FROM changelog')).rows || [];
   }
   return changelogs;
 };
@@ -25,22 +25,25 @@ module.exports.getLast = async application => await this.getAll()
 
 module.exports.add = async (version, application, message) => {
   if (await isValidAdd(version, application)) {
-    this.cacheReset();
-    await db.query('INSERT INTO CHANGELOG (version, application, message, shown) VALUES ($1, $2, $3, $4)', [version, application, message, false]);
+    this.clearCache();
+    await db.query('INSERT INTO changelog (version, application, message, shown) VALUES ($1, $2, $3, $4)', [version, application, message, false]);
   }
 };
 
 module.exports.shown = async (version, application) => {
   if (await isValidShown(version, application)) {
-    this.cacheReset();
-    await db.query(`UPDATE CHANGELOG
-                    SET SHOWN = true
-                    WHERE APPLICATION = $1
-                      AND VERSION = $2`, [application, version]);
+    this.clearCache();
+    await db.query(`UPDATE changelog
+                    SET shown = TRUE
+                        WHERE application = $1
+                          AND version = $2`, [application, version]);
   }
 };
 
-module.exports.cacheReset = () => {changelogs = null;};
+module.exports.clearCache = () => {
+  changelogs = null;
+  return true;
+};
 
 const isValidAdd = async (version, application) => {
   const lastVersion = await getLastVersion(application);

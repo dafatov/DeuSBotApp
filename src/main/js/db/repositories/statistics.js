@@ -11,7 +11,7 @@ module.exports.getAll = async () => {
 };
 
 module.exports.update = async (userId, guildId, {messageCount, voiceDuration}) => {
-  statistics = null;
+  this.clearCache();
   await db.query(
     `INSERT INTO statistics (user_id, guild_id, message_count, voice_duration)
          VALUES ($1, $2, $3, justify_interval($5::timestamp WITH TIME ZONE - $4::timestamp WITH TIME ZONE))
@@ -25,4 +25,9 @@ module.exports.update = async (userId, guildId, {messageCount, voiceDuration}) =
       voiceDuration?.finish ?? new Date(0),
     ],
   );
+};
+
+module.exports.clearCache = () => {
+  statistics = null;
+  return true;
 };

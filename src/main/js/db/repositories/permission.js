@@ -40,6 +40,7 @@ module.exports.SCOPES = Object.freeze({
   API_AUDITOR_AUDIT: 'api.auditor.audit',
   API_PERMISSION_PERMISSIONS: 'api.permission.permissions',
   API_PERMISSION_SET: 'api.permission.set',
+  API_REPOSITORY_CACHE: 'api.repository.cache',
 
   PAGE_ADMINISTRATION: 'page.administration',
   PAGE_PLAYER: 'page.player',
@@ -49,7 +50,7 @@ let permissions;
 
 module.exports.getAll = async () => {
   if (!permissions) {
-    permissions = (await db.query('SELECT * FROM PERMISSION')).rows
+    permissions = (await db.query('SELECT * FROM permission')).rows
       .map(permission => ({
         user_id: permission.user_id,
         isWhiteList: permission.is_white_list,
@@ -73,7 +74,10 @@ module.exports.getScopes = userId =>
 module.exports.isForbidden = async (userId, scope) =>
   !(await this.getScopes(userId).then(scopes => scopes.includes(scope)));
 
-module.exports.cacheReset = () => {permissions = null;};
+module.exports.clearCache = () => {
+  permissions = null;
+  return true;
+};
 
 module.exports.setPatch = async patch => {
   await transaction(async () => {
@@ -93,8 +97,8 @@ module.exports.setPatch = async patch => {
 
 const add = async (userId, isWhiteList, scopes) => {
   if (isValidScopes(scopes)) {
-    this.cacheReset();
-    await db.query('INSERT INTO PERMISSION (user_id, is_white_list, scopes) VALUES ($1, $2, $3)', [
+    this.clearCache();
+    await db.query('INSERT INTO permission (user_id, is_white_list, scopes) VALUES ($1, $2, $3)', [
       userId,
       isWhiteList,
       JSON.stringify(scopes),
@@ -105,10 +109,10 @@ const add = async (userId, isWhiteList, scopes) => {
 };
 
 const remove = async userIds => {
-  this.cacheReset();
+  this.clearCache();
   await db.query(`DELETE
-                  FROM PERMISSION
-                  WHERE user_id = ANY ($1)`, [[...userIds]]);
+                      FROM permission
+                      WHERE user_id = ANY ($1)`, [[...userIds]]);
 };
 
 const isValidScopes = scopes =>

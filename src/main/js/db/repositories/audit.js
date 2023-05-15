@@ -32,16 +32,16 @@ let audit = null;
 
 module.exports.getAll = async () => {
   if (!audit) {
-    const response = await db().query('SELECT * FROM AUDIT');
+    const response = await db().query('SELECT * FROM audit');
     audit = response.rows || [];
   }
   return audit;
 };
 
 module.exports.add = async ({guildId, type, category, message}) => {
-  audit = null;
+  this.clearCache();
   await db().query(
-    'INSERT INTO AUDIT (guild_id, type, category, message) VALUES ($1, $2, $3, $4)',
+    'INSERT INTO audit (guild_id, type, category, message) VALUES ($1, $2, $3, $4)',
     [guildId, type, category, message],
   );
 };
@@ -55,8 +55,11 @@ module.exports.add = async ({guildId, type, category, message}) => {
  * @returns {Promise<void>}
  */
 module.exports.removeBeforeWithOffset = async offset => {
+  this.clearCache();
+  return await db().query('DELETE FROM audit WHERE created_at < (current_timestamp - INTERVAL \'P$1\')', [offset]);
+};
+
+module.exports.clearCache = () => {
   audit = null;
-  return await db().query(`DELETE
-                           FROM AUDIT
-                           WHERE created_at < (CURRENT_TIMESTAMP - INTERVAL 'P${offset}')`);
+  return true;
 };

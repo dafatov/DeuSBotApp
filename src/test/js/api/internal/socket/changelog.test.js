@@ -53,7 +53,7 @@ describe('execute', () => {
   describe('changelog:publish', () => {
     test('success', () => new Promise(done => {
       changelogMocked.publish.mockResolvedValueOnce('1.1.1');
-      changelogDbMocked.cacheReset.mockResolvedValueOnce();
+      changelogDbMocked.clearCache.mockResolvedValueOnce();
       changelogDbMocked.getAll.mockResolvedValueOnce(changelogList);
 
       connection.client.emit('changelog:publish', '1.1.1', {isPublic: true, message: '{"ad": "message"}'}, data => {
@@ -61,7 +61,7 @@ describe('execute', () => {
       });
       connection.client.once('changelog:changelog', data => {
         expect(changelogMocked.publish).toHaveBeenCalledWith('1.1.1', 'deus_bot_app', true, '{"ad": "message"}');
-        expect(changelogDbMocked.cacheReset).toHaveBeenCalledWith();
+        expect(changelogDbMocked.clearCache).toHaveBeenCalledWith();
         expect(changelogDbMocked.getAll).toHaveBeenCalledWith();
         expect(data).toEqual(expectedChangelogList);
 

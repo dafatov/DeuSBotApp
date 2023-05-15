@@ -5,21 +5,26 @@ let users = null;
 
 module.exports.getAll = async () => {
   if (!users) {
-    const response = await db.query('SELECT * FROM NICKNAME');
+    const response = await db.query('SELECT * FROM nickname');
     users = response.rows || [];
   }
   return users;
 };
 
 module.exports.set = async ({login, nickname}) => {
+  this.clearCache();
   await transaction(async () => {
-    users = null;
-    await db.query('DELETE FROM NICKNAME WHERE login=$1', [login]);
-    await db.query('INSERT INTO NICKNAME (login, nickname) VALUES ($1, $2)', [login, nickname]);
+    await db.query('DELETE FROM nickname WHERE login=$1', [login]);
+    await db.query('INSERT INTO nickname (login, nickname) VALUES ($1, $2)', [login, nickname]);
   });
 };
 
 module.exports.removeByLogin = async login => {
+  this.clearCache();
+  await db.query('DELETE FROM nickname WHERE login=$1', [login]);
+};
+
+module.exports.clearCache = () => {
   users = null;
-  await db.query('DELETE FROM NICKNAME WHERE login=$1', [login]);
+  return true;
 };

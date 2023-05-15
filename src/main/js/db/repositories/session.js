@@ -18,11 +18,16 @@ module.exports.begin = async (userId, guildId) => await transaction(async () => 
 });
 
 module.exports.finish = (userId, guildId) => {
-  session = null;
+  this.clearCache();
   return db.query('UPDATE session SET finish = DEFAULT WHERE user_id=$1 AND guild_id=$2 RETURNING *', [userId, guildId]);
 };
 
 const remove = async (userId, guildId) => {
-  session = null;
+  this.clearCache();
   await db.query('DELETE FROM session WHERE user_id=$1 AND guild_id=$2', [userId, guildId]);
+};
+
+module.exports.clearCache = () => {
+  session = null;
+  return true;
 };

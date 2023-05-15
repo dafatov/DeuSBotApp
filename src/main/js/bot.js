@@ -1,5 +1,5 @@
 const {CATEGORIES, TYPES} = require('./db/repositories/audit');
-const {Client, GatewayIntentBits} = require('discord.js');
+const {Client, Events, GatewayIntentBits} = require('discord.js');
 const {audit} = require('./actions/auditor');
 const locale = require('./configs/locale');
 const {t} = require('i18next');
@@ -7,14 +7,15 @@ const {version} = require('../../../package.json');
 
 const client = new Client({
   intents: [
-    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildVoiceStates,
-    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.MessageContent,
   ],
 });
 
-client.once('ready', async () => {
+client.once(Events.ClientReady, async () => {
   client.user.setPresence({activities: [{name: t('discord:presence', {version})}], status: 'online'});
 
   await require('./actions/db').init();
@@ -34,7 +35,7 @@ client.once('ready', async () => {
   });
 });
 
-client.on('interactionCreate', async interaction => {
+client.on(Events.InteractionCreate, async interaction => {
   if (interaction.isCommand()) {
     await require('./actions/commands').execute(interaction);
   } else if (interaction.isButton()) {
@@ -44,10 +45,10 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-client.on('messageCreate', message =>
+client.on(Events.MessageCreate, message =>
   require('./events/messageCreate').execute(client, message));
 
-client.on('voiceStateUpdate', (oldState, newState) =>
+client.on(Events.VoiceStateUpdate, (oldState, newState) =>
   require('./events/voiceStateUpdate').execute(client, oldState, newState));
 
 locale.init().then(() => client.login(process.env.DISCORD_TOKEN));
