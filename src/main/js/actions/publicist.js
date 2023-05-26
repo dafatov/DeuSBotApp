@@ -34,7 +34,13 @@ module.exports.init = client => (function loop() {
                   message: t('inner:audit.publicist.published', {publication: file.split('.')[0]}),
                 })));
             }
-          });
+          })
+          .catch(error => audit({
+            guildId: null,
+            type: TYPES.ERROR,
+            category: CATEGORIES.PUBLICIST,
+            message: stringify(error),
+          }));
       }
     }));
 })()
@@ -43,12 +49,6 @@ module.exports.init = client => (function loop() {
     type: TYPES.INFO,
     category: CATEGORIES.INIT,
     message: t('inner:audit.init.publicist'),
-  }))
-  .catch(error => audit({
-    guildId: null,
-    type: TYPES.ERROR,
-    category: CATEGORIES.PUBLICIST,
-    message: stringify(error),
   }));
 
 const publish = (client, content) => getAll()
