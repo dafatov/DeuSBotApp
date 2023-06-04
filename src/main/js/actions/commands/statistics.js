@@ -27,7 +27,7 @@ module.exports = {
       .setName('voices')
       .setDescription(t('discord:command.statistics.voices.description'))),
   execute: interaction => statistics(interaction),
-  listener: interaction => onStatistics(interaction),
+  onButton: interaction => onStatistics(interaction),
 };
 
 const statistics = interaction => {

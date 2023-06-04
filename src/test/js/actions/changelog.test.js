@@ -49,7 +49,7 @@ describe('publish', () => {
   );
 
   test('unchanged message', async () => {
-    changelogDbMocked.getLast.mockResolvedValueOnce({version: '1.1.1', message: JSON.stringify(message)});
+    changelogDbMocked.getLast.mockResolvedValueOnce({version: '1.1.1', message});
 
     const result = await changelog.publish('1.1.2', 'application', true, message);
 
@@ -59,13 +59,13 @@ describe('publish', () => {
   });
 
   test('success', async () => {
-    changelogDbMocked.getLast.mockResolvedValueOnce({version: '1.1.1', message: JSON.stringify(message)});
+    changelogDbMocked.getLast.mockResolvedValueOnce({version: '1.1.1', message});
     changelogDbMocked.add.mockResolvedValueOnce();
 
     const result = await changelog.publish('1.1.2', 'application', true, {ad: ''});
 
     expect(result).toEqual('1.1.2');
-    expect(changelogDbMocked.add).toHaveBeenCalledWith('1.1.2', 'application', '{"ad":""}');
+    expect(changelogDbMocked.add).toHaveBeenCalledWith('1.1.2', 'application', {ad:''});
     expect(auditorMocked.audit).toHaveBeenCalled();
   });
 });

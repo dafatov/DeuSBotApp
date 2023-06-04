@@ -21,7 +21,7 @@ module.exports = {
       .setDescription(t('discord:command.play.option.audio.description'))),
   isDeferReply: interaction => !!interaction.options.getString('audio'),
   execute: interaction => module.exports.play(interaction, true),
-  modal: interaction => modal(interaction),
+  onModal: interaction => onModal(interaction),
 };
 
 module.exports.play = async (interaction, isExecute, audio = interaction.options.getString('audio')) => {
@@ -85,7 +85,7 @@ module.exports.play = async (interaction, isExecute, audio = interaction.options
   return {added: added.info};
 };
 
-const modal = async interaction => {
+const onModal = async interaction => {
   await interaction.deferReply();
   await promiseAllSequence(interaction.fields.fields
     .map(field => field.value)

@@ -1,6 +1,6 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {ChannelType, EmbedBuilder} = require('discord.js');
 const {getCommandName, stringify} = require('../../utils/string');
-const {EmbedBuilder} = require('discord.js');
 const Parser = require('rss-parser');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
@@ -55,7 +55,7 @@ module.exports = {
     }
 
     await Promise.all(messages
-      .filter(message => message.channel.type === 'GUILD_NEWS')
+      .filter(message => message.channel.type === ChannelType.GuildNews)
       .map(message => message.crosspost()),
     ).then(() => audit({
       guildId: null,

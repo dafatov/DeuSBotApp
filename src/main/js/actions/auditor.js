@@ -1,6 +1,6 @@
 const {CATEGORIES, TYPES, add, getAll, removeBeforeWithOffset} = require('../db/repositories/audit');
 const {getFixedT, t} = require('i18next');
-const {getStackTrace, padEnum, spell, stringify} = require('../utils/string');
+const {getStackTrace, padEnum, spell} = require('../utils/string');
 const {bigIntReplacer} = require('../utils/mapping');
 const {isExactlyTime} = require('../utils/dateTime');
 
@@ -50,7 +50,6 @@ module.exports.audit = async ({guildId, type, category, message}) => {
     category = CATEGORIES.UNCATEGORIZED;
   }
 
-  message = stringify(message);
   await add({guildId, type, category, message});
   if (process.env.LOGGING === 'DEBUG' || type !== TYPES.DEBUG) {
     // eslint-disable-next-line no-console

@@ -1,5 +1,7 @@
+const {backup} = require('./snapshots');
 const {db} = require('../../actions/db');
 const format = require('pg-format');
+const {getCommandName} = require('../../utils/string');
 const {transaction} = require('../dbUtils');
 
 module.exports.TYPES = Object.freeze({
@@ -31,6 +33,7 @@ module.exports.addAll = async (guildId, songs) => {
   await transaction(async () => {
     const startIndex = (await db.query('SELECT max(index) + 1 AS index FROM queue')).rows[0].index ?? 0;
 
+    await backup(getCommandName(__filename), guildId);
     await db.query(format(
       'INSERT INTO queue (type, title, duration, url, is_live, preview, user_id, index, guild_id) VALUES %L',
       songs.map(({type, title, duration, url, isLive, preview, userId}, index) =>
@@ -41,6 +44,8 @@ module.exports.addAll = async (guildId, songs) => {
 
 module.exports.remove = async (guildId, index) => {
   return await transaction(async () => {
+    await backup(getCommandName(__filename), guildId);
+
     const target = (await db.query('DELETE FROM queue WHERE guild_id=$1 AND index=$2 RETURNING *', [guildId, index])).rows[0];
 
     await db.query('UPDATE queue SET index = index - 1 WHERE guild_id=$1 AND index>$2', [guildId, target.index]);
@@ -49,12 +54,15 @@ module.exports.remove = async (guildId, index) => {
   });
 };
 
-module.exports.removeAll = async guildId => {
-  await db.query('DELETE FROM queue WHERE guild_id=$1', [guildId]);
-};
+module.exports.removeAll = guildId =>
+  transaction(async () => {
+    await backup(getCommandName(__filename), guildId);
+    await db.query('DELETE FROM queue WHERE guild_id=$1', [guildId]);
+  });
 
 module.exports.move = async (guildId, targetIndex, positionIndex) => {
   return await transaction(async () => {
+    await backup(getCommandName(__filename), guildId);
     await db.query('UPDATE queue SET index = index + 1 WHERE guild_id=$1 AND index>=$2', [
       guildId, positionIndex + (targetIndex < positionIndex),
     ]);
@@ -73,6 +81,7 @@ module.exports.shuffle = async guildId => {
   return await transaction(async () => {
     const data = (await db.query('SELECT * FROM queue WHERE guild_id=$1 ORDER BY random()', [guildId])).rows;
 
+    await backup(getCommandName(__filename), guildId);
     await db.query(format(
       'INSERT INTO queue (id, type, title, duration, url, is_live, preview, user_id, index, guild_id) VALUES %L ON CONFLICT (id) DO UPDATE SET INDEX = excluded.index',
       data.map(({id, type, title, duration, url, is_live, preview, user_id, guild_id}, index) =>
@@ -82,5 +91,5 @@ module.exports.shuffle = async guildId => {
 };
 
 module.exports.hasLive = async guildId => {
-  return (await db.query('SELECT count(*) != 0 as has_live FROM queue WHERE guild_id=$1 AND is_live', [guildId])).rows[0].has_live ?? false;
+  return (await db.query('SELECT count(*) != 0 AS has_live FROM queue WHERE guild_id=$1 AND is_live', [guildId])).rows[0].has_live ?? false;
 };

@@ -13,11 +13,11 @@ const locale = require('../configs/locale');
 
 const auditorModuleName = '../../../main/js/actions/auditor';
 const playerModuleName = '../../../main/js/actions/player';
-const usersDbModuleName = '../../../main/js/db/repositories/users';
+const userDbModuleName = '../../../main/js/db/repositories/user';
 const fsMocked = jest.mock('fs').requireMock('fs');
 const auditorMocked = jest.mock(auditorModuleName).requireMock(auditorModuleName);
 const playerMocked = jest.mock(playerModuleName).requireMock(playerModuleName);
-const usersDbMocked = jest.mock(usersDbModuleName).requireMock(usersDbModuleName);
+const userDbMocked = jest.mock(userDbModuleName).requireMock(userDbModuleName);
 const discordMocked = jest.mock('discord.js', () => ({
   ...jest.requireActual('discord.js'),
   REST: jest.fn(),
@@ -32,10 +32,13 @@ afterEach(() => client.commands.clear());
 
 describe('init', () => {
   test('success', async () => {
+    process.env.RESTORABLE_TABLES = '["queue"]';
+    const fsMockImplementation = args =>
+      jest.requireActual('fs').readdirSync(args);
     jest.spyOn(commands, 'updateCommands').mockReturnValueOnce();
-    fsMocked.readdirSync.mockImplementationOnce(args =>
-      jest.requireActual('fs').readdirSync(args));
-    usersDbMocked.getAll.mockResolvedValue([
+    fsMocked.readdirSync.mockImplementationOnce(fsMockImplementation)
+      .mockImplementationOnce(fsMockImplementation);
+    userDbMocked.getAll.mockResolvedValue([
       {login: 'login1', nickname: 'nickname1'},
       {login: 'login2', nickname: 'nickname2'},
     ]);

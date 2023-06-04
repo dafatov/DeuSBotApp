@@ -63,7 +63,7 @@ module.exports.execute = async interaction => {
   }
 
   try {
-    if (command.isDeferReply?.(interaction) ?? true) {
+    if (await command.isDeferReply?.(interaction) ?? true) {
       await interaction.deferReply();
     }
 
@@ -111,7 +111,7 @@ module.exports.notifyForbidden = async (commandName, interaction) => {
     .setTitle(t('discord:embed.forbidden.title', {command: commandName}))
     .setTimestamp()
     .setDescription(t('discord:embed.forbidden.description'));
-  await this.notify(interaction, {embeds: [embed], ephemeral: true});
+  await this.notify(interaction, {embeds: [embed]});
   await audit({
     guildId: interaction.guildId,
     type: TYPES.INFO,

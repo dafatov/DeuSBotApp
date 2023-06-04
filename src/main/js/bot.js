@@ -26,6 +26,7 @@ client.once(Events.ClientReady, async () => {
   await require('./actions/changelog').init();
   await require('./actions/publicist').init(client);
   await require('./server').init(client);
+  await require('./actions/backup').init(client);
 
   await audit({
     guildId: null,
@@ -39,9 +40,11 @@ client.on(Events.InteractionCreate, async interaction => {
   if (interaction.isCommand()) {
     await require('./actions/commands').execute(interaction);
   } else if (interaction.isButton()) {
-    await require('./actions/listeners').execute(interaction);
+    await require('./actions/listeners').onButton(interaction);
   } else if (interaction.isModalSubmit()) {
-    await require('./actions/modals').execute(interaction);
+    await require('./actions/listeners').onModal(interaction);
+  } else if (interaction.isStringSelectMenu()) {
+    await require('./actions/listeners').onSelect(interaction);
   }
 });
 

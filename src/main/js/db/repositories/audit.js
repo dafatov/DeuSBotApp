@@ -1,7 +1,6 @@
 // Необходимо так из-за того, что не успевает проинициализироваться весь файл /db,
 //   чтобы значение уже было, поэтому нужно импортировать принудительно через функцию
 const db = () => require('../../actions/db').db;
-const format = require('pg-format');
 
 module.exports.TYPES = Object.freeze({
   ERROR: 'error',
@@ -26,7 +25,7 @@ module.exports.CATEGORIES = Object.freeze({
   LOCALE: 'locale',
   RADIO: 'radio',
   MESSAGE_CREATE: 'message_create',
-  MODAL: 'modal',
+  BACKUP: 'backup',
 });
 
 let audit = null;
@@ -57,7 +56,9 @@ module.exports.add = async ({guildId, type, category, message}) => {
  */
 module.exports.removeBeforeWithOffset = async offset => {
   this.clearCache();
-  return await db().query(format('DELETE FROM audit WHERE created_at < (current_timestamp - interval %L)', [`P${offset}`]));
+  return await db().query(`DELETE
+                               FROM audit
+                               WHERE created_at < (current_timestamp - INTERVAL 'P${offset}')`);
 };
 
 module.exports.clearCache = () => {

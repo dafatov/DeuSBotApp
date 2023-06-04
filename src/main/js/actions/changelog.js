@@ -2,6 +2,7 @@ const {APPLICATIONS, add, getLast} = require('../db/repositories/changelog');
 const {CATEGORIES, TYPES} = require('../db/repositories/audit');
 const {audit} = require('./auditor');
 const changelog = require('../configs/changelog');
+const isEqual = require('lodash/isEqual');
 const {isVersionUpdated} = require('../utils/string');
 const {t} = require('i18next');
 const {version} = require('../../../../package.json');
@@ -17,8 +18,7 @@ module.exports.publish = async (version, application, isPublic, message) => {
     return lastChangelog?.version;
   }
 
-  message = JSON.stringify(message);
-  if ((lastChangelog?.message ?? '') === message) {
+  if (isEqual(lastChangelog?.message, message)) {
     await audit({
       guildId: null,
       type: TYPES.WARNING,

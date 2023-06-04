@@ -6,7 +6,7 @@ const {notify, notifyForbidden} = require('../commands');
 const {Pagination} = require('../../utils/components');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
-const db = require('../../db/repositories/responses');
+const db = require('../../db/repositories/response');
 const {t} = require('i18next');
 
 const {start, count} = {start: 0, count: 5};
@@ -37,7 +37,7 @@ module.exports = {
       .setName('show')
       .setDescription(t('discord:command.response.show.description'))),
   execute: interaction => response(interaction),
-  listener: interaction => onShow(interaction),
+  onButton: interaction => onShow(interaction),
 };
 
 const response = interaction => {

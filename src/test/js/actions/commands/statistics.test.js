@@ -22,7 +22,7 @@ const sessionMocked = jest.mock(sessionModuleName).requireMock(sessionModuleName
 const statisticsMocked = jest.mock(statisticsModuleName).requireMock(statisticsModuleName);
 
 // eslint-disable-next-line sort-imports-requires/sort-requires
-const {execute, listener} = require('../../../../main/js/actions/commands/statistics');
+const {execute, onButton} = require('../../../../main/js/actions/commands/statistics');
 
 beforeAll(() => locale.init());
 
@@ -109,7 +109,7 @@ describe('execute', () => {
   });
 });
 
-describe('listener', () => {
+describe('onButton', () => {
   describe('session', () => {
     test('forbidden', async () => {
       permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(true));
@@ -119,7 +119,7 @@ describe('listener', () => {
         },
       });
 
-      await listener(buttonInteraction);
+      await onButton(buttonInteraction);
 
       expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.statistics.session');
       expect(commandsMocked.notifyForbidden).toHaveBeenCalledWith('statistics', buttonInteraction);
@@ -137,7 +137,7 @@ describe('listener', () => {
         },
       });
 
-      await listener(buttonInteraction);
+      await onButton(buttonInteraction);
 
       expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.statistics.session');
       expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
@@ -154,7 +154,7 @@ describe('listener', () => {
         },
       });
 
-      await listener(buttonInteraction);
+      await onButton(buttonInteraction);
 
       expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.statistics.messages');
       expect(commandsMocked.notifyForbidden).toHaveBeenCalledWith('statistics', buttonInteraction);
@@ -172,7 +172,7 @@ describe('listener', () => {
         },
       });
 
-      await listener(buttonInteraction);
+      await onButton(buttonInteraction);
 
       expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.statistics.messages');
       expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
@@ -189,7 +189,7 @@ describe('listener', () => {
         },
       });
 
-      await listener(buttonInteraction);
+      await onButton(buttonInteraction);
 
       expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.statistics.voices');
       expect(commandsMocked.notifyForbidden).toHaveBeenCalledWith('statistics', buttonInteraction);
@@ -207,7 +207,7 @@ describe('listener', () => {
         },
       });
 
-      await listener(buttonInteraction);
+      await onButton(buttonInteraction);
 
       expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.statistics.voices');
       expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();

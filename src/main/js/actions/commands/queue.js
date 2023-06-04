@@ -19,7 +19,7 @@ module.exports = {
     .setName(getCommandName(__filename))
     .setDescription(t('discord:command.queue.description')),
   execute: interaction => queue(interaction),
-  listener: interaction => onQueue(interaction),
+  onButton: interaction => onQueue(interaction),
 };
 
 const queue = async interaction => {
