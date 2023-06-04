@@ -170,7 +170,7 @@ describe('execute', () => {
   });
 });
 
-describe('modal', () => {
+describe('onModal', () => {
   test('success', async () => {
     jest.replaceProperty(modalSubmitInteraction.fields, 'fields', [
       {value: 'value1'}, {value: 'value2'}, {value: 'value3'}, {value: ''}, {value: undefined}
@@ -180,7 +180,7 @@ describe('modal', () => {
       .mockResolvedValueOnce()
       .mockResolvedValueOnce();
 
-    await play.modal(modalSubmitInteraction);
+    await play.onModal(modalSubmitInteraction);
 
     expect(play.play).toHaveBeenCalledTimes(3);
     expect(play.play).toHaveBeenNthCalledWith(1, modalSubmitInteraction, true, 'value1');

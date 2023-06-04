@@ -5,10 +5,7 @@ module.exports = {
   execute({socket}) {
     socket.on('changelog:changelog', () => getAll()
       .then(changelogList => socket.emit('changelog:changelog', {
-        status: 200, data: changelogList.map(changelog => ({
-          ...changelog,
-          message: JSON.parse(changelog.message),
-        })),
+        status: 200, data: changelogList,
       })));
 
     socket.on('changelog:publish', (version, changelog, callback) =>
@@ -17,10 +14,7 @@ module.exports = {
         .then(() => clearCache())
         .then(() => getAll())
         .then(changelogList => socket.emit('changelog:changelog', {
-          status: 200, data: changelogList.map(changelog => ({
-            ...changelog,
-            message: JSON.parse(changelog.message),
-          })),
+          status: 200, data: changelogList,
         })));
   },
 };

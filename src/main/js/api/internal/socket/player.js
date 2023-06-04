@@ -1,7 +1,7 @@
 const {authForNowPlaying, authForSongs, authForVoiceMember} = require('../security');
 const {clear} = require('../../../actions/commands/clear');
 const {generateInteraction} = require('../../../utils/api');
-const {getAll} = require('../../../db/repositories/users');
+const {getAll} = require('../../../db/repositories/user');
 const {getRadios} = require('../../../actions/radios');
 const {loop} = require('../../../actions/commands/loop');
 const {move} = require('../../../actions/commands/move');

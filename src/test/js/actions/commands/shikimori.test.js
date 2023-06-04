@@ -14,14 +14,14 @@ const search = require('../../../resources/actions/commands/shikimori/search');
 const permissionModuleName = '../../../../main/js/db/repositories/permission';
 const commandsModuleName = '../../../../main/js/actions/commands';
 const auditorModuleName = '../../../../main/js/actions/auditor';
-const usersDbModuleName = '../../../../main/js/db/repositories/users';
+const userDbModuleName = '../../../../main/js/db/repositories/user';
 const playerModuleName = '../../../../main/js/actions/player';
 const youtubeModuleName = '../../../../main/js/api/external/youtube';
 const attachmentsModuleName = '../../../../main/js/utils/attachments';
 const permissionMocked = jest.mock(permissionModuleName).requireMock(permissionModuleName);
 const commandsMocked = jest.mock(commandsModuleName).requireMock(commandsModuleName);
 const auditorMocked = jest.mock(auditorModuleName).requireMock(auditorModuleName);
-const usersDbMocked = jest.mock(usersDbModuleName).requireMock(usersDbModuleName);
+const userDbMocked = jest.mock(userDbModuleName).requireMock(userDbModuleName);
 const playerMocked = jest.mock(playerModuleName).requireMock(playerModuleName);
 const youtubeMocked = jest.mock(youtubeModuleName).requireMock(youtubeModuleName);
 const attachmentsMocked = jest.mock(attachmentsModuleName).requireMock(attachmentsModuleName);
@@ -152,7 +152,7 @@ describe('execute', () => {
       expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.shikimori.set');
       expect(commandsMocked.notifyForbidden).toHaveBeenCalledWith('shikimori', interaction);
       expect(axiosMocked.get).not.toHaveBeenCalled();
-      expect(usersDbMocked.set).not.toHaveBeenCalled();
+      expect(userDbMocked.set).not.toHaveBeenCalled();
       expect(commandsMocked.updateCommands).not.toHaveBeenCalled();
       expect(commandsMocked.notify).not.toHaveBeenCalled();
       expect(auditorMocked.audit).not.toHaveBeenCalled();
@@ -174,7 +174,7 @@ describe('execute', () => {
       expect(axiosMocked.get).toHaveBeenCalledWith('https://shikimori.me/login');
       expect(commandsMocked.notify).toHaveBeenCalledWith(...expectedSetNonExistLogin);
       expect(auditorMocked.audit).toHaveBeenCalled();
-      expect(usersDbMocked.set).not.toHaveBeenCalled();
+      expect(userDbMocked.set).not.toHaveBeenCalled();
       expect(commandsMocked.updateCommands).not.toHaveBeenCalled();
     });
 
@@ -184,14 +184,14 @@ describe('execute', () => {
         .mockReturnValueOnce('nickname');
       permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
       axiosMocked.get.mockResolvedValue({status: 200});
-      usersDbMocked.set.mockReturnValueOnce();
+      userDbMocked.set.mockReturnValueOnce();
 
       await execute(interaction);
 
       expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.shikimori.set');
       expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
       expect(axiosMocked.get).toHaveBeenCalledWith('https://shikimori.me/login');
-      expect(usersDbMocked.set).toHaveBeenCalledWith({'login': 'login', 'nickname': 'nickname'});
+      expect(userDbMocked.set).toHaveBeenCalledWith({'login': 'login', 'nickname': 'nickname'});
       expect(commandsMocked.updateCommands).toHaveBeenCalledWith(interaction.client);
       expect(commandsMocked.notify).toHaveBeenCalledWith(...expectedSetSuccess);
       expect(auditorMocked.audit).toHaveBeenCalled();
@@ -207,7 +207,7 @@ describe('execute', () => {
 
       expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.shikimori.remove');
       expect(commandsMocked.notifyForbidden).toHaveBeenCalledWith('shikimori', interaction);
-      expect(usersDbMocked.removeByLogin).not.toHaveBeenCalled();
+      expect(userDbMocked.removeByLogin).not.toHaveBeenCalled();
       expect(commandsMocked.updateCommands).not.toHaveBeenCalled();
       expect(commandsMocked.notify).not.toHaveBeenCalled();
       expect(auditorMocked.audit).not.toHaveBeenCalled();
@@ -218,13 +218,13 @@ describe('execute', () => {
       interaction.options.getString.mockReturnValueOnce('login');
       permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
       axiosMocked.get.mockResolvedValue({status: 200});
-      usersDbMocked.set.mockReturnValueOnce();
+      userDbMocked.set.mockReturnValueOnce();
 
       await execute(interaction);
 
       expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.shikimori.remove');
       expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
-      expect(usersDbMocked.removeByLogin).toHaveBeenCalledWith('login');
+      expect(userDbMocked.removeByLogin).toHaveBeenCalledWith('login');
       expect(commandsMocked.updateCommands).toHaveBeenCalledWith(interaction.client);
       expect(commandsMocked.notify).toHaveBeenCalledWith(...expectedRemoveSuccess);
       expect(auditorMocked.audit).toHaveBeenCalled();

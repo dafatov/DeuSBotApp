@@ -7,7 +7,7 @@ const locale = require('../../../configs/locale');
 const member = require('../../../../resources/mocks/member');
 const user = require('../../../../resources/mocks/user');
 
-const usersDbModuleName = '../../../../../main/js/db/repositories/users';
+const userDbModuleName = '../../../../../main/js/db/repositories/user';
 const radiosModuleName = '../../../../../main/js/actions/radios';
 const skipModuleName = '../../../../../main/js/actions/commands/skip';
 const pauseModuleName = '../../../../../main/js/actions/commands/pause';
@@ -20,7 +20,7 @@ const playModuleName = '../../../../../main/js/actions/commands/play';
 const shikimoriModuleName = '../../../../../main/js/actions/commands/shikimori';
 const radioModuleName = '../../../../../main/js/actions/commands/radio';
 const securityModuleName = '../../../../../main/js/api/internal/security';
-const usersDbMocked = jest.mock(usersDbModuleName).requireMock(usersDbModuleName);
+const userDbMocked = jest.mock(userDbModuleName).requireMock(userDbModuleName);
 const radiosMocked = jest.mock(radiosModuleName).requireMock(radiosModuleName);
 const skipMocked = jest.mock(skipModuleName).requireMock(skipModuleName);
 const pauseMocked = jest.mock(pauseModuleName).requireMock(pauseModuleName);
@@ -381,7 +381,7 @@ describe('execute', () => {
 
     describe('control:getShikimoriUsers', () => {
       test('success', () => new Promise(done => {
-        usersDbMocked.getAll.mockResolvedValueOnce([{login: 'login'}]);
+        userDbMocked.getAll.mockResolvedValueOnce([{login: 'login'}]);
 
         connection.client.emit('control:getShikimoriUsers', data => {
           expect(data).toEqual({profiles: ['login']});

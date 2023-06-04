@@ -1,3 +1,4 @@
+const {ChannelType} = require('discord.js');
 const client = require('../../../resources/mocks/client');
 const expectedContent = require('../../../resources/actions/publications/freebie/expectedContent');
 const feed = require('../../../resources/actions/publications/freebie/feed');
@@ -60,10 +61,10 @@ describe('onPublication', () => {
     const variables = {lastFreebie: new Date('1970-01-01T00:00:00.000Z')};
     const messages = [
       {
-        channel: {type: 'GUILD_NEWS'},
+        channel: {type: ChannelType.GuildNews},
         crosspost: crosspostMocked1,
       }, {
-        channel: {type: 'GUILD_TEXT'},
+        channel: {type: ChannelType.GuildText},
         crosspost: crosspostMocked2,
       },
     ];

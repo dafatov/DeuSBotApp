@@ -1,9 +1,9 @@
 const locale = require('../../configs/locale');
 const message = require('../../../resources/mocks/message');
 
-const responsesModuleName = '../../../../main/js/db/repositories/responses';
+const responseModuleName = '../../../../main/js/db/repositories/response';
 const auditorModuleName = '../../../../main/js/actions/auditor';
-const responsesMocked = jest.mock(responsesModuleName).requireMock(responsesModuleName);
+const responseMocked = jest.mock(responseModuleName).requireMock(responseModuleName);
 const auditorMocked = jest.mock(auditorModuleName).requireMock(auditorModuleName);
 
 // eslint-disable-next-line sort-imports-requires/sort-requires
@@ -24,7 +24,7 @@ describe('execute', () => {
   test('semi match', async () => {
     jest.replaceProperty(message.author, 'bot', false);
     jest.replaceProperty(message, 'content', 'test1');
-    responsesMocked.getAll.mockResolvedValueOnce([
+    responseMocked.getAll.mockResolvedValueOnce([
       {regex: 'test1', react: 'test1R'}, {regex: 'test2', react: 'test2R'},
     ]);
 
@@ -37,7 +37,7 @@ describe('execute', () => {
   test('full match', async () => {
     jest.replaceProperty(message.author, 'bot', false);
     jest.replaceProperty(message, 'content', 'test1test2');
-    responsesMocked.getAll.mockResolvedValueOnce([
+    responseMocked.getAll.mockResolvedValueOnce([
       {regex: 'test1', react: 'test1R'}, {regex: 'test2', react: 'test2R'},
     ]);
 

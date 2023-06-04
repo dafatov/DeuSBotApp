@@ -11,6 +11,5 @@ module.exports = [
         title: 'Доступ к команде "test" запрещен',
       }),
     ],
-    ephemeral: true,
   },
 ];

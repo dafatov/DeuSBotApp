@@ -19,6 +19,7 @@ module.exports.SCOPES = Object.freeze({
   COMMAND_PUBLICIST_SET: 'command.publicist.set',
   COMMAND_PUBLICIST_SHOW: 'command.publicist.show',
   COMMAND_PUBLICIST_REMOVE: 'command.publicist.remove',
+  COMMAND_RESTORE: 'command.restore',
   COMMAND_QUEUE: 'command.queue',
   COMMAND_RADIO: 'command.radio',
   COMMAND_REMOVE: 'command.remove',
@@ -54,7 +55,7 @@ module.exports.getAll = async () => {
       .map(permission => ({
         user_id: permission.user_id,
         isWhiteList: permission.is_white_list,
-        scopes: JSON.parse(permission.scopes),
+        scopes: permission.scopes,
       })) || [];
   }
   return permissions;
@@ -101,7 +102,7 @@ const add = async (userId, isWhiteList, scopes) => {
     await db.query('INSERT INTO permission (user_id, is_white_list, scopes) VALUES ($1, $2, $3)', [
       userId,
       isWhiteList,
-      JSON.stringify(scopes),
+      scopes,
     ]);
   } else {
     throw t('inner:error.invalidScope', {userId, isWhiteList, scopes: JSON.stringify(scopes)});

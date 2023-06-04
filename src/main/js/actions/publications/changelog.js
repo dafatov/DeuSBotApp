@@ -50,8 +50,6 @@ module.exports = {
 };
 
 const createDescription = message => {
-  message = JSON.parse(message);
-
   const getFeatures = () => message.features
     .map(feature => t('common:markItem', {item: escaping(feature)}))
     .join('\n');

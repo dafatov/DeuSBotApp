@@ -1,6 +1,6 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {audit} = require('../../actions/auditor');
-const {getAll} = require('../../db/repositories/responses');
+const {getAll} = require('../../db/repositories/response');
 const {stringify} = require('../../utils/string');
 const {t} = require('i18next');
 

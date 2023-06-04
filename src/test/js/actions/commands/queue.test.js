@@ -23,7 +23,7 @@ const radiosMocked = jest.mock(radiosModuleName).requireMock(radiosModuleName);
 const attachmentsMocked = jest.mock(attachmentsModuleName).requireMock(attachmentsModuleName);
 
 // eslint-disable-next-line sort-imports-requires/sort-requires
-const {execute, listener} = require('../../../../main/js/actions/commands/queue');
+const {execute, onButton} = require('../../../../main/js/actions/commands/queue');
 
 beforeAll(() => locale.init());
 
@@ -92,11 +92,11 @@ describe('execute', () => {
   );
 });
 
-describe('listener', () => {
+describe('onButton', () => {
   test('forbidden', async () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(true));
 
-    await listener(buttonInteraction);
+    await onButton(buttonInteraction);
 
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.queue');
     expect(commandsMocked.notifyForbidden).toHaveBeenCalledWith('queue', buttonInteraction);
@@ -121,7 +121,7 @@ describe('listener', () => {
       }),
     });
 
-    await listener(buttonInteraction);
+    await onButton(buttonInteraction);
 
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.queue');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
@@ -151,7 +151,7 @@ describe('listener', () => {
     });
     jest.replaceProperty(queue.nowPlaying.song, 'type', 'radio');
 
-    await listener(buttonInteraction);
+    await onButton(buttonInteraction);
 
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.queue');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
