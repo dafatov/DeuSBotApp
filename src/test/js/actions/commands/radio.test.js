@@ -1,6 +1,7 @@
+const cloneDeep = require('lodash/cloneDeep');
 const expectedParamsRadio = require('../../../resources/actions/commands/radio/expectedParamsRadio');
 const expectedRadio = require('../../../resources/actions/commands/radio/expectedRadio');
-const interaction = require('../../../resources/mocks/commandInteraction');
+let interaction;
 const locale = require('../../configs/locale');
 
 const permissionModuleName = '../../../../main/js/db/repositories/permission';
@@ -19,6 +20,10 @@ const {execute} = require('../../../../main/js/actions/commands/radio');
 
 beforeAll(() => locale.init());
 
+beforeEach(() => {
+  interaction = cloneDeep(require('../../../resources/mocks/commandInteraction'));
+});
+
 describe('execute', () => {
   test('forbidden', async () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(true));
@@ -34,23 +39,41 @@ describe('execute', () => {
     expect(auditorMocked.audit).not.toHaveBeenCalled();
   });
 
-  test('unequal channels', async () => {
-    permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
-    playerMocked.isConnected.mockReturnValueOnce(true);
-    playerMocked.isSameChannel.mockReturnValueOnce(false);
+  describe('unequal channels', () => {
+    test('member connected', async () => {
+      permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
+      playerMocked.isConnected.mockReturnValueOnce(true);
+      playerMocked.isSameChannel.mockReturnValueOnce(false);
 
-    const result = await execute(interaction);
+      const result = await execute(interaction);
 
-    expect(result).toEqual({'result': 'Не совпадают каналы'});
-    expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.radio');
-    expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
-    expect(playerMocked.isConnected).toHaveBeenCalledWith('301783183828189184');
-    expect(playerMocked.isSameChannel).toHaveBeenCalledWith('301783183828189184', '343847059612237824');
-    expect(commandsMocked.notifyUnequalChannels).toHaveBeenCalledWith('radio', interaction, true);
-    expect(playerMocked.addAll).not.toHaveBeenCalled();
-    expect(playerMocked.playPlayer).not.toHaveBeenCalled();
-    expect(commandsMocked.notify).not.toHaveBeenCalled();
-    expect(auditorMocked.audit).not.toHaveBeenCalled();
+      expect(result).toEqual({'result': 'Не совпадают каналы'});
+      expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.radio');
+      expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
+      expect(playerMocked.isConnected).toHaveBeenCalledWith('301783183828189184');
+      expect(playerMocked.isSameChannel).toHaveBeenCalledWith('301783183828189184', '343847059612237824');
+      expect(commandsMocked.notifyUnequalChannels).toHaveBeenCalledWith('radio', interaction, true);
+      expect(playerMocked.addAll).not.toHaveBeenCalled();
+      expect(playerMocked.playPlayer).not.toHaveBeenCalled();
+      expect(commandsMocked.notify).not.toHaveBeenCalled();
+      expect(auditorMocked.audit).not.toHaveBeenCalled();
+    });
+
+    test('member not connected', async () => {
+      permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
+      jest.replaceProperty(interaction.member.voice, 'channelId', null);
+
+      const result = await execute(interaction);
+
+      expect(result).toEqual({'result': 'Не совпадают каналы'});
+      expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.radio');
+      expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
+      expect(playerMocked.isConnected).not.toHaveBeenCalled();
+      expect(playerMocked.isSameChannel).not.toHaveBeenCalled();
+      expect(commandsMocked.notifyUnequalChannels).toHaveBeenCalledWith('radio', interaction, true);
+      expect(commandsMocked.notify).not.toHaveBeenCalled();
+      expect(auditorMocked.audit).not.toHaveBeenCalled();
+    });
   });
 
   test('success', async () => {

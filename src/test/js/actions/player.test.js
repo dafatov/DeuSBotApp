@@ -447,6 +447,7 @@ describe('play', () => {
   test.each([
     {type: TYPES.YOUTUBE},
     {type: TYPES.RADIO},
+    {type: TYPES.FILE},
   ])('success: $type', async ({type}) => {
     const expectedResource = {
       resourceFrom: type === TYPES.YOUTUBE

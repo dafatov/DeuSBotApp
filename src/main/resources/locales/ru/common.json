@@ -32,7 +32,7 @@
     "whitelist": "Белый список"
   },
   "date": "$t(common:time.months.list.{{month}}) {{year}}",
-  "markItem": "\t- {{item}}",
+  "markItem": "- {{item}}",
   "pagination": {
     "first": "|<",
     "footer": "{{start}} - {{finish}} из {{total}} по {{step}}",

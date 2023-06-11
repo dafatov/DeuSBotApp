@@ -1,4 +1,5 @@
 const animesJson = require('../../../resources/actions/commands/shikimori/animesJson');
+const cloneDeep = require('lodash/cloneDeep');
 const expectedPlayNoRandom = require('../../../resources/actions/commands/shikimori/expectedParamsPlayNoRandom');
 const expectedPlaySearch = require('../../../resources/actions/commands/shikimori/expectedParamsPlaySearch');
 const expectedPlaySuccess = require('../../../resources/actions/commands/shikimori/expectedPlaySuccess');
@@ -7,7 +8,7 @@ const expectedPlayUnboundCount = require('../../../resources/actions/commands/sh
 const expectedRemoveSuccess = require('../../../resources/actions/commands/shikimori/expectedParamsRemoveSuccess');
 const expectedSetNonExistLogin = require('../../../resources/actions/commands/shikimori/expectedParamsSetNonExistLogin');
 const expectedSetSuccess = require('../../../resources/actions/commands/shikimori/expectedParamsSetSuccess');
-const interaction = require('../../../resources/mocks/commandInteraction');
+let interaction;
 const locale = require('../../configs/locale');
 const search = require('../../../resources/actions/commands/shikimori/search');
 
@@ -33,6 +34,10 @@ const {execute, play} = require('../../../../main/js/actions/commands/shikimori'
 
 beforeAll(() => locale.init());
 
+beforeEach(() => {
+  interaction = cloneDeep(require('../../../resources/mocks/commandInteraction'));
+});
+
 describe('execute', () => {
   describe('play', () => {
     test('forbidden', async () => {
@@ -49,22 +54,41 @@ describe('execute', () => {
       expect(auditorMocked.audit).not.toHaveBeenCalled();
     });
 
-    test('unequal channels', async () => {
-      interaction.options.getSubcommand.mockReturnValueOnce('play');
-      permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
-      playerMocked.isConnected.mockReturnValueOnce(true);
-      playerMocked.isSameChannel.mockReturnValueOnce(false);
+    describe('unequal channels', () => {
+      test('member connected', async () => {
+        interaction.options.getSubcommand.mockReturnValueOnce('play');
+        permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
+        playerMocked.isConnected.mockReturnValueOnce(true);
+        playerMocked.isSameChannel.mockReturnValueOnce(false);
 
-      const result = await execute(interaction);
+        const result = await execute(interaction);
 
-      expect(result).toEqual({'result': 'Не совпадают каналы'});
-      expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.shikimori.play');
-      expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
-      expect(playerMocked.isConnected).toHaveBeenCalledWith('301783183828189184');
-      expect(playerMocked.isSameChannel).toHaveBeenCalledWith('301783183828189184', '343847059612237824');
-      expect(commandsMocked.notifyUnequalChannels).toHaveBeenCalledWith('shikimori', interaction, true);
-      expect(commandsMocked.notify).not.toHaveBeenCalled();
-      expect(auditorMocked.audit).not.toHaveBeenCalled();
+        expect(result).toEqual({'result': 'Не совпадают каналы'});
+        expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.shikimori.play');
+        expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
+        expect(playerMocked.isConnected).toHaveBeenCalledWith('301783183828189184');
+        expect(playerMocked.isSameChannel).toHaveBeenCalledWith('301783183828189184', '343847059612237824');
+        expect(commandsMocked.notifyUnequalChannels).toHaveBeenCalledWith('shikimori', interaction, true);
+        expect(commandsMocked.notify).not.toHaveBeenCalled();
+        expect(auditorMocked.audit).not.toHaveBeenCalled();
+      });
+
+      test('member not connected', async () => {
+        interaction.options.getSubcommand.mockReturnValueOnce('play');
+        permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
+        jest.replaceProperty(interaction.member.voice, 'channelId', null);
+
+        const result = await execute(interaction);
+
+        expect(result).toEqual({'result': 'Не совпадают каналы'});
+        expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.shikimori.play');
+        expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
+        expect(playerMocked.isConnected).not.toHaveBeenCalled();
+        expect(playerMocked.isSameChannel).not.toHaveBeenCalled();
+        expect(commandsMocked.notifyUnequalChannels).toHaveBeenCalledWith('shikimori', interaction, true);
+        expect(commandsMocked.notify).not.toHaveBeenCalled();
+        expect(auditorMocked.audit).not.toHaveBeenCalled();
+      });
     });
 
     test.each([

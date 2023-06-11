@@ -1,9 +1,5 @@
 module.exports = {
   'info': {
-    'author': {
-      'iconURL': 'https://cdn.discordapp.com/avatars/348774809003491329/98e046c34d87c1b00cf6a9bf0f132959.webp',
-      'username': 'DemetriouS',
-    },
     'duration': 292,
     'id': '1679505437833',
     'isLive': false,
@@ -11,13 +7,10 @@ module.exports = {
     'title': 'Spice and Wolf OP 1 FULL (with lyrics)',
     'type': 'youtube',
     'url': 'https://www.youtube.com/watch?v=W6q1AWnjNiU',
+    'userId': '348774809003491329',
   },
   'songs': [
     {
-      'author': {
-        'iconURL': 'https://cdn.discordapp.com/avatars/348774809003491329/98e046c34d87c1b00cf6a9bf0f132959.webp',
-        'username': 'DemetriouS',
-      },
       'duration': 292,
       'id': '1679505437833',
       'isLive': false,
@@ -25,6 +18,7 @@ module.exports = {
       'title': 'Spice and Wolf OP 1 FULL (with lyrics)',
       'type': 'youtube',
       'url': 'https://www.youtube.com/watch?v=W6q1AWnjNiU',
+      'userId': '348774809003491329',
     },
   ],
 };
