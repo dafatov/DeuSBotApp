@@ -7,6 +7,7 @@ const {transaction} = require('../dbUtils');
 module.exports.TYPES = Object.freeze({
   RADIO: 'radio',
   YOUTUBE: 'youtube',
+  FILE: 'file',
 });
 
 module.exports.getAll = async guildId => {

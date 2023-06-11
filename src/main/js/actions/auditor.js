@@ -50,7 +50,6 @@ module.exports.audit = async ({guildId, type, category, message}) => {
     category = CATEGORIES.UNCATEGORIZED;
   }
 
-  await add({guildId, type, category, message});
   if (process.env.LOGGING === 'DEBUG' || type !== TYPES.DEBUG) {
     // eslint-disable-next-line no-console
     console.log(t('inner:audit.pattern', {
@@ -64,6 +63,7 @@ module.exports.audit = async ({guildId, type, category, message}) => {
     // eslint-disable-next-line no-console
     console.log(getStackTrace(new Error(message)));
   }
+  return await add({guildId, type, category, message});
 };
 
 module.exports.getGuilds = client =>

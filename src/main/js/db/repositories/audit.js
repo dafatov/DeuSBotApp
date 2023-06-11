@@ -40,10 +40,10 @@ module.exports.getAll = async () => {
 
 module.exports.add = async ({guildId, type, category, message}) => {
   this.clearCache();
-  await db().query(
-    'INSERT INTO audit (guild_id, type, category, message) VALUES ($1, $2, $3, $4)',
+  return (await db().query(
+    'INSERT INTO audit (guild_id, type, category, message) VALUES ($1, $2, $3, $4) RETURNING id',
     [guildId, type, category, message],
-  );
+  )).rows[0];
 };
 
 /**

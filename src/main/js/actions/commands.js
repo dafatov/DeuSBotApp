@@ -75,12 +75,7 @@ module.exports.execute = async interaction => {
       message: t('inner:audit.command.executed', {name: commandName}),
     });
   } catch (e) {
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.ERROR,
-      category: CATEGORIES.COMMAND,
-      message: stringify(e),
-    });
+    await this.notifyError(commandName, interaction, e);
   }
 };
 
@@ -201,6 +196,21 @@ module.exports.notifyUnbound = async (commandName, interaction, isExecute) => {
     category: CATEGORIES.COMMAND,
     message: t('inner:info.unbound', {command: commandName}),
   });
+};
+
+module.exports.notifyError = async (commandName, interaction, e) => {
+  const {id} = await audit({
+    guildId: interaction.guildId,
+    type: TYPES.ERROR,
+    category: CATEGORIES.COMMAND,
+    message: stringify(e),
+  });
+  const embed = new EmbedBuilder()
+    .setColor(config.colors.error)
+    .setTitle(t('discord:embed.error.title'))
+    .setDescription(t('discord:embed.error.description', {command: commandName, auditId: id}))
+    .setTimestamp();
+  await this.notify(interaction, {embeds: [embed]});
 };
 
 module.exports.getCommandsData = client =>

@@ -6,9 +6,11 @@ const {escaping, getCommandName} = require('../../utils/string');
 const {getPlaylist, getSearch, getSong} = require('../../api/external/youtube');
 const {notify, notifyForbidden, notifyUnequalChannels} = require('../commands');
 const {DISCORD_ROWS_MAX} = require('../../utils/constants');
+const {TYPES: SONG_TYPES} = require('../../db/repositories/queue');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const {getAddedDescription} = require('../../utils/player');
+const {getAudioDurationInSeconds} = require('get-audio-duration');
 const {promiseAllSequence} = require('../../utils/mapping');
 const {t} = require('i18next');
 
@@ -16,51 +18,39 @@ module.exports = {
   data: () => new SlashCommandBuilder()
     .setName(getCommandName(__filename))
     .setDescription(t('discord:command.play.description'))
+    .addAttachmentOption(o => o
+      .setName('attachment')
+      .setDescription(t('discord:command.play.option.file.description')))
     .addStringOption(o => o
-      .setName('audio')
-      .setDescription(t('discord:command.play.option.audio.description'))),
-  isDeferReply: interaction => !!interaction.options.getString('audio'),
+      .setName('youtube')
+      .setDescription(t('discord:command.play.option.youtube.description'))),
+  isDeferReply: interaction => !!interaction.options.getString('youtube') || !!interaction.options.getAttachment('attachment'),
   execute: interaction => module.exports.play(interaction, true),
   onModal: interaction => onModal(interaction),
 };
 
-module.exports.play = async (interaction, isExecute, audio = interaction.options.getString('audio')) => {
+module.exports.play = async (interaction, isExecute, audio = interaction.options.getString('youtube')) => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PLAY)) {
     await notifyForbidden(getCommandName(__filename), interaction);
-    return {result: t('web:info.forbidden', {command: 'play'})};
+    return {result: t('web:info.forbidden', {command: getCommandName(__filename)})};
   }
 
-  if (isConnected(interaction.guildId) && !isSameChannel(interaction.guildId, interaction.member.voice.channel?.id)) {
+  const attachment = interaction.options?.getAttachment('attachment');
+
+  if (audio && attachment) {
+    return await illegalState(interaction);
+  }
+
+  if (!interaction.member.voice.channelId || isConnected(interaction.guildId) && !isSameChannel(interaction.guildId, interaction.member.voice.channelId)) {
     await notifyUnequalChannels(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.unequalChannels')};
   }
 
-  if (isExecute && !audio) {
-    const modal = new ModalBuilder()
-      .setCustomId(getCommandName(__filename))
-      .setTitle(t('discord:command.play.modal.title'))
-      .setComponents(...Array(DISCORD_ROWS_MAX).fill()
-        .map((textInput, index) => new TextInputBuilder()
-          .setCustomId(`playTextInput${index}`)
-          .setLabel(t('discord:command.play.modal.textInput.title', {number: index + 1}))
-          .setPlaceholder(t('discord:command.play.option.audio.description'))
-          .setStyle(TextInputStyle.Short)
-          .setRequired(index === 0))
-        .map(textInput => new ActionRowBuilder().setComponents(textInput)));
-
-    await interaction.showModal(modal);
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.INFO,
-      category: CATEGORIES.COMMAND,
-      message: t('inner:audit.command.play.modal'),
-    });
-    return;
+  if (isExecute && !audio && !attachment) {
+    return await showModal(interaction);
   }
 
-  const added = await getPlaylist(interaction, audio)
-    .catch(() => getSong(interaction, audio))
-    .catch(() => getSearch(interaction, audio));
+  const added = await getAdded(interaction, audio, attachment);
   const description = await getAddedDescription(interaction.guildId, added.info);
 
   await addAll(interaction.guildId, added);
@@ -83,6 +73,62 @@ module.exports.play = async (interaction, isExecute, audio = interaction.options
     message: t('inner:audit.command.play.song'),
   });
   return {added: added.info};
+};
+
+const illegalState = async interaction => {
+  const embed = new EmbedBuilder()
+    .setColor(config.colors.warning)
+    .setTitle(t('discord:embed.illegalState.title', {command: getCommandName(__filename)}))
+    .setDescription(t('discord:embed.illegalState.description'))
+    .setTimestamp();
+  await notify(interaction, {embeds: [embed]});
+  return {result: t('web:info.illegalState', {command: getCommandName(__filename)})};
+};
+
+const showModal = async interaction => {
+  const modal = new ModalBuilder()
+    .setCustomId(getCommandName(__filename))
+    .setTitle(t('discord:command.play.modal.title'))
+    .setComponents(...Array(DISCORD_ROWS_MAX).fill()
+      .map((textInput, index) => new TextInputBuilder()
+        .setCustomId(`playTextInput${index}`)
+        .setLabel(t('discord:command.play.modal.textInput.title', {number: index + 1}))
+        .setPlaceholder(t('discord:command.play.option.youtube.description'))
+        .setStyle(TextInputStyle.Short)
+        .setRequired(index === 0))
+      .map(textInput => new ActionRowBuilder().setComponents(textInput)));
+
+  await interaction.showModal(modal);
+  await audit({
+    guildId: interaction.guildId,
+    type: TYPES.INFO,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:audit.command.play.modal'),
+  });
+};
+
+const getAdded = (interaction, audio, attachment) => {
+  if (audio) {
+    return getPlaylist(interaction, audio)
+      .catch(() => getSong(interaction, audio))
+      .catch(() => getSearch(interaction, audio));
+  } else if (attachment) {
+    return getAudioDurationInSeconds(attachment.url)
+      .then(duration => ({
+        info: {
+          type: SONG_TYPES.FILE,
+          title: attachment.name,
+          duration: Math.ceil(duration ?? 0),
+          url: attachment.url,
+          isLive: false,
+          preview: 'https://i.imgur.com/7SdVZxF.png',
+          userId: interaction.user.id,
+        },
+        get songs() {
+          return [this.info];
+        },
+      }));
+  }
 };
 
 const onModal = async interaction => {

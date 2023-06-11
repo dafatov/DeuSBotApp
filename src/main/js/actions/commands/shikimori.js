@@ -86,7 +86,7 @@ module.exports.play = async (interaction, isExecute,
     return {result: t('web:info.forbidden', {command: getCommandName(__filename)})};
   }
 
-  if (isConnected(interaction.guildId) && !isSameChannel(interaction.guildId, interaction.member.voice.channel?.id)) {
+  if (!interaction.member.voice.channelId || isConnected(interaction.guildId) && !isSameChannel(interaction.guildId, interaction.member.voice.channelId)) {
     await notifyUnequalChannels(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.unequalChannels')};
   }

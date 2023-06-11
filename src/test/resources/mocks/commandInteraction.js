@@ -15,6 +15,7 @@ module.exports = {
   isRepliable: jest.fn(),
   member,
   options: {
+    getAttachment: jest.fn(),
     getChannel: jest.fn(),
     getInteger: jest.fn(),
     getString: jest.fn(),

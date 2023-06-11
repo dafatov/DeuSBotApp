@@ -6,10 +6,7 @@ module.exports = {
     'url': 'https://www.youtube.com/playlist?list=PLtcD_4Y3uPJNGDm-igZ5jYOmRI5XBABdn',
     'isLive': false,
     'preview': 'https://i.ytimg.com/vi/W6q1AWnjNiU/hqdefault.jpg?sqp=-oaymwEXCNACELwBSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLABzSNBM7sNMpky7jUqt-FgSqwuSQ',
-    'author': {
-      'username': 'DemetriouS',
-      'iconURL': 'https://cdn.discordapp.com/avatars/348774809003491329/98e046c34d87c1b00cf6a9bf0f132959.webp'
-    }
+    'userId': '348774809003491329'
   },
   'songs': [
     {
@@ -20,10 +17,7 @@ module.exports = {
       'url': 'https://www.youtube.com/watch?v=W6q1AWnjNiU',
       'isLive': false,
       'preview': 'https://i.ytimg.com/vi/W6q1AWnjNiU/hqdefault.jpg?sqp=-oaymwEjCNACELwBSFryq4qpAxUIARUAAAAAGAElAADIQj0AgKJDeAE=&rs=AOn4CLBv4UAae-UGi2Z0F1-XIoLRFLWifQ',
-      'author': {
-        'username': 'DemetriouS',
-        'iconURL': 'https://cdn.discordapp.com/avatars/348774809003491329/98e046c34d87c1b00cf6a9bf0f132959.webp'
-      }
+      'userId': '348774809003491329'
     },
     {
       'id': '1679505397992-1',
@@ -33,10 +27,7 @@ module.exports = {
       'url': 'https://www.youtube.com/watch?v=ERlBHyOjeLI',
       'isLive': false,
       'preview': 'https://i.ytimg.com/vi/ERlBHyOjeLI/hqdefault.jpg?sqp=-oaymwE9CNACELwBSFryq4qpAy8IARUAAAAAGAElAADIQj0AgKJDeAHwAQH4Af4JgALQBYoCDAgAEAEYXiA_KHIwDw==&rs=AOn4CLDUbUmIw5ToJ5736r8Qk0BpwQFsyw',
-      'author': {
-        'username': 'DemetriouS',
-        'iconURL': 'https://cdn.discordapp.com/avatars/348774809003491329/98e046c34d87c1b00cf6a9bf0f132959.webp'
-      }
+      'userId': '348774809003491329'
     }
   ]
 };

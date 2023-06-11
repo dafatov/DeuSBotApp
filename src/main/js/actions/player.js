@@ -181,6 +181,7 @@ const getAudioStream = song => {
     case SONG_TYPES.YOUTUBE:
       return getStream(song.url);
     case SONG_TYPES.RADIO:
+    case SONG_TYPES.FILE:
       return song.url;
   }
 };

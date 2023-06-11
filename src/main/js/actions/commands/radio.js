@@ -51,7 +51,7 @@ module.exports.radio = async (interaction, isExecute, stationKey = interaction.o
     return {result: t('web:info.forbidden', {command: 'radio'})};
   }
 
-  if (isConnected(interaction.guildId) && !isSameChannel(interaction.guildId, interaction.member.voice.channel?.id)) {
+  if (!interaction.member.voice.channelId || isConnected(interaction.guildId) && !isSameChannel(interaction.guildId, interaction.member.voice.channelId)) {
     await notifyUnequalChannels(getCommandName(__filename), interaction, isExecute);
     return {result: t('web:info.unequalChannels')};
   }

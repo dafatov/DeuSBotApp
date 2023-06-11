@@ -1,22 +1,15 @@
 module.exports = {
   'info': {
-    'author': {
-      'iconURL': 'https://cdn.discordapp.com/avatars/348774809003491329/98e046c34d87c1b00cf6a9bf0f132959.webp',
-      'username': 'DemetriouS',
-    },
     'duration': 545,
     'isLive': false,
     'length': 2,
     'preview': 'https://i.ytimg.com/vi/W6q1AWnjNiU/hqdefault.jpg?sqp=-oaymwEXCNACELwBSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLABzSNBM7sNMpky7jUqt-FgSqwuSQ',
     'title': 'test',
     'url': 'https://www.youtube.com/playlist?list=PLtcD_4Y3uPJNGDm-igZ5jYOmRI5XBABdn',
+    'userId': '348774809003491329',
   },
   'songs': [
     {
-      'author': {
-        'iconURL': 'https://cdn.discordapp.com/avatars/348774809003491329/98e046c34d87c1b00cf6a9bf0f132959.webp',
-        'username': 'DemetriouS',
-      },
       'duration': 292,
       'id': '1679505397992-0',
       'isLive': false,
@@ -24,12 +17,9 @@ module.exports = {
       'title': 'Spice and Wolf OP 1 FULL (with lyrics)',
       'type': 'youtube',
       'url': 'https://www.youtube.com/watch?v=W6q1AWnjNiU',
+      'userId': '348774809003491329',
     },
     {
-      'author': {
-        'iconURL': 'https://cdn.discordapp.com/avatars/348774809003491329/98e046c34d87c1b00cf6a9bf0f132959.webp',
-        'username': 'DemetriouS',
-      },
       'duration': 253,
       'id': '1679505397992-1',
       'isLive': false,
@@ -37,6 +27,7 @@ module.exports = {
       'title': 'Hacking To The Gate (Steins;Gate OP synthwave 80s remix) by Astrophysics',
       'type': 'youtube',
       'url': 'https://www.youtube.com/watch?v=ERlBHyOjeLI',
+      'userId': '348774809003491329',
     },
   ],
 };
