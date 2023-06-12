@@ -131,7 +131,7 @@ const getDescription = async (interaction, start, count, songsCount, nowPlaying)
         title: getTitle(song),
         duration: getDuration(song),
         author: await interaction.guild.fetch()
-          .then(guild => guild.members.fetch(nowPlaying.song.userId))
+          .then(guild => guild.members.fetch(song.userId))
           .then(member => member.displayName),
       }))));
 

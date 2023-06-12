@@ -39,8 +39,9 @@ const getMembers = fetchMembersOptions => {
       },
     },
     {
+      displayName: 'Кагомэ',
       user: {
-        id: '229605426327584769',
+        id: '268080849172430850',
       },
     },
   ];
