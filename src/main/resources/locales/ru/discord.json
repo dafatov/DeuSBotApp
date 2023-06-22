@@ -134,7 +134,7 @@
         "file": {
           "description": "Файл с аудиозаписью"
         },
-        "youtube": {
+        "string": {
           "description": "Url или наименование видео записи с youtube"
         }
       },

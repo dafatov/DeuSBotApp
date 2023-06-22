@@ -221,16 +221,16 @@ module.exports = [
     name: 'play',
     options: [
       {
+        description: 'Url или наименование видео записи с youtube',
+        name: 'string',
+        required: false,
+        type: 3
+      },
+      {
         description: 'Файл с аудиозаписью',
         name: 'attachment',
         required: false,
         type: 11
-      },
-      {
-        description: 'Url или наименование видео записи с youtube',
-        name: 'youtube',
-        required: false,
-        type: 3,
       },
     ],
   },

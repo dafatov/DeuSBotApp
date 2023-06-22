@@ -9,9 +9,11 @@ const locale = require('../configs/locale');
 const auditorModuleName = '../../../main/js/actions/auditor';
 const queueDbModuleName = '../../../main/js/db/repositories/queue';
 const youtubeApiModuleName = '../../../main/js/api/external/youtube';
+const commonApiModuleName = '../../../main/js/api/external/common';
 const auditorMocked = jest.mock(auditorModuleName).requireMock(auditorModuleName);
 const queueDbMocked = jest.mock(queueDbModuleName).requireMock(queueDbModuleName);
 const youtubeApiMocked = jest.mock(youtubeApiModuleName).requireMock(youtubeApiModuleName);
+const commonApiMocked = jest.mock(commonApiModuleName).requireMock(commonApiModuleName);
 const discordVoiceMocked = jest.mock('@discordjs/voice').requireMock('@discordjs/voice');
 
 // eslint-disable-next-line sort-imports-requires/sort-requires
@@ -327,7 +329,7 @@ describe('playPlayer', () => {
 
     expect(player.createConnection).toHaveBeenCalledWith(interaction);
     expect(player.play).not.toHaveBeenCalled();
-    expect(auditorMocked.audit).not.toHaveBeenCalled();
+    expect(auditorMocked.audit).toHaveBeenCalled();
     expect(player.getJukebox('301783183828189184')).toEqual(jukebox);
   });
 
@@ -449,14 +451,13 @@ describe('play', () => {
     {type: TYPES.RADIO},
     {type: TYPES.FILE},
   ])('success: $type', async ({type}) => {
-    const expectedResource = {
-      resourceFrom: type === TYPES.YOUTUBE
-        ? 'streamUrl'
-        : 'smth url',
-    };
+    const expectedResource = {resourceFrom: 'streamUrl'};
     jest.replaceProperty(player.getJukebox('301783183828189184').nowPlaying.song, 'type', type);
+    discordVoiceMocked.demuxProbe.mockImplementationOnce(arg => Promise.resolve({stream: arg, type: 'ogg'}));
     discordVoiceMocked.createAudioResource.mockImplementationOnce(arg => ({resourceFrom: arg}));
-    type === TYPES.YOUTUBE && youtubeApiMocked.getStream.mockReturnValueOnce('streamUrl');
+    (type === TYPES.YOUTUBE
+      ? youtubeApiMocked
+      : commonApiMocked).getStream.mockResolvedValueOnce('streamUrl');
 
     await player.play('301783183828189184');
 
@@ -471,6 +472,8 @@ describe('play', () => {
         },
       },
     });
+    expect(discordVoiceMocked.demuxProbe).toHaveBeenCalledWith('streamUrl');
+    expect(discordVoiceMocked.createAudioResource).toHaveBeenCalledWith('streamUrl', {inputType: 'ogg'});
     expect(player.getJukebox('301783183828189184').player.play).toHaveBeenCalledWith(expectedResource);
   });
 });
@@ -492,22 +495,24 @@ describe('onPlayerError', () => {
 
       await player.onPlayerError('301783183828189184', restarts)({resource: {playbackDuration}});
 
-      expect(auditorMocked.audit).toHaveBeenCalled();
+      expect(auditorMocked.audit).toHaveBeenCalledTimes(1);
       expect(setTimeout).not.toHaveBeenCalled();
     });
 
-    test('at the start of playing', async () => {
+    test('at the start of playing', () => new Promise(done => {
       jest.useFakeTimers({doNotFake: []});
       jest.spyOn(global, 'setTimeout');
-      jest.spyOn(player, 'play').mockReturnValueOnce();
+      jest.spyOn(player, 'play').mockResolvedValueOnce();
 
-      await player.onPlayerError('301783183828189184', 0)({resource: {playbackDuration: 0}});
-      jest.runAllTimers();
+      player.onPlayerError('301783183828189184', 0)({resource: {playbackDuration: 0}})
+        .then(() => jest.runAllTimers())
 
-      expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 250);
-      expect(player.play).toHaveBeenCalledWith('301783183828189184');
-      expect(auditorMocked.audit).toHaveBeenCalledTimes(2);
-    });
+        .then(() => {
+          expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 250);
+          expect(player.play).toHaveBeenCalledWith('301783183828189184');
+          expect(auditorMocked.audit).toHaveBeenCalledTimes(2);
+        }).then(() => done());
+    }));
   });
 });
 
@@ -522,7 +527,7 @@ describe('onPlayerIdle', () => {
     test('isLoop', async () => {
       jest.replaceProperty(player.getJukebox('301783183828189184').nowPlaying, 'isLoop', true);
       jest.spyOn(player, 'isLessQueue');
-      jest.spyOn(player, 'play').mockReturnValueOnce();
+      jest.spyOn(player, 'play').mockResolvedValueOnce();
 
       await player.onPlayerIdle('301783183828189184')({playbackDuration: 3000});
 
@@ -538,7 +543,7 @@ describe('onPlayerIdle', () => {
 
     test('empty queue', async () => {
       jest.spyOn(player, 'isLessQueue').mockResolvedValueOnce(true);
-      jest.spyOn(player, 'play').mockReturnValueOnce();
+      jest.spyOn(player, 'play').mockResolvedValueOnce();
 
       await player.onPlayerIdle('301783183828189184')({playbackDuration: 3000});
 
@@ -552,7 +557,7 @@ describe('onPlayerIdle', () => {
 
     test('new song', async () => {
       jest.spyOn(player, 'isLessQueue').mockResolvedValueOnce(false);
-      jest.spyOn(player, 'play').mockReturnValueOnce();
+      jest.spyOn(player, 'play').mockResolvedValueOnce();
       queueDbMocked.remove.mockResolvedValueOnce({title: 'song_new'});
 
       await player.onPlayerIdle('301783183828189184')({playbackDuration: 3000});
