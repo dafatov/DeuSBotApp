@@ -19,12 +19,12 @@ module.exports.getSearch = (interaction, audio) =>
     .then(videos => ytdl.getBasicInfo(videos.items[0].url, options()))
     .then(video => generateSongInfo(interaction.user.id, video));
 
-module.exports.getStream = url => ytdl(url, {
+module.exports.getStream = url => Promise.resolve(ytdl(url, {
   ...options(),
   filter: 'audioonly',
   quality: 'highestaudio',
   highWaterMark: 1 << 25,
-});
+}));
 
 const options = () => ({
   requestOptions: {

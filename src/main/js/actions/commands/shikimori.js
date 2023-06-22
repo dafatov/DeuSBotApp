@@ -14,6 +14,7 @@ const {getAddedDescription} = require('../../utils/player');
 const {getSearch} = require('../../api/external/youtube');
 const progressBar = require('string-progressbar');
 const {t} = require('i18next');
+const {throughPromise} = require('../../utils/promises');
 
 const MAX_COUNT = 100;
 
@@ -280,12 +281,10 @@ const search = async (interaction, audios, login, isExecute) => {
     }, 1000);
   }
 
-  const added = await audios.reduce((accPromise, audio) => getSearch(interaction, audio)
-    .then(search => accPromise.then(acc => reduceInfo(acc, search.info)),
-    ).then(info => {
-      counter++;
-      return info;
-    }), initialInfo(interaction.user.id, audios));
+  const added = await Promise.all(audios.map(audio => getSearch(interaction, audio)
+    .then(search => throughPromise(search, () => counter++)),
+  )).then(searches => searches.reduce((accPromise, search) => accPromise
+    .then(acc => reduceInfo(acc, search.info)), initialInfo(interaction.user.id, searches)));
 
   const description = await getAddedDescription(interaction.guildId, added.info);
   clearInterval(intervalId);

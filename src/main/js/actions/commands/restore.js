@@ -63,7 +63,7 @@ const restore = async interaction => {
 
   const row = await dataPromise
     .then(snapshots => snapshots.map(({id, date}) => new StringSelectMenuOptionBuilder()
-      .setLabel(date.toLocaleString('ru-RU'))
+      .setLabel(`${date.toLocaleString('ru-RU')} GMT`)
       .setValue(id)))
     .then(options => new StringSelectMenuBuilder()
       .setCustomId('select')

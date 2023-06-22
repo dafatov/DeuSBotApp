@@ -11,6 +11,8 @@ const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const {getAddedDescription} = require('../../utils/player');
 const {getAudioDurationInSeconds} = require('get-audio-duration');
+const isUrl = require('is-url');
+const {isValidUrl: isYoutubeUrl} = require('is-youtube-url');
 const {promiseAllSequence} = require('../../utils/mapping');
 const {t} = require('i18next');
 
@@ -18,18 +20,18 @@ module.exports = {
   data: () => new SlashCommandBuilder()
     .setName(getCommandName(__filename))
     .setDescription(t('discord:command.play.description'))
+    .addStringOption(o => o
+      .setName('string')
+      .setDescription(t('discord:command.play.option.string.description')))
     .addAttachmentOption(o => o
       .setName('attachment')
-      .setDescription(t('discord:command.play.option.file.description')))
-    .addStringOption(o => o
-      .setName('youtube')
-      .setDescription(t('discord:command.play.option.youtube.description'))),
-  isDeferReply: interaction => !!interaction.options.getString('youtube') || !!interaction.options.getAttachment('attachment'),
+      .setDescription(t('discord:command.play.option.file.description'))),
+  isDeferReply: interaction => !!interaction.options.getString('string') || !!interaction.options.getAttachment('attachment'),
   execute: interaction => module.exports.play(interaction, true),
   onModal: interaction => onModal(interaction),
 };
 
-module.exports.play = async (interaction, isExecute, audio = interaction.options.getString('youtube')) => {
+module.exports.play = async (interaction, isExecute, audio = interaction.options.getString('string')) => {
   if (await isForbidden(interaction.user.id, SCOPES.COMMAND_PLAY)) {
     await notifyForbidden(getCommandName(__filename), interaction);
     return {result: t('web:info.forbidden', {command: getCommandName(__filename)})};
@@ -93,7 +95,7 @@ const showModal = async interaction => {
       .map((textInput, index) => new TextInputBuilder()
         .setCustomId(`playTextInput${index}`)
         .setLabel(t('discord:command.play.modal.textInput.title', {number: index + 1}))
-        .setPlaceholder(t('discord:command.play.option.youtube.description'))
+        .setPlaceholder(t('discord:command.play.option.string.description'))
         .setStyle(TextInputStyle.Short)
         .setRequired(index === 0))
       .map(textInput => new ActionRowBuilder().setComponents(textInput)));
@@ -109,10 +111,16 @@ const showModal = async interaction => {
 
 const getAdded = (interaction, audio, attachment) => {
   if (audio) {
-    return getPlaylist(interaction, audio)
-      .catch(() => getSong(interaction, audio))
-      .catch(() => getSearch(interaction, audio));
-  } else if (attachment) {
+    if (isYoutubeUrl(audio) || !isUrl(audio)) {
+      return getPlaylist(interaction, audio)
+        .catch(() => getSong(interaction, audio))
+        .catch(() => getSearch(interaction, audio));
+    } else {
+      attachment = {name: audio, url: audio};
+    }
+  }
+
+  if (attachment) {
     return getAudioDurationInSeconds(attachment.url)
       .then(duration => ({
         info: {

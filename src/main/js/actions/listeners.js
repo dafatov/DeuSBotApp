@@ -4,78 +4,44 @@ const {stringify} = require('../utils/string');
 const {t} = require('i18next');
 
 module.exports = {
-  onButton: async interaction => {
-    const commandName = interaction?.message?.interaction?.commandName;
-    const command = interaction.client.commands.get(commandName?.split(' ')?.[0]);
+  onButton: interaction => onListener(
+    interaction,
+    interaction?.message?.interaction?.commandName?.split(' ')?.[0],
+    command => command.onButton(interaction),
+  ),
+  onModal: interaction => onListener(
+    interaction,
+    interaction?.customId,
+    command => command.onModal(interaction),
+  ),
+  onSelect: interaction => onListener(
+    interaction,
+    interaction?.message?.interaction?.commandName?.split(' ')?.[0],
+    command => command.onSelect(interaction),
+  ),
+};
 
-    if (!command) {
-      await audit({
-        guildId: null,
-        type: TYPES.WARNING,
-        category: CATEGORIES.LISTENER,
-        message: t('inner:audit.onButton.lost', {commandName}),
-      });
-      return;
-    }
+const onListener = async (interaction, commandName, onListener) => {
+  const command = interaction.client.commands.get(commandName);
 
-    try {
-      await command.onButton(interaction);
-    } catch (e) {
-      await audit({
-        guildId: null,
-        type: TYPES.ERROR,
-        category: CATEGORIES.LISTENER,
-        message: stringify(e),
-      });
-    }
-  },
-  onModal: async interaction => {
-    const command = interaction.client.commands.get(interaction?.customId);
+  if (!command) {
+    await audit({
+      guildId: null,
+      type: TYPES.WARNING,
+      category: CATEGORIES.LISTENER,
+      message: t('inner:audit.onListener.lost', {commandName}),
+    });
+    return;
+  }
 
-    if (!command) {
-      await audit({
-        guildId: null,
-        type: TYPES.WARNING,
-        category: CATEGORIES.LISTENER,
-        message: t('inner:audit.onModal.lost', {commandName: interaction?.customId}),
-      });
-      return;
-    }
-
-    try {
-      await command.onModal(interaction);
-    } catch (e) {
-      await audit({
-        guildId: null,
-        type: TYPES.ERROR,
-        category: CATEGORIES.LISTENER,
-        message: stringify(e),
-      });
-    }
-  },
-  onSelect: async interaction => {
-    const commandName = interaction?.message?.interaction?.commandName;
-    const command = interaction.client.commands.get(commandName?.split(' ')?.[0]);
-
-    if (!command) {
-      await audit({
-        guildId: null,
-        type: TYPES.WARNING,
-        category: CATEGORIES.LISTENER,
-        message: t('inner:audit.onSelect.lost', {commandName}),
-      });
-      return;
-    }
-
-    try {
-      await command.onSelect(interaction);
-    } catch (e) {
-      await audit({
-        guildId: null,
-        type: TYPES.ERROR,
-        category: CATEGORIES.LISTENER,
-        message: stringify(e),
-      });
-    }
+  try {
+    await onListener(command);
+  } catch (e) {
+    await audit({
+      guildId: null,
+      type: TYPES.ERROR,
+      category: CATEGORIES.LISTENER,
+      message: stringify(e),
+    });
   }
 };

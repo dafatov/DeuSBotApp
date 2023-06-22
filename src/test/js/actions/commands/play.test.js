@@ -7,9 +7,11 @@ const expectedParamsIllegalState = require('../../../resources/actions/commands/
 const expectedParamsPlaylist = require('../../../resources/actions/commands/play/expectedParamsPlaylist');
 const expectedParamsSearch = require('../../../resources/actions/commands/play/expectedParamsSearch');
 const expectedParamsSong = require('../../../resources/actions/commands/play/expectedParamsSong');
+const expectedParamsUrl = require('../../../resources/actions/commands/play/expectedParamsUrl');
 const expectedPlaylist = require('../../../resources/actions/commands/play/expectedPlaylist');
 const expectedSearch = require('../../../resources/actions/commands/play/expectedSearch');
 const expectedSong = require('../../../resources/actions/commands/play/expectedSong');
+const expectedUrl = require('../../../resources/actions/commands/play/expectedUrl');
 const locale = require('../../configs/locale');
 const modalSubmitInteraction = require('../../../resources/mocks/modalSubmitInteraction');
 const playlist = require('../../../resources/actions/commands/play/playlist');
@@ -238,6 +240,30 @@ describe('execute', () => {
       expect(playerMocked.addAll).toHaveBeenCalledWith('301783183828189184', expectedFile);
       expect(playerMocked.playPlayer).toHaveBeenCalledWith(commandInteraction);
       expect(commandsMocked.notify).toHaveBeenCalledWith(...expectedParamsFile);
+      expect(commandInteraction.showModal).not.toHaveBeenCalledWith();
+      expect(auditorMocked.audit).toHaveBeenCalled();
+    });
+
+    test('url', async () => {
+      commandInteraction.options.getString.mockReturnValueOnce('https://www.host.com');
+      permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
+      playerMocked.getNowPlaying.mockResolvedValueOnce({});
+      playerMocked.getSize.mockResolvedValueOnce(0);
+      playerMocked.getDuration.mockResolvedValueOnce(0);
+      playerMocked.isConnected.mockReturnValueOnce(false);
+      playerMocked.isSameChannel.mockReturnValueOnce(true);
+      getAudioDurationMocked.getAudioDurationInSeconds.mockResolvedValueOnce(100);
+
+      const result = await play.execute(commandInteraction);
+
+      expect(result).toEqual({added: expectedUrl.info});
+      expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.play');
+      expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
+      expect(commandsMocked.notifyUnequalChannels).not.toHaveBeenCalled();
+      expect(getAudioDurationMocked.getAudioDurationInSeconds).toHaveBeenCalledWith('https://www.host.com');
+      expect(playerMocked.addAll).toHaveBeenCalledWith('301783183828189184', expectedUrl);
+      expect(playerMocked.playPlayer).toHaveBeenCalledWith(commandInteraction);
+      expect(commandsMocked.notify).toHaveBeenCalledWith(...expectedParamsUrl);
       expect(commandInteraction.showModal).not.toHaveBeenCalledWith();
       expect(auditorMocked.audit).toHaveBeenCalled();
     });

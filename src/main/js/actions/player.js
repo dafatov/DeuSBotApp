@@ -1,9 +1,11 @@
-const {AudioPlayerStatus, NoSubscriberBehavior, VoiceConnectionStatus, createAudioPlayer, createAudioResource, joinVoiceChannel} = require('@discordjs/voice');
+const {AudioPlayerStatus, NoSubscriberBehavior, VoiceConnectionStatus, createAudioPlayer, createAudioResource, demuxProbe, joinVoiceChannel} = require(
+  '@discordjs/voice');
 const {CATEGORIES, TYPES} = require('../db/repositories/audit');
 const {TYPES: SONG_TYPES, addAll, getAll, getCount, getDuration, getPage, hasLive, move, remove, removeAll, shuffle} = require('../db/repositories/queue');
 const {timeFormatMilliseconds, timeFormatSeconds} = require('../utils/dateTime');
 const {audit} = require('./auditor');
-const {getStream} = require('../api/external/youtube');
+const {getStream: getCommonStream} = require('../api/external/common');
+const {getStream: getYoutubeStream} = require('../api/external/youtube');
 const {stringify} = require('../utils/string');
 const {t} = require('i18next');
 const {throughPromise} = require('../utils/promises');
@@ -110,18 +112,24 @@ module.exports.playPlayer = async interaction => {
   this.createConnection(interaction);
 
   if (getJukebox(interaction.guildId).player.state.status !== AudioPlayerStatus.Idle) {
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.DEBUG,
+      category: CATEGORIES.PLAYER,
+      message: t('inner:audit.player.play.abort', {status: getJukebox(interaction.guildId).player.state.status}),
+    });
     return;
   }
 
   const target = await this.remove(interaction.guildId, 0);
 
   this.getNowPlaying(interaction.guildId).song = target;
-  this.play(interaction.guildId);
+  await this.play(interaction.guildId);
   await audit({
     guildId: interaction.guildId,
     type: TYPES.INFO,
     category: CATEGORIES.PLAYER,
-    message: t('inner:audit.player.play', {song: target.title}),
+    message: t('inner:audit.player.play.init', {song: target.title}),
   });
 };
 
@@ -179,15 +187,18 @@ const getPlayer = guildId => {
 const getAudioStream = song => {
   switch (song.type) {
     case SONG_TYPES.YOUTUBE:
-      return getStream(song.url);
+      return getYoutubeStream(song.url);
     case SONG_TYPES.RADIO:
     case SONG_TYPES.FILE:
-      return song.url;
+      return getCommonStream(song.url);
   }
 };
 
-const play = guildId => {
-  this.getNowPlaying(guildId).resource = createAudioResource(getAudioStream(this.getNowPlaying(guildId).song));
+const play = async guildId => {
+  const {stream, type} = await getAudioStream(this.getNowPlaying(guildId).song)
+    .then(stream => demuxProbe(stream));
+
+  this.getNowPlaying(guildId).resource = createAudioResource(stream, {inputType: type});
   getJukebox(guildId).player.play(this.getNowPlaying(guildId).resource);
 };
 
@@ -201,12 +212,12 @@ const onPlayerError = (guildId, restarts) => async error => {
 
   if (error.resource.playbackDuration === 0 && restarts < 10) {
     setTimeout(async () => {
-      this.play(guildId);
+      await this.play(guildId);
       await audit({
         guildId,
         type: TYPES.WARNING,
         category: CATEGORIES.PLAYER,
-        message: t('inner:audit.player.play', {song: this.getNowPlaying(guildId).song.title}),
+        message: t('inner:audit.player.play.init', {song: this.getNowPlaying(guildId).song.title}),
       });
     }, 250);
     restarts++;
@@ -232,7 +243,7 @@ const onPlayerIdle = guildId => async oldState => {
   });
 
   if (nowPlaying.isLoop) {
-    this.play(guildId);
+    await this.play(guildId);
     return;
   }
 
@@ -250,7 +261,7 @@ const onPlayerIdle = guildId => async oldState => {
   const target = await this.remove(guildId, 0);
 
   nowPlaying.song = target;
-  this.play(guildId);
+  await this.play(guildId);
   await audit({
     guildId,
     type: TYPES.INFO,
