@@ -70,6 +70,9 @@
           "creating": {
             "noRandom": "[shikimori]: Лимит на количество запросов random.org исчерпан",
             "success": "[shikimori]: Профиль найден, аниме выбраны и начато формирование плейлиста"
+          },
+          "searching": {
+            "error": "[shikimori]: Не выходит найти \"{{audio}}\", потому что: {{error}}"
           }
         },
         "remove": {

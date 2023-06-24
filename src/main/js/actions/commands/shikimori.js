@@ -14,7 +14,6 @@ const {getAddedDescription} = require('../../utils/player');
 const {getSearch} = require('../../api/external/youtube');
 const progressBar = require('string-progressbar');
 const {t} = require('i18next');
-const {throughPromise} = require('../../utils/promises');
 
 const MAX_COUNT = 100;
 
@@ -282,9 +281,15 @@ const search = async (interaction, audios, login, isExecute) => {
   }
 
   const added = await Promise.all(audios.map(audio => getSearch(interaction, audio)
-    .then(search => throughPromise(search, () => counter++)),
-  )).then(searches => searches.reduce((accPromise, search) => accPromise
-    .then(acc => reduceInfo(acc, search.info)), initialInfo(interaction.user.id, searches)));
+    .catch(e => !audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.shikimori.play.searching.error', {audio, error: stringify(e)}),
+    })).finally(() => counter++),
+  )).then(searches => searches.filter(search => search))
+    .then(searches => searches.reduce((accPromise, search) => accPromise
+      .then(acc => reduceInfo(acc, search.info)), initialInfo(interaction.user.id, searches)));
 
   const description = await getAddedDescription(interaction.guildId, added.info);
   clearInterval(intervalId);
