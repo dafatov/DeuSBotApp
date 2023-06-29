@@ -123,4 +123,42 @@ describe('execute', () => {
       expect(variablesDbMocked.clearCache).not.toHaveBeenCalled();
     });
   });
+
+  describe('GET /repository/audit', () => {
+    test('found', async () => {
+      securityMocked.authCheckForbidden.mockResolvedValueOnce();
+      auditDbMocked.getAll.mockResolvedValueOnce([{id: '100'}, {id: '23'}]);
+
+      const result = await request(app).get('/repository/audit?id=23');
+
+      expect(result.res.text).toEqual('{"id":"23"}');
+      expect(result.status).toEqual(200);
+    });
+
+    test('not found', async () => {
+      securityMocked.authCheckForbidden.mockResolvedValueOnce();
+      auditDbMocked.getAll.mockResolvedValueOnce([{id: '100'}]);
+
+      const result = await request(app).get('/repository/audit?id=23');
+
+      expect(result.res.text).toEqual('{}');
+      expect(result.status).toEqual(200);
+    });
+
+    test('failure', async () => {
+      const result = await request(app).get('/repository/audit?id=23');
+
+      expect(result.res.text).toBeTruthy();
+      expect(result.status).toEqual(500);
+    });
+
+    test('forbidden', async () => {
+      securityMocked.authCheckForbidden.mockRejectedValueOnce();
+
+      const result = await request(app).get('/repository/audit?id=23');
+
+      expect(result.res.text).toEqual('');
+      expect(result.status).toEqual(403);
+    });
+  });
 });
