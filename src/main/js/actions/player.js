@@ -133,10 +133,8 @@ module.exports.playPlayer = async interaction => {
   });
 };
 
-module.exports.destroyConnection = async guildId => {
+module.exports.destroyConnection = guildId => {
   getJukebox(guildId).connection.destroy();
-  clearNowPlaying(guildId);
-  await this.clearQueue(guildId);
   clearConnection(guildId);
 };
 
@@ -241,6 +239,18 @@ const onPlayerIdle = guildId => async oldState => {
       },
     ),
   });
+
+  if (!this.isConnected(guildId)) {
+    clearNowPlaying(guildId);
+    await this.clearQueue(guildId);
+    await audit({
+      guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.PLAYER,
+      message: t('inner:audit.player.idle.noConnection'),
+    });
+    return;
+  }
 
   if (nowPlaying.isLoop) {
     await this.play(guildId);
