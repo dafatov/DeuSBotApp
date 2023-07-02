@@ -363,17 +363,14 @@ describe('playPlayer', () => {
 
 describe('destroyConnection', () => {
   test('success', async () => {
-    jest.spyOn(player, 'clearQueue').mockResolvedValueOnce();
     const destroy = player.getJukebox('301783183828189184').connection.destroy;
 
     await player.destroyConnection('301783183828189184');
 
     expect(destroy).toHaveBeenCalledWith();
-    expect(player.clearQueue).toHaveBeenCalledWith('301783183828189184');
     expect(player.getJukebox('301783183828189184')).toEqual({
       ...jukebox,
       connection: null,
-      nowPlaying: {},
     });
   });
 });
@@ -524,6 +521,21 @@ describe('onPlayerIdle', () => {
   });
 
   describe('on', () => {
+    test('is not connected', async () => {
+      jest.spyOn(player, 'isConnected').mockReturnValueOnce(false);
+      jest.spyOn(player, 'clearQueue').mockResolvedValueOnce();
+
+      await player.onPlayerIdle('301783183828189184')({playbackDuration: 3000});
+
+      expect(player.isConnected).toHaveBeenCalledWith('301783183828189184');
+      expect(player.clearQueue).toHaveBeenCalledWith('301783183828189184');
+      expect(player.getJukebox('301783183828189184')).toEqual({
+        ...jukebox,
+        nowPlaying: {},
+      });
+      expect(auditorMocked.audit).toHaveBeenCalled();
+    });
+
     test('isLoop', async () => {
       jest.replaceProperty(player.getJukebox('301783183828189184').nowPlaying, 'isLoop', true);
       jest.spyOn(player, 'isLessQueue');
