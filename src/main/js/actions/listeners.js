@@ -11,7 +11,7 @@ module.exports = {
   ),
   onModal: interaction => onListener(
     interaction,
-    interaction?.customId,
+    interaction?.customId?.split(' ')?.[0],
     command => command.onModal(interaction),
   ),
   onSelect: interaction => onListener(

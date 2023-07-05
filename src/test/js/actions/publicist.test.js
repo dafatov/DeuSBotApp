@@ -1,9 +1,9 @@
 const {DISCORD_EMBEDS_MAX} = require('../../../main/js/utils/constants');
-const birthdayContent = require('../../resources/actions/publications/birthdays/expectedContent');
-const changelogContent = require('../../resources/actions/publications/changelog/expectedContent');
+const birthdayContent = require('../../resources/actions/publicist/birthdaysContent');
+const changelogContent = require('../../resources/actions/publicist/changelogContent');
 const client = require('../../resources/mocks/client');
-const freebieContent = require('../../resources/actions/publications/freebie/expectedContent');
-const githubContent = require('../../resources/actions/publications/github/expectedContent');
+const freebieContent = require('../../resources/actions/publicist/freebieContent');
+const githubContent = require('../../resources/actions/publicist/githubContent');
 const guild = require('../../resources/mocks/guild');
 const locale = require('../configs/locale');
 
@@ -92,8 +92,8 @@ describe('init', () => {
     await init(client);
 
     expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 62987);
-    expect(auditorMocked.audit).toHaveBeenCalledTimes(8);
     expect(publicistDbMocked.getAll).toHaveBeenCalledTimes(4);
+    expect(auditorMocked.audit).toHaveBeenCalledTimes(8);
     expect(guild.send).toHaveBeenNthCalledWith(1, birthdayContent['301783183828189184']);
     expect(guild.send).toHaveBeenNthCalledWith(2, changelogContent.default);
     expect(guild.send).toHaveBeenNthCalledWith(3, freebieContent.default);

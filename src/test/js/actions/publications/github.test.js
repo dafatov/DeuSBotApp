@@ -4,8 +4,9 @@ const expected = require('../../../resources/actions/publications/github/expecte
 const locale = require('../../configs/locale');
 
 const variablesModuleName = '../../../../main/js/db/repositories/variables';
+const githubModuleName = '../../../../main/js/api/external/github';
 const variablesMocked = jest.mock(variablesModuleName).requireMock(variablesModuleName);
-const octokitMocked = jest.mock('@octokit/core').requireMock('@octokit/core');
+const githubApiMocked = jest.mock(githubModuleName).requireMock(githubModuleName);
 
 // eslint-disable-next-line sort-imports-requires/sort-requires
 const {condition, content, onPublished} = require('../../../../main/js/actions/publications/github');
@@ -14,29 +15,25 @@ beforeAll(() => locale.init());
 
 describe('content', () => {
   test('success', async () => {
-    variablesMocked.getAll.mockImplementationOnce(() =>
-      Promise.resolve({lastIssueEvent: new Date('1970-01-01T00:00:00.000Z')}));
-    octokitMocked.Octokit.mockImplementationOnce(() => ({
-      request: jest.fn(() => Promise.resolve({data: []}))
-        .mockImplementationOnce(() => Promise.resolve({data: events})),
-    }));
+    variablesMocked.getAll.mockResolvedValueOnce({lastIssueEvent: new Date('1970-01-01T00:00:00.000Z')});
+    githubApiMocked.getEvents.mockResolvedValueOnce(events);
 
     const result = await content(client);
 
     expect(result).toEqual(expected);
+    expect(variablesMocked.getAll).toHaveBeenCalledWith();
+    expect(githubApiMocked.getEvents).toHaveBeenCalledWith(new Date('1970-01-01T00:00:00.000Z'));
   });
 
   test('empty', async () => {
-    variablesMocked.getAll.mockImplementationOnce(() =>
-      Promise.resolve({lastIssueEvent: new Date('2023-03-31T21:00:00.000Z')}));
-    octokitMocked.Octokit.mockImplementationOnce(() => ({
-      request: jest.fn(() => Promise.resolve({data: []}))
-        .mockImplementationOnce(() => Promise.resolve({data: events})),
-    }));
+    variablesMocked.getAll.mockResolvedValueOnce({lastIssueEvent: new Date('2023-03-31T21:00:00.000Z')});
+    githubApiMocked.getEvents.mockResolvedValueOnce([]);
 
     const result = await content(client);
 
     expect(result).toBeUndefined();
+    expect(variablesMocked.getAll).toHaveBeenCalledWith();
+    expect(githubApiMocked.getEvents).toHaveBeenCalledWith(new Date('2023-03-31T21:00:00.000Z'));
   });
 });
 

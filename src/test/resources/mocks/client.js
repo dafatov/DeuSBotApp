@@ -40,6 +40,7 @@ module.exports = {
   },
   user: {
     id: '909473788779958363',
+    toString: () => '@<909473788779958363>'
   },
   users: {
     fetch: jest.fn(userId => Promise.resolve(new Collection([
