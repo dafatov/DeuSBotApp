@@ -151,28 +151,16 @@ module.exports = [
             value: 'bug',
           },
           {
-            name: 'Улучшение',
-            value: 'enhancement',
-          },
-          {
             name: 'Документация',
             value: 'documentation',
+          },
+          {
+            name: 'Улучшение',
+            value: 'enhancement',
           },
         ],
         description: 'Тип предложения',
         name: 'type',
-        required: true,
-        type: 3,
-      },
-      {
-        description: 'Заголовок предложения',
-        name: 'title',
-        required: true,
-        type: 3,
-      },
-      {
-        description: 'Подробное описание предложения. Для ошибок в формате: как вышло, что ожидалось, что вышло',
-        name: 'details',
         required: true,
         type: 3,
       },

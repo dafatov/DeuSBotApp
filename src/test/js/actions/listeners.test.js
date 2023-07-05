@@ -25,6 +25,7 @@ describe('onButton', () => {
 
     expect(onButtonMocked).toHaveBeenCalledWith(interaction);
     expect(auditorMocked.audit).not.toHaveBeenCalled();
+    expect(interaction.client.commands.get).toHaveBeenCalledWith('shikimori');
   });
 });
 
@@ -37,13 +38,14 @@ describe('onModal', () => {
 
   test('success', async () => {
     const onModalMocked = jest.fn();
-    jest.replaceProperty(interaction, 'customId', 'play');
+    jest.replaceProperty(interaction, 'customId', 'issue bug');
     jest.spyOn(interaction.client.commands, 'get').mockReturnValueOnce({onModal: onModalMocked});
 
     await onModal(interaction);
 
     expect(onModalMocked).toHaveBeenCalledWith(interaction);
     expect(auditorMocked.audit).not.toHaveBeenCalled();
+    expect(interaction.client.commands.get).toHaveBeenCalledWith('issue');
   });
 });
 
@@ -63,5 +65,6 @@ describe('onSelect', () => {
 
     expect(onSelectMocked).toHaveBeenCalledWith(interaction);
     expect(auditorMocked.audit).not.toHaveBeenCalled();
+    expect(interaction.client.commands.get).toHaveBeenCalledWith('shikimori');
   });
 });
