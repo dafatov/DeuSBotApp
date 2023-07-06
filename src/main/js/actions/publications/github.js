@@ -5,6 +5,7 @@ const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const {getEvents} = require('../../api/external/github');
 const {ifPromise} = require('../../utils/promises');
+const last = require('lodash/last');
 const {stringify} = require('../../utils/string');
 const {t} = require('i18next');
 
@@ -18,28 +19,26 @@ module.exports = {
           .then(users => data
             .filter(getFilterByUsers(users))
             .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()))
-          .then(events => ifPromise(events.length > 0,
-            accPromise.then(acc => ({
-              ...acc,
-              [guild.id]: {
-                content: getNotifyingUsers(events),
-                embeds: events.map(event =>
-                  new EmbedBuilder()
-                    .setColor(config.colors.info)
-                    .setTitle(t('discord:embed.publicist.github.title', {state: getStateLocale(event)}))
-                    .setDescription(t('discord:embed.publicist.github.description', {
-                      issue: event.issue,
-                      author: event.issue.labels
-                        .find(label => label.name.startsWith('<@')).name,
-                    }))
-                    .setTimestamp(new Date(event.created_at)),
-                ),
-              },
-              variables: {
-                lastIssueEvent: events[events.length - 1]?.created_at,
-              },
-            })), Promise.resolve(),
-          ))), Promise.resolve({}))))
+          .then(events => ifPromise(events.length > 0, () => accPromise.then(acc => ({
+            ...acc,
+            [guild.id]: {
+              content: getNotifyingUsers(events),
+              embeds: events.map(event =>
+                new EmbedBuilder()
+                  .setColor(config.colors.info)
+                  .setTitle(t('discord:embed.publicist.github.title', {state: getStateLocale(event)}))
+                  .setDescription(t('discord:embed.publicist.github.description', {
+                    issue: event.issue,
+                    author: event.issue.labels
+                      .find(label => label.name.startsWith('<@')).name,
+                  }))
+                  .setTimestamp(new Date(event.created_at)),
+              ),
+            },
+            variables: {
+              lastIssueEvent: last(events)?.created_at,
+            },
+          }))))), Promise.resolve({}))))
     .catch(error => audit({
       guildId: null,
       type: TYPES.ERROR,
