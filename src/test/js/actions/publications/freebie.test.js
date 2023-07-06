@@ -85,6 +85,6 @@ describe('onPublication', () => {
     await onPublished(messages, variables);
 
     expect(variablesMocked.set).not.toHaveBeenCalled();
-    expect(auditorMocked.audit).toHaveBeenCalled();
+    expect(auditorMocked.audit).not.toHaveBeenCalled();
   });
 });
