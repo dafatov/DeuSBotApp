@@ -1,7 +1,6 @@
 const changelogConfig = require('../../../main/js/configs/changelog');
 const locale = require('../configs/locale');
 const message = require('../../resources/actions/changelog/message');
-const {version} = require('../../../../package.json');
 
 const auditorModuleName = '../../../main/js/actions/auditor';
 const changelogDbModuleName = '../../../main/js/db/repositories/changelog';
@@ -15,13 +14,14 @@ beforeAll(() => locale.init());
 
 describe('init', () => {
   test('success', async () => {
-    jest.replaceProperty(changelogConfig, 'isPublic', true);
-    jest.replaceProperty(changelogConfig, 'message', message);
+    process.env.npm_package_config_isPublic = true;
+    process.env.npm_package_version = '1.1.1';
+    Object.keys(changelogConfig).forEach(key => jest.replaceProperty(changelogConfig, key, message[key]));
     jest.spyOn(changelog, 'publish').mockResolvedValueOnce();
 
     await changelog.init();
 
-    expect(changelog.publish).toHaveBeenCalledWith(version, 'deus_bot', true,
+    expect(changelog.publish).toHaveBeenCalledWith('1.1.1', 'deus_bot', true,
       {'ad': '', 'announce': '', 'bugfixes': [], 'features': [], 'footer': null},
     );
   });
