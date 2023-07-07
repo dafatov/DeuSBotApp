@@ -32,6 +32,7 @@ describe('execute', () => {
   ])('success: $option', async ({option, expected}) => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
     interaction.options.getString.mockReturnValueOnce(option);
+    process.env.npm_package_version = '1.1.1';
     process.env.DEUS_BOT_WEB_URL = 'https://discord-bot-deus-web.onrender.com/';
 
     await execute(interaction);

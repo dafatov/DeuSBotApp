@@ -7,7 +7,6 @@ const config = require('../../configs/config');
 const {getCommandName} = require('../../utils/string');
 const helps = require('../../configs/help');
 const {t} = require('i18next');
-const {version} = require('../../../../../package.json');
 
 module.exports = {
   data: () => new SlashCommandBuilder()
@@ -34,7 +33,7 @@ const help = async interaction => {
     .setTitle(t('discord:command.help.completed.title', {source: command ?? 'боту Deus'}))
     .setDescription(helps.get(command)
       ?? t('discord:command.help.completed.description', {
-        version,
+        version: process.env.npm_package_version,
         url: process.env.DEUS_BOT_WEB_URL,
       }))
     .setFooter({

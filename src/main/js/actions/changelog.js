@@ -5,10 +5,9 @@ const changelog = require('../configs/changelog');
 const isEqual = require('lodash/isEqual');
 const {isVersionUpdated} = require('../utils/string');
 const {t} = require('i18next');
-const {version} = require('../../../../package.json');
 
 module.exports.init = async () => {
-  await this.publish(version, APPLICATIONS.DEUS_BOT, changelog.isPublic, changelog.message);
+  await this.publish(process.env.npm_package_version, APPLICATIONS.DEUS_BOT, process.env.npm_package_config_isPublic === 'true', changelog);
 };
 
 module.exports.publish = async (version, application, isPublic, message) => {

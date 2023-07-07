@@ -3,7 +3,6 @@ const {Client, Events, GatewayIntentBits} = require('discord.js');
 const {audit} = require('./actions/auditor');
 const locale = require('./configs/locale');
 const {t} = require('i18next');
-const {version} = require('../../../package.json');
 
 const client = new Client({
   intents: [
@@ -16,7 +15,7 @@ const client = new Client({
 });
 
 client.once(Events.ClientReady, async () => {
-  client.user.setPresence({activities: [{name: t('discord:presence', {version})}], status: 'online'});
+  client.user.setPresence({activities: [{name: t('discord:presence', {version: process.env.npm_package_version})}], status: 'online'});
 
   await require('./actions/db').init();
   await require('./actions/auditor').init();
