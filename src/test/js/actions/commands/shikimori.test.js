@@ -140,7 +140,9 @@ describe('execute', () => {
       interaction.options.getString.mockReturnValueOnce('login');
       axiosMocked.get.mockResolvedValue({data: animesJson});
       playerMocked.getNowPlaying.mockReturnValue({});
-      playerMocked.getSize.mockReturnValueOnce(0);
+      playerMocked.getSize.mockResolvedValueOnce(0);
+      playerMocked.getDuration.mockResolvedValueOnce(0);
+      playerMocked.hasLive.mockResolvedValueOnce(false);
       playerMocked.isConnected.mockReturnValueOnce(false);
       playerMocked.isSameChannel.mockReturnValueOnce(true);
       randomOrgMocked.mockImplementationOnce(() => ({
@@ -296,7 +298,9 @@ describe('play', () => {
     interaction.options.getInteger.mockReturnValueOnce(2);
     interaction.options.getString.mockReturnValueOnce('login');
     axiosMocked.get.mockResolvedValue({data: animesJson});
-    playerMocked.getSize.mockReturnValue(0);
+    playerMocked.getSize.mockResolvedValueOnce(0);
+    playerMocked.getDuration.mockResolvedValueOnce(0);
+    playerMocked.hasLive.mockResolvedValueOnce(false);
     randomOrgMocked.mockImplementationOnce(() => ({
       generateIntegers: jest.fn().mockResolvedValue({requestsLeft: 3, random: {data: [1, 4]}}),
     }));

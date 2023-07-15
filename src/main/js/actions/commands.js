@@ -10,13 +10,9 @@ const {t} = require('i18next');
 module.exports.init = async client => {
   client.commands = new Collection();
   fs.readdirSync('./src/main/js/actions/commands')
-    .filter(f => !f.startsWith('_'))
-    .filter(f => f.endsWith('.js'))
-    .forEach(f => {
-      const command = require(`./commands/${f}`);
-
-      client.commands.set(getCommandName(f), command);
-    });
+    .filter(fileName => !fileName.startsWith('_'))
+    .filter(fileName => fileName.endsWith('.js'))
+    .forEach(fileName => client.commands.set(getCommandName(fileName), require(`./commands/${fileName}`)));
 
   if (client.commands.size <= 0) {
     return;
@@ -183,10 +179,11 @@ module.exports.notifyIsLive = async (commandName, interaction, isExecute) => {
 
 module.exports.notifyUnbound = async (commandName, interaction, isExecute) => {
   if (isExecute) {
+    const length = await getSize(interaction.guildId);
     const embed = new EmbedBuilder()
       .setColor(config.colors.warning)
       .setTitle(t('discord:embed.unbound.title'))
-      .setDescription(t('discord:embed.unbound.description', {length: await getSize(interaction.guildId)}))
+      .setDescription(t('discord:embed.unbound.description', {length}))
       .setTimestamp();
     await this.notify(interaction, {embeds: [embed]});
   }

@@ -1,5 +1,5 @@
+const {compareVersions} = require('../../utils/string');
 const {db} = require('../../actions/db');
-const {isVersionUpdated} = require('../../utils/string');
 
 module.exports.APPLICATIONS = Object.freeze({
   DEUS_BOT: 'deus_bot',
@@ -45,27 +45,19 @@ module.exports.clearCache = () => {
   return true;
 };
 
-const isValidAdd = async (version, application) => {
-  const lastVersion = await getLastVersion(application);
-  return isVersionUpdated(lastVersion ?? '0.0.0', version);
-};
+const isValidAdd = (version, application) => getLastVersion(application)
+  .then(lastVersion => compareVersions(lastVersion ?? '0.0.0', version) < 0);
 
-const isValidShown = async (version, application) => {
-  const firstUnshownVersion = await this.getAll()
-    .then(all => all.filter(item => !item.shown))
-    .then(all => all.filter(item => item.application === application))
-    .then(all => all.map(item => item.version))
-    .then(all => all.sort((a, b) => isVersionUpdated(a, b)
-      ? -1
-      : 1))
-    .then(versions => versions[0]);
-  return firstUnshownVersion === version;
-};
+const isValidShown = (version, application) => this.getAll()
+  .then(all => all.filter(item => !item.shown))
+  .then(all => all.filter(item => item.application === application))
+  .then(all => all.map(item => item.version))
+  .then(all => all.sort((a, b) => compareVersions(a, b)))
+  .then(versions => versions[0])
+  .then(versionLocal => versionLocal === version);
 
 const getLastVersion = application => this.getAll()
   .then(all => all.filter(item => item.application === application))
   .then(all => all.map(item => item.version))
-  .then(all => all.sort((a, b) => isVersionUpdated(a, b)
-    ? 1
-    : -1))
+  .then(all => all.sort((a, b) => -compareVersions(a, b)))
   .then(versions => versions[0]);

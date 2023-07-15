@@ -45,12 +45,8 @@ module.exports = {
       category: CATEGORIES.PUBLICIST,
       message: stringify(error),
     })),
-  condition: now => now.getMinutes() % 5 === 0,
-  onPublished: async (_messages, variables) => {
-    if (variables?.lastIssueEvent) {
-      await set('lastIssueEvent', variables.lastIssueEvent);
-    }
-  },
+  condition: now => Promise.resolve(now.getMinutes() % 5 === 0),
+  onPublished: (_messages, variables) => ifPromise(variables?.lastIssueEvent, () => set('lastIssueEvent', variables.lastIssueEvent)),
 };
 
 const getFilterByUsers = users => event => users

@@ -77,19 +77,21 @@ describe('execute', () => {
   });
 
   test('success', async () => {
-    interaction.options.getString.mockReturnValue('stationKey');
+    interaction.options.getString.mockReturnValueOnce('stationKey');
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
-    playerMocked.getNowPlaying.mockReturnValue({});
-    playerMocked.getSize.mockReturnValue(0);
+    playerMocked.getNowPlaying.mockReturnValueOnce({});
+    playerMocked.getDuration.mockResolvedValueOnce(0);
+    playerMocked.getSize.mockResolvedValueOnce(0);
+    playerMocked.hasLive.mockResolvedValueOnce(false);
     playerMocked.isConnected.mockReturnValueOnce(false);
     playerMocked.isSameChannel.mockReturnValueOnce(true);
-    radiosMocked.getRadios.mockReturnValue({
-      get: jest.fn().mockReturnValue({
+    radiosMocked.getRadios.mockResolvedValueOnce({
+      stationKey: {
         channel: {
           url: 'https://youtube.com',
           preview: 'https://youtube.com/preview',
         },
-      }),
+      },
     });
 
     const result = await execute(interaction);

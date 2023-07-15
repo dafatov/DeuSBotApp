@@ -1,21 +1,15 @@
 const {APPLICATIONS, getUnshown, shown} = require('../../db/repositories/changelog');
-const {escaping, isVersionUpdated} = require('../../utils/string');
+const {compareVersions, escaping} = require('../../utils/string');
 const {EmbedBuilder} = require('discord.js');
 const config = require('../../configs/config');
+const {ifPromise} = require('../../utils/promises');
 const {t} = require('i18next');
 
 module.exports = {
-  content: async () => {
-    const changelogs = (await getUnshown())
-      .sort((a, b) => isVersionUpdated(a.version, b.version)
-        ? -1
-        : 1);
-
-    if (changelogs.length <= 0) {
-      return;
-    }
-
-    return {
+  content: () => getUnshown()
+    .then(changelogs => changelogs
+      .sort((a, b) => compareVersions(a.version, b.version)))
+    .then(changelogs => ifPromise(changelogs.length > 0, () => ({
       default: {
         embeds: changelogs.map(changelog =>
           new EmbedBuilder()
@@ -25,7 +19,7 @@ module.exports = {
             .setDescription(createDescription(changelog.message))
             .setTimestamp()
             .setFooter({
-              text: `Copyright (c) 2021-${new Date().getFullYear()} dafatov`,
+              text: t('discord:embed.publicist.changelog.footer', {year: new Date().getFullYear()}),
               iconURL: 'https://e7.pngegg.com/pngimages/330/725/png-clipart-computer-icons-public-key-certificate-organization-test-certificate-miscellaneous-company.png',
             }),
         ),
@@ -33,20 +27,13 @@ module.exports = {
       variables: {
         shownChangelogs: changelogs,
       },
-    };
-  },
+    }))),
   condition: () => getUnshown().then(unshowns => unshowns.length > 0),
-  onPublished: async (messages, variables) => {
-    if (!messages || !variables?.shownChangelogs) {
-      return;
-    }
-
-    await Promise.all(messages?.map(m =>
-      m.react('👍').then(() => m.react('👎')),
-    ));
-    await Promise.all(variables?.shownChangelogs?.map(changelog =>
-      shown(changelog.version, changelog.application)));
-  },
+  onPublished: (messages, variables) => ifPromise(messages && variables?.shownChangelogs, () => Promise.all(messages
+    .map(message => message.react('👍')
+      .then(() => message.react('👎')))
+    .concat(variables.shownChangelogs
+      .map(({version, application}) => shown(version, application))))),
 };
 
 const createDescription = message => {

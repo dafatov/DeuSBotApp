@@ -1,33 +1,17 @@
 const {CATEGORIES, TYPES, add, getAll, removeBeforeWithOffset} = require('../db/repositories/audit');
 const {getFixedT, t} = require('i18next');
-const {getStackTrace, padEnum, spell} = require('../utils/string');
+const {getStackTrace, padEnum, spell, stringify} = require('../utils/string');
 const {bigIntReplacer} = require('../utils/mapping');
+const {ifPromise} = require('../utils/promises');
 const {isExactlyTime} = require('../utils/dateTime');
 
-module.exports.init = async () => {
-  await (async function loop() {
-    if (isExactlyTime(new Date(), 0, 0)) {
-      const interval = {value: '1M', description: spell(1, Object.values(getFixedT(null, null, 'common:time')('months', {returnObjects: true}).name))};
-
-      await removeBeforeWithOffset(interval.value).then(response => {
-        if (response?.rowCount > 0) {
-          module.exports.audit({
-            guildId: null,
-            type: TYPES.INFO,
-            category: CATEGORIES.AUDITOR,
-            message: t('inner:audit.auditor.removed', {rowCount: response?.rowCount, interval: interval.description}),
-          });
-        }
-      });
-    }
-    setTimeout(loop, 90000 - (new Date() % 60000));
-  }()).then(() => module.exports.audit({
+module.exports.init = () => loop()
+  .then(() => module.exports.audit({
     guildId: null,
     type: TYPES.INFO,
     category: CATEGORIES.INIT,
     message: t('inner:audit.init.auditor'),
   }));
-};
 
 module.exports.audit = async ({guildId, type, category, message}) => {
   if (!Object.values(TYPES).includes(type)) {
@@ -72,3 +56,21 @@ module.exports.getGuilds = client =>
       .then(guilds => guilds.filter(guild => guildIds.includes(guild.id))))
     .then(guilds => guilds.map(guild => ({id: guild.id, name: guild.name})))
     .then(guilds => JSON.stringify(guilds, bigIntReplacer));
+
+const loop = () => Promise.resolve(setTimeout(loop, 90000 - (new Date() % 60000)))
+  .then(() => ifPromise(isExactlyTime(new Date(), 0, 0), () => removeBeforeWithOffset('1M')
+    .then(({rowCount}) => ifPromise(rowCount > 0, () => module.exports.audit({
+      guildId: null,
+      type: TYPES.INFO,
+      category: CATEGORIES.AUDITOR,
+      message: t('inner:audit.auditor.removed', {
+        rowCount,
+        interval: spell(1, Object.values(getFixedT(null, null, 'common:time')('months', {returnObjects: true}).name)),
+      }),
+    })))))
+  .catch(error => module.exports.audit({
+    guildId: null,
+    type: TYPES.ERROR,
+    category: CATEGORIES.PUBLICIST,
+    message: stringify(error),
+  }));

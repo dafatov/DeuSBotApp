@@ -12,5 +12,3 @@ module.exports.arrayMove = (array, fromIndex, toIndex) => {
     array.splice(endIndex, 0, item);
   }
 };
-
-module.exports.mapToArray = map => JSON.parse(JSON.stringify(Array.from(map)));

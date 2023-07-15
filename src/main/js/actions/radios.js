@@ -2,34 +2,41 @@ const {CATEGORIES, TYPES} = require('../db/repositories/audit');
 const {audit} = require('./auditor');
 const fs = require('fs');
 const {stringify} = require('../utils/string');
-const {t} = require('i18next');
 
-const radios = new Map();
+let radios;
 
-module.exports.init = async () => {
-  await Promise.all(fs.readdirSync('./src/main/js/actions/radios')
-    .filter(f => f.endsWith('.js'))
-    .map(f => {
-      const radio = require(`./radios/${f}`);
+module.exports.getRadios = async () => {
+  if (!radios) {
+    radios = await init();
+  }
 
-      return radio.getChannels()
-        .then(channels => channels.forEach(channel =>
-          radios.set(channel.title, {
-            channel,
-            getInfo: () => radio.getInfo(channel.id),
-          })));
-    }),
-  ).then(() => audit({
-    guildId: null,
-    type: TYPES.INFO,
-    category: CATEGORIES.INIT,
-    message: t('inner:audit.init.radios'),
-  })).catch(error => audit({
-    guildId: null,
-    type: TYPES.ERROR,
-    category: CATEGORIES.RADIO,
-    message: stringify(error),
-  }));
+  return radios;
 };
 
-module.exports.getRadios = () => radios;
+module.exports.clearCache = () => {
+  radios = null;
+  return true;
+};
+
+const init = () =>
+  fs.readdirSync('./src/main/js/actions/radios')
+    .filter(fileName => fileName.endsWith('.js'))
+    .reduce((accPromise, fileName) => Promise.resolve(require(`./radios/${fileName}`))
+      .then(radio => radio.getChannels()
+        .then(channels => accPromise
+          .then(acc => ({
+            ...acc,
+            ...channels.reduce((acc, channel) => ({
+              ...acc,
+              [channel.title]: {
+                channel,
+                getInfo: () => radio.getInfo(channel.id),
+              },
+            }), Promise.resolve({})),
+          })))), Promise.resolve({}))
+    .catch(error => audit({
+      guildId: null,
+      type: TYPES.ERROR,
+      category: CATEGORIES.RADIO,
+      message: stringify(error),
+    }));
