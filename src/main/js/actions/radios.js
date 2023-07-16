@@ -7,7 +7,7 @@ let radios;
 
 module.exports.getRadios = async () => {
   if (!radios) {
-    radios = await init();
+    radios = await generateRadios();
   }
 
   return radios;
@@ -18,7 +18,7 @@ module.exports.clearCache = () => {
   return true;
 };
 
-const init = () =>
+const generateRadios = () =>
   fs.readdirSync('./src/main/js/actions/radios')
     .filter(fileName => fileName.endsWith('.js'))
     .reduce((accPromise, fileName) => Promise.resolve(require(`./radios/${fileName}`))

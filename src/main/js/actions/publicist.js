@@ -8,7 +8,7 @@ const {getAll} = require('../db/repositories/publicist');
 const {stringify} = require('../utils/string');
 const {t} = require('i18next');
 
-module.exports.init = client => loop(client)
+module.exports.init = client => publishAllPublications(client)
   .then(() => audit({
     guildId: null,
     type: TYPES.INFO,
@@ -16,7 +16,7 @@ module.exports.init = client => loop(client)
     message: t('inner:audit.init.publicist'),
   }));
 
-const loop = client => Promise.resolve(setTimeout(() => loop(client), 90000 - (new Date() % 60000)))
+const publishAllPublications = client => Promise.resolve(setTimeout(() => publishAllPublications(client), 90000 - (new Date() % 60000)))
   .then(() => Promise.all(fs.readdirSync('./src/main/js/actions/publications')
     .filter(fileName => !fileName.startsWith('_'))
     .filter(fileName => fileName.endsWith('js'))
@@ -25,7 +25,7 @@ const loop = client => Promise.resolve(setTimeout(() => loop(client), 90000 - (n
       .then(condition => ifPromise(condition, () => publication?.content(client)
         .then(content => publish(client, content)
           .then(messages => throughPromise(messages, () =>
-            content?.variables && publication.onPublished?.(messages, content.variables))))
+            ifPromise(content?.variables, () => publication.onPublished?.(messages, content.variables)))))
         .then(messages => ifPromise(messages.length > 0, () => Promise.all(messages
           .map(message => audit({
             guildId: message.guildId,

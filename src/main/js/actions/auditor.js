@@ -5,7 +5,7 @@ const {bigIntReplacer} = require('../utils/mapping');
 const {ifPromise} = require('../utils/promises');
 const {isExactlyTime} = require('../utils/dateTime');
 
-module.exports.init = () => loop()
+module.exports.init = () => removeAuditBeforeMonth()
   .then(() => module.exports.audit({
     guildId: null,
     type: TYPES.INFO,
@@ -57,7 +57,7 @@ module.exports.getGuilds = client =>
     .then(guilds => guilds.map(guild => ({id: guild.id, name: guild.name})))
     .then(guilds => JSON.stringify(guilds, bigIntReplacer));
 
-const loop = () => Promise.resolve(setTimeout(loop, 90000 - (new Date() % 60000)))
+const removeAuditBeforeMonth = () => Promise.resolve(setTimeout(removeAuditBeforeMonth, 90000 - (new Date() % 60000)))
   .then(() => ifPromise(isExactlyTime(new Date(), 0, 0), () => removeBeforeWithOffset('1M')
     .then(({rowCount}) => ifPromise(rowCount > 0, () => module.exports.audit({
       guildId: null,

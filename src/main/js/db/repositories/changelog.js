@@ -52,7 +52,7 @@ const isValidShown = (version, application) => this.getAll()
   .then(all => all.filter(item => !item.shown))
   .then(all => all.filter(item => item.application === application))
   .then(all => all.map(item => item.version))
-  .then(all => all.sort((a, b) => compareVersions(a, b)))
+  .then(all => all.sort(compareVersions))
   .then(versions => versions[0])
   .then(versionLocal => versionLocal === version);
 
