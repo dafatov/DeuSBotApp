@@ -19,7 +19,6 @@ client.once(Events.ClientReady, async () => {
 
   await require('./actions/db').init();
   await require('./actions/auditor').init();
-  await require('./actions/radios').init();
   await require('./actions/commands').init(client);
   await require('./actions/player').init(client);
   await require('./actions/changelog').init();

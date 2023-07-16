@@ -38,7 +38,7 @@ module.exports = {
       category: CATEGORIES.PUBLICIST,
       message: stringify(e),
     })),
-  condition: now => now.getMinutes() % 5 === 0,
+  condition: now => Promise.resolve(now.getMinutes() % 5 === 0),
   onPublished: (messages, variables) => ifPromise(variables?.lastFreebie, () => set('lastFreebie', variables.lastFreebie))
     .then(() => Promise.all(messages
       .filter(message => message.channel.type === ChannelType.GuildNews)

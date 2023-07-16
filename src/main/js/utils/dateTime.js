@@ -1,5 +1,6 @@
 const {getFixedT} = require('i18next');
 const {spell} = require('./string');
+const zip = require('lodash/zip');
 
 module.exports.timeFormatSeconds = s => {
   const time = new Date(0, 0, 0, 0, 0, s);
@@ -27,26 +28,21 @@ module.exports.localePostgresInterval = postgresInterval => {
     .join(' ');
 };
 
-module.exports.comparePostgresInterval = (a, b, isDescending = false) => {
+module.exports.comparePostgresIntervals = (a, b) => {
   const keys = ['years', 'months', 'days', 'hours', 'minutes', 'seconds', 'milliseconds'];
-  const mapPostgresInterval = interval => keys.reduce((acc, key) => ({
+  const mapPostgresInterval = interval => keys.reduce((acc, key) => ([
     ...acc,
-    [key]: interval[key] ?? 0,
-  }), {});
+    interval[key] ?? 0,
+  ]), []);
 
   a = mapPostgresInterval(a);
   b = mapPostgresInterval(b);
 
-  // eslint-disable-next-line no-loops/no-loops
-  for (const key of keys) {
-    if (a[key] !== b[key]) {
-      return (isDescending
-        ? -1
-        : 1) * (a[key] - b[key]);
-    }
-  }
-
-  return 0;
+  return zip(a, b)
+    .reduce((acc, [aPart, bPart]) =>
+      acc !== 0 || aPart === bPart
+        ? acc
+        : aPart - bPart, 0);
 };
 
 module.exports.isExactlyTime = (now, hours, minutes) => {

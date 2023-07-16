@@ -212,13 +212,13 @@ module.exports = [
         description: 'Url или наименование видео записи с youtube',
         name: 'string',
         required: false,
-        type: 3
+        type: 3,
       },
       {
         description: 'Файл с аудиозаписью',
         name: 'attachment',
         required: false,
-        type: 11
+        type: 11,
       },
     ],
   },
@@ -265,7 +265,50 @@ module.exports = [
       {
         description: 'Номер страницы',
         name: 'page',
-        options: [],
+        options: [
+          {
+            description: 'Страница D-R',
+            name: '1',
+            options: [
+              {
+                choices: [
+                  {
+                    name: 'David Guetta',
+                    value: 'David Guetta',
+                  },
+                  {
+                    name: 'Record',
+                    value: 'Record',
+                  },
+                ],
+                description: 'Радиостанция',
+                name: 'station',
+                required: true,
+                type: 3,
+              },
+            ],
+            type: 1,
+          },
+          {
+            description: 'Страница T-T',
+            name: '2',
+            options: [
+              {
+                choices: [
+                  {
+                    name: 'Tiesto',
+                    value: 'Tiesto',
+                  },
+                ],
+                description: 'Радиостанция',
+                name: 'station',
+                required: true,
+                type: 3,
+              },
+            ],
+            type: 1,
+          },
+        ],
         type: 2,
       },
     ],

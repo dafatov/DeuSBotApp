@@ -5,8 +5,8 @@ const {migrate} = require('postgres-migrations');
 const {stringify} = require('../utils/string');
 const {t} = require('i18next');
 
-const getNewClient = () => {
-  return new Client({
+const getNewClient = () =>
+  new Client({
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.PROFILE === 'DEV'
       ? false
@@ -14,7 +14,6 @@ const getNewClient = () => {
         rejectUnauthorized: false,
       },
   });
-};
 
 module.exports.db = getNewClient();
 

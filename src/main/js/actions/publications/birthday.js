@@ -1,18 +1,13 @@
 const {EmbedBuilder} = require('discord.js');
 const config = require('../../configs/config');
-const db = require('../../db/repositories/birthday');
+const {getTodayBirthdayUserIds} = require('../../db/repositories/birthday');
+const {ifPromise} = require('../../utils/promises');
 const {isExactlyTime} = require('../../utils/dateTime');
 const {t} = require('i18next');
 
 module.exports = {
-  content: async client => {
-    const todayBirthdayUserIds = await db.getTodayBirthdayUserIds();
-
-    if (todayBirthdayUserIds.length <= 0) {
-      return;
-    }
-
-    return client.guilds.fetch()
+  content: client => getTodayBirthdayUserIds()
+    .then(todayBirthdayUserIds => ifPromise(todayBirthdayUserIds.length > 0, () => client.guilds.fetch()
       .then(guilds => guilds.reduce((accPromise, guild) => guild.fetch()
         .then(guild => guild.members.fetch({user: todayBirthdayUserIds})
           .then(members => members.map(member => member.user))
@@ -36,7 +31,6 @@ module.exports = {
                     .setTimestamp(),
                 ],
               },
-            })))), Promise.resolve({})));
-  },
-  condition: now => isExactlyTime(now, 18, 0),
+            })))), Promise.resolve({}))))),
+  condition: now => Promise.resolve(isExactlyTime(now, 18, 0)),
 };

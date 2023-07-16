@@ -1,12 +1,11 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {EmbedBuilder, SlashCommandBuilder} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
+const {getFixedT, t} = require('i18next');
 const {notify, notifyForbidden} = require('../commands');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const {getCommandName} = require('../../utils/string');
-const helps = require('../../configs/help');
-const {t} = require('i18next');
 
 module.exports = {
   data: () => new SlashCommandBuilder()
@@ -16,7 +15,8 @@ module.exports = {
       .setName('command')
       .setDescription(t('discord:command.help.option.command.description'))
       .setRequired(false)
-      .addChoices(...Array.from(helps, ([key]) => ({name: key, value: key})))),
+      .addChoices(...Object.keys(getFixedT(null, null, 'discord:command.help.completed.description')('command', {returnObjects: true}))
+        .map(key => ({name: key, value: key})))),
   execute: interaction => help(interaction),
 };
 
@@ -31,8 +31,8 @@ const help = async interaction => {
   const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.help.completed.title', {source: command ?? 'боту Deus'}))
-    .setDescription(helps.get(command)
-      ?? t('discord:command.help.completed.description', {
+    .setDescription(getFixedT(null, null, 'discord:command.help.completed.description')('command', {returnObjects: true})[command]
+      ?? t('discord:command.help.completed.description.bot', {
         version: process.env.npm_package_version,
         url: process.env.DEUS_BOT_WEB_URL,
       }))

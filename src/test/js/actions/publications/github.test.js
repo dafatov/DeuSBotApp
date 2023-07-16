@@ -43,8 +43,8 @@ describe('condition', () => {
     {now: new Date('2023-02-13T02:39:00.000Z'), expected: false},
     {now: new Date('2023-02-13T12:40:00.000Z'), expected: true},
     {now: new Date('2023-02-13T07:00:00.000Z'), expected: true},
-  ])('$now', ({now, expected}) => {
-    const result = condition(now);
+  ])('$now', async ({now, expected}) => {
+    const result = await condition(now);
 
     expect(result).toBe(expected);
   });

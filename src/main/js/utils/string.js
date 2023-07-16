@@ -1,4 +1,5 @@
 const {t} = require('i18next');
+const zip = require('lodash/zip');
 
 module.exports.escaping = str => {
   const symbols = ['\\', '_', '*', '~', '>', '<', '|'];
@@ -10,23 +11,23 @@ module.exports.escaping = str => {
   return str;
 };
 
-module.exports.isVersionUpdated = (versionOld, versionNew) => {
-  versionOld = versionOld.split('.').map(v => parseInt(v));
-  versionNew = versionNew.split('.').map(v => parseInt(v));
+module.exports.compareVersions = (a, b) => {
+  const mapVersion = version => version
+    .split('.')
+    .map(versionPart => parseInt(versionPart));
 
-  if (versionOld.length !== versionNew.length) {
+  a = mapVersion(a);
+  b = mapVersion(b);
+
+  if (a.length !== b.length) {
     throw t('inner:error.version');
   }
 
-  if (versionOld[0] !== versionNew[0]) {
-    return versionOld[0] < versionNew[0];
-  }
-
-  if (versionOld[1] !== versionNew[1]) {
-    return versionOld[1] < versionNew[1];
-  }
-
-  return versionOld[2] < versionNew[2];
+  return zip(a, b)
+    .reduce((acc, [aPart, bPart]) =>
+      acc !== 0 || aPart === bPart
+        ? acc
+        : aPart - bPart, 0);
 };
 
 module.exports.stringify = object => {

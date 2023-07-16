@@ -1,7 +1,7 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {EmbedBuilder, SlashCommandBuilder} = require('discord.js');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
-const {comparePostgresInterval, localePostgresInterval} = require('../../utils/dateTime');
+const {comparePostgresIntervals, localePostgresInterval} = require('../../utils/dateTime');
 const {notify, notifyForbidden} = require('../commands');
 const {Pagination} = require('../../utils/components');
 const {audit} = require('../auditor');
@@ -221,7 +221,7 @@ const getVoices = guildId => getAllStatistics()
   .then(statistics => statistics
     .filter(statistic => statistic.guild_id === guildId)
     .map(statistic => ({userId: statistic.user_id, voiceDuration: statistic.voice_duration}))
-    .sort((a, b) => comparePostgresInterval(a.voiceDuration, b.voiceDuration, true)));
+    .sort((a, b) => -comparePostgresIntervals(a.voiceDuration, b.voiceDuration)));
 
 const getVoicesDescription = (voices, start, count) => voices
   .slice(start, start + count)

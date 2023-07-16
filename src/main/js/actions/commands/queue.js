@@ -126,14 +126,15 @@ const getDescription = async (interaction, start, count, songsCount, nowPlaying)
   const songs = await getPage(interaction.guildId, start, start + count)
     .then(songs => Promise.all(songs
       .sort((a, b) => a.index - b.index)
-      .map(async (song, index) => t('discord:command.queue.completed.song', {
-        counter: getCounter(index),
-        title: getTitle(song),
-        duration: getDuration(song),
-        author: await interaction.guild.fetch()
-          .then(guild => guild.members.fetch(song.userId))
-          .then(member => member.displayName),
-      }))));
+      .map((song, index) => interaction.guild.fetch()
+        .then(guild => guild.members.fetch(song.userId))
+        .then(member => member.displayName)
+        .then(author => t('discord:command.queue.completed.song', {
+          counter: getCounter(index),
+          title: getTitle(song),
+          duration: getDuration(song),
+          author,
+        })))));
 
   return [nowPlayingDescription, ...songs].join('\n\n');
 };

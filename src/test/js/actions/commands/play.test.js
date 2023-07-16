@@ -147,6 +147,7 @@ describe('execute', () => {
         playerMocked.getNowPlaying.mockResolvedValueOnce({});
         playerMocked.getSize.mockResolvedValueOnce(0);
         playerMocked.getDuration.mockResolvedValueOnce(0);
+        playerMocked.hasLive.mockResolvedValueOnce(false);
         playerMocked.isConnected.mockReturnValueOnce(false);
         playerMocked.isSameChannel.mockReturnValueOnce(true);
         youtubeMocked.getPlaylist.mockResolvedValueOnce(playlist);
@@ -171,6 +172,7 @@ describe('execute', () => {
         playerMocked.getNowPlaying.mockResolvedValueOnce({});
         playerMocked.getSize.mockResolvedValueOnce(0);
         playerMocked.getDuration.mockResolvedValueOnce(0);
+        playerMocked.hasLive.mockResolvedValueOnce(false);
         playerMocked.isConnected.mockReturnValueOnce(false);
         playerMocked.isSameChannel.mockReturnValueOnce(true);
         youtubeMocked.getPlaylist.mockRejectedValueOnce();
@@ -197,6 +199,7 @@ describe('execute', () => {
         playerMocked.getNowPlaying.mockResolvedValueOnce({});
         playerMocked.getSize.mockResolvedValueOnce(0);
         playerMocked.getDuration.mockResolvedValueOnce(0);
+        playerMocked.hasLive.mockResolvedValueOnce(false);
         playerMocked.isConnected.mockReturnValueOnce(false);
         playerMocked.isSameChannel.mockReturnValueOnce(true);
         youtubeMocked.getPlaylist.mockRejectedValueOnce();
@@ -226,6 +229,7 @@ describe('execute', () => {
       playerMocked.getNowPlaying.mockResolvedValueOnce({});
       playerMocked.getSize.mockResolvedValueOnce(0);
       playerMocked.getDuration.mockResolvedValueOnce(0);
+      playerMocked.hasLive.mockResolvedValueOnce(false);
       playerMocked.isConnected.mockReturnValueOnce(false);
       playerMocked.isSameChannel.mockReturnValueOnce(true);
       getAudioDurationMocked.getAudioDurationInSeconds.mockResolvedValueOnce(100);
@@ -250,6 +254,7 @@ describe('execute', () => {
       playerMocked.getNowPlaying.mockResolvedValueOnce({});
       playerMocked.getSize.mockResolvedValueOnce(0);
       playerMocked.getDuration.mockResolvedValueOnce(0);
+      playerMocked.hasLive.mockResolvedValueOnce(false);
       playerMocked.isConnected.mockReturnValueOnce(false);
       playerMocked.isSameChannel.mockReturnValueOnce(true);
       getAudioDurationMocked.getAudioDurationInSeconds.mockResolvedValueOnce(100);
@@ -295,6 +300,7 @@ describe('play', () => {
     playerMocked.getNowPlaying.mockResolvedValueOnce({});
     playerMocked.getSize.mockResolvedValueOnce(0);
     playerMocked.getDuration.mockResolvedValueOnce(0);
+    playerMocked.hasLive.mockResolvedValueOnce(false);
     playerMocked.isConnected.mockReturnValueOnce(false);
     playerMocked.isSameChannel.mockReturnValueOnce(true);
     youtubeMocked.getPlaylist.mockRejectedValueOnce();

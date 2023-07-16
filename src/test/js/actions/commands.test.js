@@ -10,14 +10,19 @@ const expectedParamsNotifyUnbound = require('../../resources/actions/commands/ex
 const expectedParamsNotifyUnequalChannels = require('../../resources/actions/commands/expectedParamsNotifyUnequalChannels');
 const interaction = require('../../resources/mocks/commandInteraction');
 const locale = require('../configs/locale');
+const radios = require('../../resources/actions/commands/radios');
 
 const auditorModuleName = '../../../main/js/actions/auditor';
 const playerModuleName = '../../../main/js/actions/player';
 const userDbModuleName = '../../../main/js/db/repositories/user';
+const radiosModuleName = '../../../main/js/actions/radios';
+const constantsModuleName = '../../../main/js/utils/constants';
 const fsMocked = jest.mock('fs').requireMock('fs');
 const auditorMocked = jest.mock(auditorModuleName).requireMock(auditorModuleName);
 const playerMocked = jest.mock(playerModuleName).requireMock(playerModuleName);
 const userDbMocked = jest.mock(userDbModuleName).requireMock(userDbModuleName);
+const radiosMocked = jest.mock(radiosModuleName).requireMock(radiosModuleName);
+const constantsMocked = jest.mock(constantsModuleName).requireMock(constantsModuleName);
 const discordMocked = jest.mock('discord.js', () => ({
   ...jest.requireActual('discord.js'),
   REST: jest.fn(),
@@ -42,6 +47,8 @@ describe('init', () => {
       {login: 'login1', nickname: 'nickname1'},
       {login: 'login2', nickname: 'nickname2'},
     ]);
+    radiosMocked.getRadios.mockResolvedValueOnce(radios);
+    jest.replaceProperty(constantsMocked, 'DISCORD_OPTIONS_MAX', 2);
 
     await commands.init(client);
 
