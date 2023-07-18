@@ -289,7 +289,7 @@ const search = async (interaction, audios, login, isExecute) => {
     })).finally(() => counter++),
   )).then(searches => searches.filter(search => search))
     .then(searches => searches.reduce((accPromise, search) => accPromise
-      .then(acc => reduceInfo(acc, search.info)), initialInfo(interaction.user.id, searches)));
+      .then(acc => reduceInfo(acc, search.info)), initialInfo(interaction.user.id, searches.length)));
 
   const description = await getAddedDescription(interaction.guildId, added.info);
   clearInterval(intervalId);
@@ -314,15 +314,16 @@ const reduceInfo = (acc, info) => ({
     duration: acc.info.duration + parseInt(info.duration),
   },
   songs: [
-    ...(acc.songs ?? []),
+    ...acc.songs,
     info,
   ],
 });
 
-const initialInfo = (userId, audios) => Promise.resolve({
+const initialInfo = (userId, length) => Promise.resolve({
   info: {
-    length: audios.length,
+    length,
     duration: 0,
     userId,
   },
+  songs: [],
 });

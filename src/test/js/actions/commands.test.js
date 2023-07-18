@@ -2,6 +2,7 @@ const {SlashCommandBuilder} = require('discord.js');
 const client = require('../../resources/mocks/client');
 const expectedCommands = require('../../resources/actions/commands/expectedCommands');
 const expectedCommandsData = require('../../resources/actions/commands/expectedCommandsData');
+const expectedParamsNotifyError = require('../../resources/actions/commands/expectedParamsNotifyError');
 const expectedParamsNotifyForbidden = require('../../resources/actions/commands/expectedParamsNotifyForbidden');
 const expectedParamsNotifyIsLive = require('../../resources/actions/commands/expectedParamsNotifyIsLive');
 const expectedParamsNotifyNoPlaying = require('../../resources/actions/commands/expectedParamsNotifyNoPlaying');
@@ -79,7 +80,9 @@ describe('updateCommands', () => {
         .setName('test')
         .setDescription('test description'),
     });
-    const putMocked = jest.fn();
+    const putMocked = jest.fn()
+      .mockResolvedValueOnce([{guild_id: '301783183828189184'}])
+      .mockResolvedValueOnce([{guild_id: '905052154027475004'}]);
     discordMocked.REST.mockImplementationOnce(() => ({
       put: putMocked,
       setToken: jest.fn().mockReturnThis(),
@@ -141,13 +144,28 @@ describe('execute', () => {
     {command: undefined},
     {command: {}},
     {command: {execute: {}}},
-  ])('failure: $command', async ({command}) => {
+  ])('no command: $command', async ({command}) => {
     jest.spyOn(interaction.client.commands, 'get').mockReturnValueOnce(command);
 
     await commands.execute(interaction);
 
     expect(interaction.deferReply).not.toHaveBeenCalled();
     expect(auditorMocked.audit).not.toHaveBeenCalled();
+  });
+
+  test('error', async () => {
+    const executeMocked = jest.fn().mockRejectedValueOnce();
+    jest.spyOn(interaction.client.commands, 'get').mockReturnValueOnce({execute: executeMocked});
+    jest.spyOn(commands, 'notify').mockReturnValueOnce();
+    auditorMocked.audit.mockResolvedValueOnce({id: '123'});
+    jest.replaceProperty(interaction, 'commandName', 'clear');
+
+    await commands.execute(interaction);
+
+    expect(interaction.deferReply).toHaveBeenCalled();
+    expect(executeMocked).toHaveBeenCalledWith(interaction);
+    expect(auditorMocked.audit).toHaveBeenCalled();
+    expect(commands.notify).toHaveBeenCalledWith(...expectedParamsNotifyError);
   });
 });
 

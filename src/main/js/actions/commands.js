@@ -3,6 +3,7 @@ const {Collection, EmbedBuilder, REST, Routes} = require('discord.js');
 const {getCommandName, stringify} = require('../utils/string');
 const {audit} = require('./auditor');
 const config = require('../configs/config');
+const first = require('lodash/first');
 const fs = require('fs');
 const {getSize} = require('./player');
 const {t} = require('i18next');
@@ -21,29 +22,30 @@ module.exports.init = async client => {
   await this.updateCommands(client);
 };
 
-module.exports.updateCommands = async client => {
-  const rest = new REST({version: '10'}).setToken(process.env.DISCORD_TOKEN);
-
-  await client.guilds.fetch()
-    .then(guilds => Promise.all(guilds.map(async guild => rest.put(
-      Routes.applicationGuildCommands(client.user.id, guild.id), {
-        body: await this.getCommandsData(client),
-      }))))
-    .then(guildsCommands => guildsCommands.map(guildCommands =>
-      `${client.guilds.resolve(guildCommands[0].guild_id).name}(${guildCommands.length})`))
-    .then(guilds => audit({
-      guildId: null,
-      type: TYPES.INFO,
-      category: CATEGORIES.INIT,
-      message: t('inner:audit.init.command', {guilds}),
-    }))
-    .catch(e => audit({
-      guildId: null,
-      type: TYPES.ERROR,
-      category: CATEGORIES.INIT,
-      message: stringify(e),
-    }));
-};
+module.exports.updateCommands = client => Promise.resolve(new REST({version: '10'}))
+  .then(rest => rest.setToken(process.env.DISCORD_TOKEN))
+  .then(rest => this.getCommandsData(client)
+    .then(commandsData => client.guilds.fetch()
+      .then(guilds => Promise.all(guilds.map(guild => rest.put(
+        Routes.applicationGuildCommands(client.user.id, guild.id), {
+          body: commandsData,
+        },
+      ))))))
+  .then(guildsCommands => Promise.all(guildsCommands
+    .map(guildCommands => client.guilds.fetch(first(guildCommands).guild_id)
+      .then(guild => `${guild.name}(${guildCommands.length})`))))
+  .then(guilds => audit({
+    guildId: null,
+    type: TYPES.INFO,
+    category: CATEGORIES.INIT,
+    message: t('inner:audit.init.command', {guilds}),
+  }))
+  .catch(e => audit({
+    guildId: null,
+    type: TYPES.ERROR,
+    category: CATEGORIES.INIT,
+    message: stringify(e),
+  }));
 
 module.exports.execute = async interaction => {
   const commandName = interaction.commandName;
@@ -71,7 +73,7 @@ module.exports.execute = async interaction => {
       message: t('inner:audit.command.executed', {name: commandName}),
     });
   } catch (e) {
-    await this.notifyError(commandName, interaction, e);
+    await notifyError(commandName, interaction, e);
   }
 };
 
@@ -195,7 +197,10 @@ module.exports.notifyUnbound = async (commandName, interaction, isExecute) => {
   });
 };
 
-module.exports.notifyError = async (commandName, interaction, e) => {
+module.exports.getCommandsData = client =>
+  Promise.all(client.commands.map(command => Promise.resolve(command.data()).then(commandData => commandData.toJSON())));
+
+const notifyError = async (commandName, interaction, e) => {
   const {id} = await audit({
     guildId: interaction.guildId,
     type: TYPES.ERROR,
@@ -209,6 +214,3 @@ module.exports.notifyError = async (commandName, interaction, e) => {
     .setTimestamp();
   await this.notify(interaction, {embeds: [embed]});
 };
-
-module.exports.getCommandsData = client =>
-  Promise.all(client.commands.map(command => Promise.resolve(command.data()).then(commandData => commandData.toJSON())));
