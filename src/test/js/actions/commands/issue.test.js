@@ -16,7 +16,7 @@ const auditorMocked = jest.mock(auditorModuleName).requireMock(auditorModuleName
 const githubApiMocked = jest.mock(githubModuleName).requireMock(githubModuleName);
 
 // eslint-disable-next-line sort-imports-requires/sort-requires
-const {execute, onModal} = require('../../../../main/js/actions/commands/issue');
+const {execute, isDeferReply, onModal} = require('../../../../main/js/actions/commands/issue');
 
 beforeAll(() => locale.init());
 
@@ -42,6 +42,14 @@ describe('execute', () => {
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
     expect(commandInteraction.showModal).toHaveBeenCalledWith(expectModal);
     expect(auditorMocked.audit).toHaveBeenCalled();
+  });
+});
+
+describe('isDeferReply', () => {
+  test('success', () => {
+    const result = isDeferReply();
+
+    expect(result).toBeFalsy();
   });
 });
 

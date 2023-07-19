@@ -1,4 +1,5 @@
 const {TYPES} = require('../../db/repositories/queue');
+const first = require('lodash/first');
 const ytdl = require('ytdl-core');
 const ytpl = require('ytpl');
 const ytsr = require('ytsr');
@@ -16,7 +17,7 @@ module.exports.getSearch = (interaction, audio) =>
   ytsr.getFilters(audio, options())
     .then(filters => filters.get('Type').get('Video').url)
     .then(url => ytsr(url, {gl: 'RU', hl: 'ru', limit: 1}, options()))
-    .then(videos => ytdl.getBasicInfo(videos.items[0].url, options()))
+    .then(videos => ytdl.getBasicInfo(first(videos.items).url, options()))
     .then(video => generateSongInfo(interaction.user.id, video));
 
 module.exports.getStream = url => Promise.resolve(ytdl(url, {
@@ -35,34 +36,36 @@ const options = () => ({
   },
 });
 
-const generatePlaylistInfo = (userId, playlist) => playlist.items.reduce((acc, video) => ({
-  info: {
-    ...acc.info,
-    duration: acc.info.duration + parseInt(video.durationSec),
-  },
-  songs: [
-    ...(acc.songs ?? []),
-    {
-      type: TYPES.YOUTUBE,
-      title: video.title,
-      duration: parseInt(video.durationSec),
-      url: video.shortUrl,
-      isLive: video.isLive,
-      preview: video.bestThumbnail.url,
+const generatePlaylistInfo = (userId, playlist) => playlist.items
+  .reduce((acc, video) => ({
+    info: {
+      ...acc.info,
+      duration: acc.info.duration + parseInt(video.durationSec),
+    },
+    songs: [
+      ...acc.songs,
+      {
+        type: TYPES.YOUTUBE,
+        title: video.title,
+        duration: parseInt(video.durationSec),
+        url: video.shortUrl,
+        isLive: video.isLive,
+        preview: video.bestThumbnail.url,
+        userId,
+      },
+    ],
+  }), {
+    info: {
+      title: playlist.title,
+      length: playlist.items.length,
+      duration: 0,
+      url: playlist.url,
+      isLive: playlist.items.some(video => video.isLive),
+      preview: playlist.bestThumbnail.url,
       userId,
     },
-  ],
-}), {
-  info: {
-    title: playlist.title,
-    length: playlist.items.length,
-    duration: 0,
-    url: playlist.url,
-    isLive: playlist.items.some(video => video.isLive),
-    preview: playlist.bestThumbnail.url,
-    userId,
-  },
-});
+    songs: [],
+  });
 
 const generateSongInfo = (userId, video) => ({
   info: {
@@ -71,7 +74,7 @@ const generateSongInfo = (userId, video) => ({
     duration: parseInt(video.videoDetails.lengthSeconds),
     url: video.videoDetails.video_url,
     isLive: video.videoDetails.isLiveContent,
-    preview: video.videoDetails.thumbnails[0].url,
+    preview: first(video.videoDetails.thumbnails).url,
     userId,
   },
   get songs() {

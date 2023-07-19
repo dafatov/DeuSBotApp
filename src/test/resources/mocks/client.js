@@ -4,8 +4,26 @@ const guild = require('./guild');
 module.exports = {
   commands: new Collection(),
   guilds: {
-    fetch: jest.fn(() => Promise.resolve(new Collection([
-      ['301783183828189184', guild], ['905052154027475004', {
+    fetch: jest.fn(guildResolvable => Promise.resolve(getGuilds(guildResolvable))),
+  },
+  user: {
+    id: '909473788779958363',
+    toString: () => '@<909473788779958363>'
+  },
+  users: {
+    fetch: jest.fn(userId => Promise.resolve(new Collection([
+      ['348774809003491329', {id: '348774809003491329'}]
+    ]).get(userId))),
+  },
+  ws: {
+    ping: 123.111,
+  },
+};
+
+const getGuilds = guildResolvable => {
+  const guilds = new Collection([
+    ['301783183828189184', guild], [
+      '905052154027475004', {
         fetch: jest.fn(() => Promise.resolve({
           id: '905052154027475004',
           members: {
@@ -35,19 +53,13 @@ module.exports = {
         })),
         id: '905052154027475004',
         name: 'Among Булок',
-      }],
-    ]))),
-  },
-  user: {
-    id: '909473788779958363',
-    toString: () => '@<909473788779958363>'
-  },
-  users: {
-    fetch: jest.fn(userId => Promise.resolve(new Collection([
-      ['348774809003491329', {id: '348774809003491329'}]
-    ]).get(userId))),
-  },
-  ws: {
-    ping: 123.111,
-  },
+      },
+    ],
+  ]);
+
+  if (guildResolvable) {
+    return guilds.find(guild => guildResolvable === guild.id);
+  } else {
+    return guilds;
+  }
 };
