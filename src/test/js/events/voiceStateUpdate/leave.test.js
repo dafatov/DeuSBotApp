@@ -56,7 +56,7 @@ describe('execute', () => {
       client,
       newState: {
         channelId: '-68558230535929877', guild: {id: '301783183828189184'},
-        member: {user: {id: '909473788779958363'}},
+        member: {user: {id: '348774809003491329'}},
       },
     });
 

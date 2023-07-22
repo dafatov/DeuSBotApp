@@ -1,5 +1,6 @@
 const {AudioPlayerStatus, VoiceConnectionStatus} = require('@discordjs/voice');
 const {TYPES} = require('../../../main/js/db/repositories/queue');
+const member = require('./member');
 
 module.exports = {
   connection: {
@@ -8,7 +9,7 @@ module.exports = {
     },
     destroy: jest.fn(),
     joinConfig: {
-      channelId: '343847059612237824',
+      channelId: member.voice.channelId,
     },
     subscribe: jest.fn(),
   },

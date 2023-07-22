@@ -11,17 +11,18 @@ module.exports = {
         ['922163692940951574', {send: module.exports.send}],
       ]))),
     },
-    id: '301783183828189184',
+    id: module.exports.id,
     members: {
       fetch: jest.fn(fetchMembersOptions => Promise.resolve(getMembers(fetchMembersOptions))),
     },
   }),
   id: '301783183828189184',
   name: 'CRINGE-A-LOT',
+  voiceAdapterCreator: {},
 };
 
 module.exports.send = jest.fn(args => ({
-  guildId: '301783183828189184',
+  guildId: module.exports.id,
   ...args,
 }));
 

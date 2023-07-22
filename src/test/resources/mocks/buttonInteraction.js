@@ -7,13 +7,13 @@ module.exports = {
   client,
   customId: null,
   guild,
-  guildId: '301783183828189184',
+  guildId: guild.id,
   member,
   message: {
     interaction: {
       commandName: null,
     },
-    removeAttachments: jest.fn().mockResolvedValue(),
+    removeAttachments: jest.fn(),
   },
   update: jest.fn(),
   user,

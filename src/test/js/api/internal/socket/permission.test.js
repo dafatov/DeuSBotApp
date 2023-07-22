@@ -8,6 +8,7 @@ const expectedPermissions = require('../../../../resources/api/internal/socket/p
 const express = require('express');
 const locale = require('../../../configs/locale');
 const permissions = require('../../../../resources/api/internal/socket/permission/permissions');
+const user = require('../../../../resources/mocks/user');
 
 const permissionDbModuleName = '../../../../../main/js/db/repositories/permission';
 const securityModuleName = '../../../../../main/js/api/internal/security';
@@ -124,7 +125,7 @@ describe('execute', () => {
   describe('permission:getUser', () => {
     test('success', () => new Promise(done => {
       connection.client.emit('permission:getUser', '348774809003491329', data => {
-        expect(data).toEqual({id: '348774809003491329'});
+        expect(data).toEqual(JSON.parse(JSON.stringify(user)));
 
         done();
       });
@@ -135,7 +136,7 @@ describe('execute', () => {
     test('success', () => new Promise(done => {
       connection.client.emit('permission:getUsers', data => {
         expect(data).toEqual([
-          {id: '348774809003491329', username: 'DemetriouS'},
+          {bot: false, id: '348774809003491329', username: 'DemetriouS'},
           {id: '233923369685352449'},
           {id: '381845173384249356'},
           {id: '268080849172430850'},

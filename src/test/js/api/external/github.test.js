@@ -26,7 +26,7 @@ describe('createIssue', () => {
 
     expect(result).toEqual(expectedIssue);
     expect(requestMocked).toHaveBeenCalledWith('POST /repos/{owner}/{repo}/issues', {
-      body: 'details', labels: ['@<909473788779958363>', 'bug', 'discord-auto'],
+      body: 'details', labels: ['@<348774809003491329>', 'bug', 'discord-auto'],
       owner: 'dafatov', repo: 'DeusBot', title: 'title',
     });
   });
@@ -41,7 +41,7 @@ describe('createIssue', () => {
 
     await expect(result()).rejects.toBeUndefined();
     expect(requestMocked).toHaveBeenCalledWith('POST /repos/{owner}/{repo}/issues', {
-      body: 'details', labels: ['@<909473788779958363>', 'bug', 'discord-auto'],
+      body: 'details', labels: ['@<348774809003491329>', 'bug', 'discord-auto'],
       owner: 'dafatov', repo: 'DeusBot', title: 'title',
     });
   });

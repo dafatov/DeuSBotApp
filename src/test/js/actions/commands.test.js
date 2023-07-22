@@ -91,10 +91,10 @@ describe('updateCommands', () => {
     await commands.updateCommands(client);
 
     expect(putMocked).toHaveBeenNthCalledWith(1,
-      '/applications/909473788779958363/guilds/301783183828189184/commands', expectedCommandsData,
+      '/applications/348774809003491329/guilds/301783183828189184/commands', expectedCommandsData,
     );
     expect(putMocked).toHaveBeenNthCalledWith(2,
-      '/applications/909473788779958363/guilds/905052154027475004/commands', expectedCommandsData,
+      '/applications/348774809003491329/guilds/905052154027475004/commands', expectedCommandsData,
     );
     expect(auditorMocked.audit).toHaveBeenCalled();
   });
