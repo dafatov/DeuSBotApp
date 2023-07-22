@@ -1,13 +1,11 @@
+const author = require('./user');
 const guild = require('./guild');
 
 module.exports = {
-  author: {
-    bot: null,
-    id: '348774809003491329',
-  },
+  author,
   content: null,
   guild,
-  guildId: '301783183828189184',
-  reply: jest.fn().mockResolvedValue(),
+  guildId: guild.id,
+  reply: jest.fn(),
   webhookId: null,
 };

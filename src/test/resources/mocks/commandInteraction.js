@@ -7,11 +7,11 @@ module.exports = {
   client,
   commandName: null,
   deferred: null,
-  deferReply: jest.fn().mockResolvedValue(),
+  deferReply: jest.fn(),
   editReply: jest.fn(),
   followUp: jest.fn(),
   guild,
-  guildId: '301783183828189184',
+  guildId: guild.id,
   isRepliable: jest.fn(),
   member,
   options: {
