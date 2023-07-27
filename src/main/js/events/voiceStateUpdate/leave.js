@@ -9,8 +9,7 @@ module.exports.execute = async ({client, newState}) => {
   }
 
   if ((isSameChannel(newState.guild.id, newState?.channelId) || newState.member.user.id !== client.user.id)
-    && await newState.guild.channels.fetch(getChannelId(newState.guild.id))
-      .then(channel => channel.members.filter(member => !member.user.bot).size >= 1)) {
+    && await hasUsersInVoice(newState)) {
     return;
   }
 
@@ -22,3 +21,8 @@ module.exports.execute = async ({client, newState}) => {
     message: t('inner:audit.voiceStateUpdate.botLeaved'),
   });
 };
+
+const hasUsersInVoice = newState =>
+  newState.guild.channels.fetch(getChannelId(newState.guild.id))
+    .then(channel => channel.members.filter(member => !member.user.bot).size)
+    .then(count => count > 0);
