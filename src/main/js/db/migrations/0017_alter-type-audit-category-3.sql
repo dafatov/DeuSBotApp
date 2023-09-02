@@ -1,6 +1,24 @@
-alter type audit_category add value 'state_update';
-alter type audit_category add value 'security';
-alter type audit_category add value 'response';
-alter type audit_category add value 'publicist';
-alter type audit_category add value 'listener';
-alter type audit_category add value 'locale';
+ALTER TABLE audit
+    ALTER COLUMN category TYPE varchar;
+
+DROP TYPE IF EXISTS audit_category;
+
+CREATE TYPE audit_category AS enum (
+    'player',
+    'uncategorized',
+    'init',
+    'auditor',
+    'database',
+    'api',
+    'permission',
+    'command',
+    'state_update',
+    'security',
+    'response',
+    'publicist',
+    'listener',
+    'locale'
+    );
+
+ALTER TABLE audit
+    ALTER COLUMN category TYPE audit_category USING (category::audit_category)
