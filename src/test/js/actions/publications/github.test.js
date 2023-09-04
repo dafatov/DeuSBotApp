@@ -1,6 +1,8 @@
 const client = require('../../../resources/mocks/client');
 const events = require('../../../resources/actions/publications/github/events');
+const eventsForOneGuild = require('../../../resources/actions/publications/github/eventsForOneGuild');
 const expected = require('../../../resources/actions/publications/github/expectedContent');
+const expectedForOneGuild = require('../../../resources/actions/publications/github/expectedForOneGuildContent');
 const locale = require('../../configs/locale');
 
 const variablesModuleName = '../../../../main/js/db/repositories/variables';
@@ -25,13 +27,24 @@ describe('content', () => {
     expect(githubApiMocked.getEvents).toHaveBeenCalledWith(new Date('1970-01-01T00:00:00.000Z'));
   });
 
+  test('semi-empty', async () => {
+    variablesMocked.getAll.mockResolvedValueOnce({lastIssueEvent: new Date('1970-01-01T00:00:00.000Z')});
+    githubApiMocked.getEvents.mockResolvedValueOnce(eventsForOneGuild);
+
+    const result = await content(client);
+
+    expect(result).toEqual(expectedForOneGuild);
+    expect(variablesMocked.getAll).toHaveBeenCalledWith();
+    expect(githubApiMocked.getEvents).toHaveBeenCalledWith(new Date('1970-01-01T00:00:00.000Z'));
+  });
+
   test('empty', async () => {
     variablesMocked.getAll.mockResolvedValueOnce({lastIssueEvent: new Date('2023-03-31T21:00:00.000Z')});
     githubApiMocked.getEvents.mockResolvedValueOnce([]);
 
     const result = await content(client);
 
-    expect(result).toBeUndefined();
+    expect(result).toEqual({});
     expect(variablesMocked.getAll).toHaveBeenCalledWith();
     expect(githubApiMocked.getEvents).toHaveBeenCalledWith(new Date('2023-03-31T21:00:00.000Z'));
   });

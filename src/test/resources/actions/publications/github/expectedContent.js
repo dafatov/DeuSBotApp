@@ -84,6 +84,6 @@ module.exports = {
     ],
   },
   variables: {
-    lastIssueEvent: '2023-07-02T21:58:34Z',
+    lastIssueEvent: '2023-07-02T21:58:34.000Z',
   },
 };

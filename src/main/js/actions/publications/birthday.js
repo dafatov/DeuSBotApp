@@ -31,6 +31,6 @@ module.exports = {
                     .setTimestamp(),
                 ],
               },
-            })))), Promise.resolve({}))))),
+            })))), Promise.resolve({}))), () => Promise.resolve({}))),
   condition: now => Promise.resolve(isExactlyTime(now, 18, 0)),
 };
