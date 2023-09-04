@@ -1,27 +1,34 @@
 const {CATEGORIES, TYPES} = require('../db/repositories/audit');
-const {Client} = require('pg');
+const {Pool} = require('pg');
 const {audit} = require('./auditor');
 const {migrate} = require('postgres-migrations');
 const {stringify} = require('../utils/string');
 const {t} = require('i18next');
 
-const getNewClient = () =>
-  new Client({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.PROFILE === 'DEV'
-      ? false
-      : {
-        rejectUnauthorized: false,
-      },
-  });
+const getNewPool = () => new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: parseInt(process.env.DATABASE_MAX_CONNECTIONS ?? 1),
+  idleTimeoutMillis: 10000,
+});
 
-module.exports.db = getNewClient();
+const getMigrateParams = () => {
+  const config = {};
+
+  if (process.env.LOGGING === 'DEBUG') {
+    // eslint-disable-next-line no-console
+    config.logger = console.log;
+  }
+
+  return [
+    'src/main/js/db/migrations',
+    config,
+  ];
+};
+
+module.exports.db = getNewPool();
 
 module.exports.init = () => this.db.connect()
-  .then(() => migrate({client: this.db}, 'src/main/js/db/migrations', process.env.LOGGING === 'DEBUG'
-    // eslint-disable-next-line no-console
-    ? {logger: console.log}
-    : {}))
+  .then(client => migrate({client}, ...getMigrateParams()))
   .then(() => audit({
     guildId: null,
     type: TYPES.INFO,
@@ -35,10 +42,10 @@ module.exports.init = () => this.db.connect()
   }));
 
 module.exports.db.on('error', async e => {
-  module.exports.db = getNewClient();
+  module.exports.db = getNewPool();
   await module.exports.init().then(() => audit({
     guildId: null,
-    type: TYPES.ERROR,
+    type: TYPES.WARNING,
     category: CATEGORIES.DATABASE,
     message: stringify(e),
   }));

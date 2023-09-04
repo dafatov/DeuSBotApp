@@ -11,14 +11,15 @@ beforeAll(() => locale.init());
 
 describe('init', () => {
   test('success', async () => {
-    const connectMocked = jest.fn().mockResolvedValueOnce();
-    const dbReplaced = {connect: connectMocked};
-    jest.replaceProperty(db, 'db', dbReplaced);
+    const clientMocked = {t: 't'};
+    const connectMocked = jest.fn().mockResolvedValueOnce(clientMocked);
+    const poolMocked = {connect: connectMocked};
+    jest.replaceProperty(db, 'db', poolMocked);
 
     await db.init();
 
     expect(connectMocked).toHaveBeenCalledWith();
-    expect(migrationMocked.migrate).toHaveBeenCalledWith({client: dbReplaced}, 'src/main/js/db/migrations', {});
+    expect(migrationMocked.migrate).toHaveBeenCalledWith({client: clientMocked}, 'src/main/js/db/migrations', {});
     expect(auditorMocked.audit).toHaveBeenCalled();
   });
 });
