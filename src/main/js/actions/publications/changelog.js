@@ -27,7 +27,7 @@ module.exports = {
       variables: {
         shownChangelogs: changelogs,
       },
-    }))),
+    }), () => Promise.resolve({}))),
   condition: () => getUnshown().then(unshowns => unshowns.length > 0),
   onPublished: (messages, variables) => ifPromise(messages && variables?.shownChangelogs, () => Promise.all(messages
     .map(message => message.react('👍')

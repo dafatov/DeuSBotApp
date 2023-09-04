@@ -27,7 +27,7 @@ describe('content', () => {
 
     const result = await content(client);
 
-    expect(result).toBeUndefined();
+    expect(result).toEqual({});
   });
 });
 

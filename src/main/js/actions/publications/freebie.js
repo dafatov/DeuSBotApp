@@ -32,7 +32,8 @@ module.exports = {
       variables: {
         lastFreebie: last(freebies)?.isoDate,
       },
-    }))).catch(e => audit({
+    }), () => Promise.resolve({})))
+    .catch(e => audit({
       guildId: null,
       type: TYPES.ERROR,
       category: CATEGORIES.PUBLICIST,

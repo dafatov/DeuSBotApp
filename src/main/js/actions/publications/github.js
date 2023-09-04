@@ -36,9 +36,10 @@ module.exports = {
               ),
             },
             variables: {
-              lastIssueEvent: last(events)?.created_at,
+              lastIssueEvent: new Date(Math.max(new Date(last(events)?.created_at).getTime(), new Date(acc?.variables?.lastIssueEvent ?? 0).getTime()))
+                .toISOString(),
             },
-          }))))), Promise.resolve({}))))
+          })), () => accPromise))), Promise.resolve({}))))
     .catch(error => audit({
       guildId: null,
       type: TYPES.ERROR,
