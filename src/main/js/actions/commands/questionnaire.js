@@ -107,30 +107,39 @@ const onModal = async interaction => {
   const interactionResponsesByUser = {};
 
   collector.on('collect', onCollectorCollect(options, interactionResponsesByUser));
-  collector.once('end', onCollectorEnd(interactionResponsesByUser, options, {message, collector}, interaction.guildId, title));
+  collector.once('end', onCollectorEnd(interactionResponsesByUser, options, title, async (content, reason) => {
+    message.edit(content);
+    Object.values(interactionResponsesByUser).forEach(interactionResponse => interactionResponse.delete());
+    collector.removeAllListeners('collect');
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.INFO,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.questionnaire.completed', {reason}),
+    });
+  }));
 };
 
 const onCollectorCollect = (options, interactionResponsesByUser) => async collectedInteraction => {
   const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.questionnaire.chosen.title'))
-    .setDescription(options[parseInt(collectedInteraction.customId.split('_')[1])])
+    .setDescription(options[getOptionIndex(collectedInteraction)])
     .setTimestamp();
 
   interactionResponsesByUser[collectedInteraction.user.id]?.delete();
   interactionResponsesByUser[collectedInteraction.user.id] = await collectedInteraction.reply({embeds: [embed], ephemeral: true});
 };
 
-const onCollectorEnd = (interactionResponsesByUser, options, {message, collector}, guildId, title) => async (_, reason) => {
-  const interactionResponses = Object.values(interactionResponsesByUser);
-  const interactionResponsesByOption = groupBy(interactionResponses, t => parseInt(t.interaction.customId.split('_')[1]));
+const onCollectorEnd = (interactionResponsesByUser, options, title, onAfterCollectorEnd) => async (_, reason) => {
+  const interactionResponsesByOption = groupBy(Object.values(interactionResponsesByUser), getOptionIndex);
   const allCount = Object.values(interactionResponsesByOption).reduce((acc, interactionResponses) => acc + interactionResponses.length, 0);
 
   const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.questionnaire.completed.title', {
       title,
-      count: spell(allCount, Object.values(getFixedT(null, null, 'common:things')('votes', {returnObjects: true}).name))
+      count: spell(allCount, Object.values(getFixedT(null, null, 'common:things')('votes', {returnObjects: true}).name)),
     }))
     .setDescription(t('discord:command.questionnaire.completed.description'))
     .setFields(options.map((option, index) => {
@@ -140,26 +149,18 @@ const onCollectorEnd = (interactionResponsesByUser, options, {message, collector
         return {name: option, value: t('discord:command.questionnaire.completed.field.result', {count: 0, percent: 0, users: ''})};
       }
 
-      const users = interactionResponses.map(interactionResponse => interactionResponse.interaction.user.toString()).join(', ');
-
       return {
         name: option,
         value: t('discord:command.questionnaire.completed.field.result', {
           count: interactionResponses.length,
           percent: Math.floor(100 * interactionResponses.length / allCount),
-          users,
+          users: interactionResponses.map(interactionResponse => interactionResponse.interaction.user.toString()).join(', '),
         }),
       };
     }))
     .setTimestamp();
 
-  message.edit({embeds: [embed], components: []});
-  interactionResponses.forEach(interactionResponse => interactionResponse.delete());
-  collector.removeAllListeners('collect');
-  await audit({
-    guildId,
-    type: TYPES.INFO,
-    category: CATEGORIES.COMMAND,
-    message: t('inner:audit.command.questionnaire.completed', {reason}),
-  });
+  await onAfterCollectorEnd({embeds: [embed], components: []}, reason);
 };
+
+const getOptionIndex = collectedInteraction => parseInt(collectedInteraction.customId.split('_')[1]);
