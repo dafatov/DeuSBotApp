@@ -254,6 +254,26 @@ module.exports = [
     ],
   },
   {
+    description: 'Создание опроса',
+    name: 'questionnaire',
+    options: [
+      {
+        description: 'Заголовок опроса',
+        name: 'title',
+        required: true,
+        type: 3
+      },
+      {
+        description: 'Длительность опроса в минутах',
+        max_value: 60,
+        min_value: 1,
+        name: 'duration',
+        required: true,
+        type: 4
+      }
+    ]
+  },
+  {
     description: 'Отображение очереди композиций на воспроизведение',
     name: 'queue',
     options: [],
