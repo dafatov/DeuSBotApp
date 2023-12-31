@@ -103,36 +103,27 @@ const onModal = async interaction => {
     message: t('inner:audit.command.questionnaire.started'),
   });
 
-  const collector = message.createMessageComponentCollector({componentType: ComponentType.Button, time: 1000 * 60 * duration});
   const interactionResponsesByUser = {};
+  const collector = message.createMessageComponentCollector({componentType: ComponentType.Button, time: 1000 * 60 * duration});
+  const onAfterCollectorEndFunction = onAfterCollectorEnd(message, interactionResponsesByUser, collector, interaction.guildId);
 
   collector.on('collect', onCollectorCollect(options, interactionResponsesByUser));
-  collector.once('end', onCollectorEnd(interactionResponsesByUser, options, title, async (content, reason) => {
-    message.edit(content);
-    Object.values(interactionResponsesByUser).forEach(interactionResponse => interactionResponse.delete());
-    collector.removeAllListeners('collect');
-    await audit({
-      guildId: interaction.guildId,
-      type: TYPES.INFO,
-      category: CATEGORIES.COMMAND,
-      message: t('inner:audit.command.questionnaire.completed', {reason}),
-    });
-  }));
+  collector.once('end', onCollectorEnd(interactionResponsesByUser, options, title, onAfterCollectorEndFunction));
 };
 
-const onCollectorCollect = (options, interactionResponsesByUser) => async collectedInteraction => {
+const onCollectorCollect = (options, interactionResponsesByUser) => async interaction => {
   const embed = new EmbedBuilder()
     .setColor(config.colors.info)
     .setTitle(t('discord:command.questionnaire.chosen.title'))
-    .setDescription(options[getOptionIndex(collectedInteraction)])
+    .setDescription(options[getOptionIndex(interaction)])
     .setTimestamp();
 
-  interactionResponsesByUser[collectedInteraction.user.id]?.delete();
-  interactionResponsesByUser[collectedInteraction.user.id] = await collectedInteraction.reply({embeds: [embed], ephemeral: true});
+  interactionResponsesByUser[interaction.user.id]?.delete();
+  interactionResponsesByUser[interaction.user.id] = await interaction.reply({embeds: [embed], ephemeral: true});
 };
 
 const onCollectorEnd = (interactionResponsesByUser, options, title, onAfterCollectorEnd) => async (_, reason) => {
-  const interactionResponsesByOption = groupBy(Object.values(interactionResponsesByUser), getOptionIndex);
+  const interactionResponsesByOption = groupBy(Object.values(interactionResponsesByUser), interactionResponse => getOptionIndex(interactionResponse.interaction));
   const allCount = Object.values(interactionResponsesByOption).reduce((acc, interactionResponses) => acc + interactionResponses.length, 0);
 
   const embed = new EmbedBuilder()
@@ -154,7 +145,7 @@ const onCollectorEnd = (interactionResponsesByUser, options, title, onAfterColle
         value: t('discord:command.questionnaire.completed.field.result', {
           count: interactionResponses.length,
           percent: Math.floor(100 * interactionResponses.length / allCount),
-          users: interactionResponses.map(interactionResponse => interactionResponse.interaction.user.toString()).join(', '),
+          users: interactionResponses.map(interactionResponse => interactionResponse.interaction.user.toString()).join(''),
         }),
       };
     }))
@@ -163,4 +154,20 @@ const onCollectorEnd = (interactionResponsesByUser, options, title, onAfterColle
   await onAfterCollectorEnd({embeds: [embed], components: []}, reason);
 };
 
-const getOptionIndex = collectedInteraction => parseInt(collectedInteraction.customId.split('_')[1]);
+const onAfterCollectorEnd = (message, interactionResponsesByUser, collector, guildId) => async (content, reason) => {
+  message.edit(content);
+  Object.values(interactionResponsesByUser).forEach(interactionResponse => interactionResponse.delete());
+  collector.removeAllListeners('collect');
+  await audit({
+    guildId,
+    type: TYPES.INFO,
+    category: CATEGORIES.COMMAND,
+    message: t('inner:audit.command.questionnaire.completed', {reason}),
+  });
+};
+
+const getOptionIndex = interaction => parseInt(interaction.customId.split('_')[1]);
+
+module.exports.onCollectorCollect = onCollectorCollect;
+module.exports.onCollectorEnd = onCollectorEnd;
+module.exports.onAfterCollectorEnd = onAfterCollectorEnd;

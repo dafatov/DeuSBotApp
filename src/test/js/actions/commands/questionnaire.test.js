@@ -1,40 +1,156 @@
+const buttonInteraction = require('../../../resources/mocks/buttonInteraction');
+const commandInteraction = require('../../../resources/mocks/commandInteraction');
+const expectModal = require('../../../resources/actions/commands/questionnaire/expectModal');
+const expectParamsChosen = require('../../../resources/actions/commands/questionnaire/expectParamsChosen');
+const expectParamsCompleted = require('../../../resources/actions/commands/questionnaire/expectParamsCompleted');
+const expectParamsStarted = require('../../../resources/actions/commands/questionnaire/expectParamsStarted');
+const interactionCollector = require('../../../resources/mocks/interactionCollector');
+const interactionResponsesByUser = require('../../../resources/actions/commands/questionnaire/interactionResponsesByUser');
 const locale = require('../../configs/locale');
+const message = require('../../../resources/mocks/message');
+const modalSubmitInteraction = require('../../../resources/mocks/modalSubmitInteraction');
 
-// const permissionModuleName = '../../../../main/js/db/repositories/permission';
-// const commandsModuleName = '../../../../main/js/actions/commands';
-// const auditorModuleName = '../../../../main/js/actions/auditor';
-// const permissionMocked = jest.mock(permissionModuleName).requireMock(permissionModuleName);
-// const commandsMocked = jest.mock(commandsModuleName).requireMock(commandsModuleName);
-// const auditorMocked = jest.mock(auditorModuleName).requireMock(auditorModuleName);
+const permissionModuleName = '../../../../main/js/db/repositories/permission';
+const commandsModuleName = '../../../../main/js/actions/commands';
+const auditorModuleName = '../../../../main/js/actions/auditor';
+const permissionMocked = jest.mock(permissionModuleName).requireMock(permissionModuleName);
+const commandsMocked = jest.mock(commandsModuleName).requireMock(commandsModuleName);
+const auditorMocked = jest.mock(auditorModuleName).requireMock(auditorModuleName);
+
+// eslint-disable-next-line sort-imports-requires/sort-requires
+const {
+  execute,
+  isDeferReply,
+  onAfterCollectorEnd,
+  onButton,
+  onCollectorCollect,
+  onCollectorEnd,
+  onModal,
+} = require('../../../../main/js/actions/commands/questionnaire');
 
 beforeAll(() => locale.init());
 
 describe('isDeferReply', () => {
-  test.todo('success');
+  test('success', () => {
+    const result = isDeferReply();
+
+    expect(result).toBeFalsy();
+  });
 });
 
 describe('execute', () => {
-  test.todo('forbidden');
+  test('forbidden', async () => {
+    permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(true));
 
-  test.todo('success');
+    await execute(commandInteraction);
+
+    expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.questionnaire');
+    expect(commandsMocked.notifyForbidden).toHaveBeenCalledWith('questionnaire', commandInteraction);
+    expect(commandInteraction.showModal).not.toHaveBeenCalled();
+    expect(auditorMocked.audit).not.toHaveBeenCalled();
+  });
+
+  test('success', async () => {
+    permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
+    commandInteraction.options.getString.mockReturnValueOnce('title title title');
+    commandInteraction.options.getInteger.mockReturnValueOnce(2);
+
+    await execute(commandInteraction);
+
+    expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.questionnaire');
+    expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
+    expect(commandInteraction.showModal).toHaveBeenCalledWith(expectModal);
+    expect(auditorMocked.audit).toHaveBeenCalled();
+  });
 });
 
 describe('onModal', () => {
-  test.todo('success');
+  test('success', async () => {
+    jest.replaceProperty(modalSubmitInteraction.fields, 'fields', [
+      {value: 'value_1'}, {value: 'value_2 '}, {value: ''}, {value: ' '}, {value: 'value_3'},
+    ]);
+    jest.replaceProperty(modalSubmitInteraction, 'customId', 'questionnaire 2\ntitle_title_title');
+    commandsMocked.notify.mockResolvedValueOnce(message);
+
+    await onModal(modalSubmitInteraction);
+
+    expect(modalSubmitInteraction.deferReply).toHaveBeenCalled();
+    expect(commandsMocked.notify).toHaveBeenCalledWith(...expectParamsStarted);
+    expect(auditorMocked.audit).toHaveBeenCalled();
+    expect(message.createMessageComponentCollector).toHaveBeenCalledWith({componentType: 2, time: 120000});
+    expect(interactionCollector.on).toHaveBeenCalledWith('collect', expect.any(Function));
+    expect(interactionCollector.once).toHaveBeenCalledWith('end', expect.any(Function));
+  });
 });
 
 describe('onCollectorCollect', () => {
-  test.todo('success');
+  test('success', () => {
+    const result = onCollectorCollect([], {});
+
+    expect(result).toEqual(expect.any(Function));
+  });
 
   describe('on', () => {
-    test.todo('success');
+    test('success', async () => {
+      const deleteFunction = jest.fn();
+      const interactionResponsesByUser = {[buttonInteraction.user.id]: {delete: deleteFunction}};
+      jest.replaceProperty(buttonInteraction, 'customId', 'optionButton_1');
+      buttonInteraction.reply.mockResolvedValueOnce({});
+
+      await onCollectorCollect(['option0', 'option1', 'option2'], interactionResponsesByUser)(buttonInteraction);
+
+      expect(interactionResponsesByUser).toEqual({'348774809003491329': {}});
+      expect(deleteFunction).toHaveBeenCalled();
+      expect(buttonInteraction.reply).toHaveBeenCalledWith(...expectParamsChosen);
+    });
   });
 });
 
 describe('onCollectorEnd', () => {
-  test.todo('success');
+  test('success', () => {
+    const result = onCollectorEnd({}, [], '', () => {});
+
+    expect(result).toEqual(expect.any(Function));
+  });
 
   describe('once', () => {
-    test.todo('success');
+    test('success', async () => {
+      const onAfterCollectorEnd = jest.fn();
+      const options = ['optionButton_0', 'optionButton_1', 'optionButton_2'];
+
+      await onCollectorEnd(interactionResponsesByUser, options, 'title', onAfterCollectorEnd)({}, 'time');
+
+      expect(onAfterCollectorEnd).toHaveBeenCalledWith(...expectParamsCompleted);
+    });
+  });
+});
+
+describe('onAfterCollectorEnd', () => {
+  test('success', () => {
+    const result = onAfterCollectorEnd({}, {}, {}, '');
+
+    expect(result).toEqual(expect.any(Function));
+  });
+
+  describe('on', () => {
+    test('success', async () => {
+      const deleteFunction = jest.fn();
+      const interactionResponsesByUser = {'0': {delete: deleteFunction}, '1': {delete: deleteFunction}};
+
+      await onAfterCollectorEnd(message, interactionResponsesByUser, interactionCollector, modalSubmitInteraction.guildId)(...expectParamsCompleted);
+
+      expect(message.edit).toHaveBeenCalledWith(expectParamsCompleted[0]);
+      expect(deleteFunction).toHaveBeenCalledTimes(2);
+      expect(interactionCollector.removeAllListeners).toHaveBeenCalledWith('collect');
+      expect(auditorMocked.audit).toHaveBeenCalled();
+    });
+  });
+});
+
+describe('onButton', () => {
+  test('success', () => {
+    onButton(buttonInteraction);
+
+    expect(buttonInteraction.update).not.toHaveBeenCalled();
   });
 });

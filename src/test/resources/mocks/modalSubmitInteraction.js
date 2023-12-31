@@ -1,4 +1,5 @@
 const client = require('./client');
+const guild = require('./guild');
 const user = require('./user');
 
 module.exports = {
@@ -9,5 +10,6 @@ module.exports = {
     getTextInputValue: jest.fn(),
     fields: [],
   },
+  guildId: guild.id,
   user,
 };

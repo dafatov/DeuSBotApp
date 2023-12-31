@@ -15,6 +15,7 @@ module.exports = {
     },
     removeAttachments: jest.fn(),
   },
+  reply: jest.fn(),
   update: jest.fn(),
   user,
 };
