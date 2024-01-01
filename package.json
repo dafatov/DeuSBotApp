@@ -1,13 +1,13 @@
 {
   "name": "ru.demetrious.discord-bot.deus",
-  "version": "1.13.12",
+  "version": "1.14.0-0",
   "description": "A bot for discord by DemetriouS",
   "main": "src/main/js/bot.js",
   "type": "commonjs",
   "private": true,
   "config": {
-    "isPublic": false,
-    "semver": "patch"
+    "isPublic": true,
+    "semver": "prerelease"
   },
   "scripts": {
     "start": "node -r dotenv/config src/main/js/bot.js",
@@ -16,7 +16,7 @@
     "prepare": "husky install",
     "test": "jest",
     "bump": "grunt bump-only:%npm_package_config_semver%",
-    "postbump": "npm pkg set config.semver=patch && npm install && git add package.json package-lock.json"
+    "postbump": "npm pkg set config.semver=prerelease && npm install && git add package.json package-lock.json"
   },
   "author": "DemetriouS",
   "license": "MIT",
