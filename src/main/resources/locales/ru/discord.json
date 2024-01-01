@@ -191,6 +191,37 @@
         "description": "Отображение текущего информационного канала"
       }
     },
+    "questionnaire": {
+      "chosen": {
+        "title": "Выбранный вариант в опросе"
+      },
+      "completed": {
+        "description": "_Ниже представлены результаты с количеством голосов за каждый вариант_",
+        "field": {
+          "result": "{{count}} ({{percent}}%)\n{{users}}"
+        },
+        "title": "Опрос \"{{title}}\" закончен ({{count}})"
+      },
+      "description": "Создание опроса",
+      "modal": {
+        "textInput": {
+          "title": "#{{number}}"
+        },
+        "title": "{{title}} ({{duration}})"
+      },
+      "option": {
+        "duration": {
+          "description": "Длительность опроса в минутах"
+        },
+        "title": {
+          "description": "Заголовок опроса"
+        }
+      },
+      "started": {
+        "description": "_Выберите один из вариантов ниже нажатием на кнопку. Вам выведется сообщение с Вашим выбором_",
+        "title": "{{title}} ({{duration}} осталось)"
+      }
+    },
     "queue": {
       "completed": {
         "song": "{{counter}}). {{title}}\n`{{duration}}`—_`{{author}}`_"

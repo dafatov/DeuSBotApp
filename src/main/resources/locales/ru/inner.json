@@ -23,8 +23,8 @@
       "executed": "Команда \"{{name}}\" выполнена",
       "help": "[help]: Помощь по \"{{source}}\" выведена успешно",
       "issue": {
-        "modal": "[issue]: Успешно открыто модальное окно для создания заявки github",
-        "completed": "[issue]: Заявка на github успешно создана"
+        "completed": "[issue]: Заявка на github успешно создана",
+        "modal": "[issue]: Успешно открыто модальное окно для создания заявки github"
       },
       "loop": {
         "completed": "[loop]: Композиция была успешна {{status}}"
@@ -47,6 +47,11 @@
         "remove": "[publicist]: Информационный канал успешно удален",
         "set": "[publicist]: Информационный канал успешно установлен",
         "show": "[publicist]: Информационный канал успешно выведен"
+      },
+      "questionnaire": {
+        "completed": "[questionnaire]: Опрос закончен по причине \"{{reason}}\"",
+        "modal": "[questionnaire]: Успешно открыто модальное окно для создания опроса",
+        "started": "[questionnaire]: Успешно запущен опрос"
       },
       "queue": {
         "completed": "[queue]: Список композиций успешно выведен"

@@ -81,12 +81,12 @@ module.exports.notify = async (interaction, content) => {
   try {
     if (interaction.isRepliable() && !interaction.replied) {
       if (interaction.deferred) {
-        await interaction.editReply(content);
+        return await interaction.editReply(content);
       } else {
-        await interaction.reply(content);
+        return await interaction.reply(content);
       }
     } else {
-      await interaction.followUp(content);
+      return await interaction.followUp(content);
     }
   } catch (e) {
     await audit({
