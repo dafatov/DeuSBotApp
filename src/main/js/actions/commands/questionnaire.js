@@ -49,10 +49,7 @@ const questionnaire = async interaction => {
   const duration = interaction.options.getInteger('duration');
   const modal = new ModalBuilder()
     .setCustomId(`${getCommandName(__filename)} ${duration}\n${title.replaceAll(' ', '_')}`)
-    .setTitle(t('discord:command.questionnaire.modal.title', {
-      title,
-      duration: spell(duration, Object.values(getFixedT(null, null, 'common:time')('minutes', {returnObjects: true}).name)),
-    }))
+    .setTitle(t('discord:command.questionnaire.modal.title', getTitleParams(title.replaceAll('_', ' '), duration)))
     .setComponents(...Array(DISCORD_ROWS_MAX).fill()
       .map((textInput, index) => new TextInputBuilder()
         .setCustomId(`questionnaireOption${index}`)
@@ -78,15 +75,12 @@ const onModal = async interaction => {
     .map(field => field.value.trim())
     .filter(option => option);
   const customIdParams = interaction.customId.split(' ')[1].split('\n');
-  const duration = customIdParams[0];
+  let duration = customIdParams[0];
   const title = customIdParams[1].replaceAll('_', ' ');
 
   const embed = new EmbedBuilder()
     .setColor(config.colors.info)
-    .setTitle(t('discord:command.questionnaire.started.title', {
-      title,
-      duration: spell(duration, Object.values(getFixedT(null, null, 'common:time')('minutes', {returnObjects: true}).name)),
-    }))
+    .setTitle(t('discord:command.questionnaire.started.title', getTitleParams(title, duration)))
     .setDescription(t('discord:command.questionnaire.started.description'))
     .setTimestamp();
   const components = options
@@ -105,7 +99,11 @@ const onModal = async interaction => {
 
   const interactionResponsesByUser = {};
   const collector = message.createMessageComponentCollector({componentType: ComponentType.Button, time: 1000 * 60 * duration});
-  const onAfterCollectorEndFunction = onAfterCollectorEnd(message, interactionResponsesByUser, collector, interaction.guildId);
+  const intervalId = setInterval(async () => {
+    embed.setTitle(t('discord:command.questionnaire.started.title', getTitleParams(title, --duration)));
+    await message.edit({embeds: [embed]});
+  }, 1000 * 60);
+  const onAfterCollectorEndFunction = module.exports.onAfterCollectorEnd(message, interactionResponsesByUser, collector, interaction.guildId, intervalId);
 
   collector.on('collect', onCollectorCollect(options, interactionResponsesByUser));
   collector.once('end', onCollectorEnd(interactionResponsesByUser, options, title, onAfterCollectorEndFunction));
@@ -154,7 +152,8 @@ const onCollectorEnd = (interactionResponsesByUser, options, title, onAfterColle
   await onAfterCollectorEnd({embeds: [embed], components: []}, reason);
 };
 
-const onAfterCollectorEnd = (message, interactionResponsesByUser, collector, guildId) => async (content, reason) => {
+const onAfterCollectorEnd = (message, interactionResponsesByUser, collector, guildId, intervalId) => async (content, reason) => {
+  clearInterval(intervalId);
   message.edit(content);
   Object.values(interactionResponsesByUser).forEach(interactionResponse => interactionResponse.delete());
   collector.removeAllListeners('collect');
@@ -167,6 +166,11 @@ const onAfterCollectorEnd = (message, interactionResponsesByUser, collector, gui
 };
 
 const getOptionIndex = interaction => parseInt(interaction.customId.split('_')[1]);
+
+const getTitleParams = (title, duration) => ({
+  title,
+  duration: spell(duration, Object.values(getFixedT(null, null, 'common:time')('minutes', {returnObjects: true}).name)),
+});
 
 module.exports.onCollectorCollect = onCollectorCollect;
 module.exports.onCollectorEnd = onCollectorEnd;

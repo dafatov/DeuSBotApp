@@ -4,8 +4,10 @@ const expectModal = require('../../../resources/actions/commands/questionnaire/e
 const expectParamsChosen = require('../../../resources/actions/commands/questionnaire/expectParamsChosen');
 const expectParamsCompleted = require('../../../resources/actions/commands/questionnaire/expectParamsCompleted');
 const expectParamsStarted = require('../../../resources/actions/commands/questionnaire/expectParamsStarted');
+const expectParamsStartedEdited = require('../../../resources/actions/commands/questionnaire/expectParamsStartedEdited');
 const interactionCollector = require('../../../resources/mocks/interactionCollector');
 const interactionResponsesByUser = require('../../../resources/actions/commands/questionnaire/interactionResponsesByUser');
+const jestConfig = require('../../../../../jest.config');
 const locale = require('../../configs/locale');
 const message = require('../../../resources/mocks/message');
 const modalSubmitInteraction = require('../../../resources/mocks/modalSubmitInteraction');
@@ -18,21 +20,13 @@ const commandsMocked = jest.mock(commandsModuleName).requireMock(commandsModuleN
 const auditorMocked = jest.mock(auditorModuleName).requireMock(auditorModuleName);
 
 // eslint-disable-next-line sort-imports-requires/sort-requires
-const {
-  execute,
-  isDeferReply,
-  onAfterCollectorEnd,
-  onButton,
-  onCollectorCollect,
-  onCollectorEnd,
-  onModal,
-} = require('../../../../main/js/actions/commands/questionnaire');
+const questionnaire = require('../../../../main/js/actions/commands/questionnaire');
 
 beforeAll(() => locale.init());
 
 describe('isDeferReply', () => {
   test('success', () => {
-    const result = isDeferReply();
+    const result = questionnaire.isDeferReply();
 
     expect(result).toBeFalsy();
   });
@@ -42,7 +36,7 @@ describe('execute', () => {
   test('forbidden', async () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(true));
 
-    await execute(commandInteraction);
+    await questionnaire.execute(commandInteraction);
 
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.questionnaire');
     expect(commandsMocked.notifyForbidden).toHaveBeenCalledWith('questionnaire', commandInteraction);
@@ -55,7 +49,7 @@ describe('execute', () => {
     commandInteraction.options.getString.mockReturnValueOnce('title title title');
     commandInteraction.options.getInteger.mockReturnValueOnce(2);
 
-    await execute(commandInteraction);
+    await questionnaire.execute(commandInteraction);
 
     expect(permissionMocked.isForbidden).toHaveBeenCalledWith('348774809003491329', 'command.questionnaire');
     expect(commandsMocked.notifyForbidden).not.toHaveBeenCalled();
@@ -65,27 +59,40 @@ describe('execute', () => {
 });
 
 describe('onModal', () => {
-  test('success', async () => {
+  test('success', () => new Promise(done => {
+    const onAfterCollectorEndFunction = () => {};
     jest.replaceProperty(modalSubmitInteraction.fields, 'fields', [
       {value: 'value_1'}, {value: 'value_2 '}, {value: ''}, {value: ' '}, {value: 'value_3'},
     ]);
     jest.replaceProperty(modalSubmitInteraction, 'customId', 'questionnaire 2\ntitle_title_title');
+    jest.useFakeTimers({doNotFake: []});
+    jest.spyOn(global, 'setInterval');
+    jest.spyOn(questionnaire, 'onAfterCollectorEnd').mockReturnValueOnce(onAfterCollectorEndFunction);
     commandsMocked.notify.mockResolvedValueOnce(message);
 
-    await onModal(modalSubmitInteraction);
-
-    expect(modalSubmitInteraction.deferReply).toHaveBeenCalled();
-    expect(commandsMocked.notify).toHaveBeenCalledWith(...expectParamsStarted);
-    expect(auditorMocked.audit).toHaveBeenCalled();
-    expect(message.createMessageComponentCollector).toHaveBeenCalledWith({componentType: 2, time: 120000});
-    expect(interactionCollector.on).toHaveBeenCalledWith('collect', expect.any(Function));
-    expect(interactionCollector.once).toHaveBeenCalledWith('end', expect.any(Function));
-  });
+    questionnaire.onModal(modalSubmitInteraction)
+      .then(() => {
+        expect(modalSubmitInteraction.deferReply).toHaveBeenCalled();
+        expect(commandsMocked.notify).toHaveBeenCalledWith(...expectParamsStarted);
+        expect(auditorMocked.audit).toHaveBeenCalled();
+        expect(message.createMessageComponentCollector).toHaveBeenCalledWith({componentType: 2, time: 120000});
+        expect(setInterval).toHaveBeenCalledWith(expect.any(Function), 60000);
+        expect(message.edit).not.toHaveBeenCalled();
+        expect(questionnaire.onAfterCollectorEnd).toHaveBeenCalledWith(message, {}, interactionCollector, '301783183828189184', expect.any(Object));
+        expect(interactionCollector.on).toHaveBeenCalledWith('collect', expect.any(Function));
+        expect(interactionCollector.once).toHaveBeenCalledWith('end', expect.any(Function));
+      }).then(() => jest.runOnlyPendingTimers())
+      .then(() => expect(message.edit).toHaveBeenCalledWith(...expectParamsStartedEdited))
+      .then(() => {
+        jest.setSystemTime(jestConfig.fakeTimers.now);
+        done();
+      });
+  }));
 });
 
 describe('onCollectorCollect', () => {
   test('success', () => {
-    const result = onCollectorCollect([], {});
+    const result = questionnaire.onCollectorCollect([], {});
 
     expect(result).toEqual(expect.any(Function));
   });
@@ -97,7 +104,7 @@ describe('onCollectorCollect', () => {
       jest.replaceProperty(buttonInteraction, 'customId', 'optionButton_1');
       buttonInteraction.reply.mockResolvedValueOnce({});
 
-      await onCollectorCollect(['option0', 'option1', 'option2'], interactionResponsesByUser)(buttonInteraction);
+      await questionnaire.onCollectorCollect(['option0', 'option1', 'option2'], interactionResponsesByUser)(buttonInteraction);
 
       expect(interactionResponsesByUser).toEqual({'348774809003491329': {}});
       expect(deleteFunction).toHaveBeenCalled();
@@ -108,7 +115,7 @@ describe('onCollectorCollect', () => {
 
 describe('onCollectorEnd', () => {
   test('success', () => {
-    const result = onCollectorEnd({}, [], '', () => {});
+    const result = questionnaire.onCollectorEnd({}, [], '', () => {});
 
     expect(result).toEqual(expect.any(Function));
   });
@@ -118,7 +125,7 @@ describe('onCollectorEnd', () => {
       const onAfterCollectorEnd = jest.fn();
       const options = ['optionButton_0', 'optionButton_1', 'optionButton_2'];
 
-      await onCollectorEnd(interactionResponsesByUser, options, 'title', onAfterCollectorEnd)({}, 'time');
+      await questionnaire.onCollectorEnd(interactionResponsesByUser, options, 'title', onAfterCollectorEnd)({}, 'time');
 
       expect(onAfterCollectorEnd).toHaveBeenCalledWith(...expectParamsCompleted);
     });
@@ -127,7 +134,7 @@ describe('onCollectorEnd', () => {
 
 describe('onAfterCollectorEnd', () => {
   test('success', () => {
-    const result = onAfterCollectorEnd({}, {}, {}, '');
+    const result = questionnaire.onAfterCollectorEnd({}, {}, {}, '', '');
 
     expect(result).toEqual(expect.any(Function));
   });
@@ -136,9 +143,12 @@ describe('onAfterCollectorEnd', () => {
     test('success', async () => {
       const deleteFunction = jest.fn();
       const interactionResponsesByUser = {'0': {delete: deleteFunction}, '1': {delete: deleteFunction}};
+      jest.spyOn(global, 'clearInterval');
 
-      await onAfterCollectorEnd(message, interactionResponsesByUser, interactionCollector, modalSubmitInteraction.guildId)(...expectParamsCompleted);
+      await questionnaire.onAfterCollectorEnd(message, interactionResponsesByUser, interactionCollector, modalSubmitInteraction.guildId, '1')(
+        ...expectParamsCompleted);
 
+      expect(clearInterval).toHaveBeenCalledWith('1');
       expect(message.edit).toHaveBeenCalledWith(expectParamsCompleted[0]);
       expect(deleteFunction).toHaveBeenCalledTimes(2);
       expect(interactionCollector.removeAllListeners).toHaveBeenCalledWith('collect');
@@ -149,7 +159,7 @@ describe('onAfterCollectorEnd', () => {
 
 describe('onButton', () => {
   test('success', () => {
-    onButton(buttonInteraction);
+    questionnaire.onButton(buttonInteraction);
 
     expect(buttonInteraction.update).not.toHaveBeenCalled();
   });
