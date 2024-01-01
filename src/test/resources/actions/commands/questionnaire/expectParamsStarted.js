@@ -30,7 +30,7 @@ module.exports = [
         components: [
           {
             custom_id: 'optionButton_2',
-            label: 'value_3',
+            label: 'value_5',
             style: 1,
             type: 2,
           },
@@ -41,7 +41,7 @@ module.exports = [
     embeds: [
       new EmbedBuilder({
         color: 16777040,
-        description: '_Выберите один из вариантов ниже нажав на кнопку. Вам выведется сообщение с Вашим выбором_',
+        description: '_Выберите один из вариантов ниже нажатием на кнопку. Вам выведется сообщение с Вашим выбором_',
         timestamp: '2023-02-06T10:20:27.013Z',
         title: 'title title title (2 минуты осталось)',
       }),

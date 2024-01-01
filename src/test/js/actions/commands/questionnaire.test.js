@@ -46,7 +46,7 @@ describe('execute', () => {
 
   test('success', async () => {
     permissionMocked.isForbidden.mockImplementationOnce(() => Promise.resolve(false));
-    commandInteraction.options.getString.mockReturnValueOnce('title title title');
+    commandInteraction.options.getString.mockReturnValueOnce('title title_title');
     commandInteraction.options.getInteger.mockReturnValueOnce(2);
 
     await questionnaire.execute(commandInteraction);
@@ -62,7 +62,7 @@ describe('onModal', () => {
   test('success', () => new Promise(done => {
     const onAfterCollectorEndFunction = () => {};
     jest.replaceProperty(modalSubmitInteraction.fields, 'fields', [
-      {value: 'value_1'}, {value: 'value_2 '}, {value: ''}, {value: ' '}, {value: 'value_3'},
+      {value: 'value_1'}, {value: 'value_2 '}, {value: ''}, {value: ' '}, {value: 'value_5'},
     ]);
     jest.replaceProperty(modalSubmitInteraction, 'customId', 'questionnaire 2\ntitle_title_title');
     jest.useFakeTimers({doNotFake: []});

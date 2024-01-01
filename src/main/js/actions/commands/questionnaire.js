@@ -10,11 +10,11 @@ const {
   TextInputStyle,
 } = require('discord.js');
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {DISCORD_BUTTON_LABEL_MAX, DISCORD_ROWS_MAX} = require('../../utils/constants');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
 const {getCommandName, spell} = require('../../utils/string');
 const {getFixedT, t} = require('i18next');
 const {notify, notifyForbidden} = require('../commands');
-const {DISCORD_ROWS_MAX} = require('../../utils/constants');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const groupBy = require('lodash/groupBy');
@@ -55,7 +55,7 @@ const questionnaire = async interaction => {
         .setCustomId(`questionnaireOption${index}`)
         .setLabel(t('discord:command.questionnaire.modal.textInput.title', {number: index + 1}))
         .setStyle(TextInputStyle.Paragraph)
-        .setMaxLength(80)
+        .setMaxLength(DISCORD_BUTTON_LABEL_MAX)
         .setRequired(index === 0))
       .map(textInput => new ActionRowBuilder().setComponents(textInput)));
 
