@@ -198,7 +198,7 @@
       "completed": {
         "description": "_Ниже представлены результаты с количеством голосов за каждый вариант_",
         "field": {
-          "result": "{{count}} ({{percent}}%)\n{{users}}"
+          "result": "{{barString}} [{{count}}, {{percent}}%]\n{{users}}"
         },
         "title": "Опрос \"{{title}}\" закончен ({{count}})"
       },

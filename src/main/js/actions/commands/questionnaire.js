@@ -18,6 +18,7 @@ const {notify, notifyForbidden} = require('../commands');
 const {audit} = require('../auditor');
 const config = require('../../configs/config');
 const groupBy = require('lodash/groupBy');
+const progressBar = require('string-progressbar');
 
 module.exports = {
   data: () => new SlashCommandBuilder()
@@ -121,7 +122,10 @@ const onCollectorCollect = (options, interactionResponsesByUser) => async intera
 };
 
 const onCollectorEnd = (interactionResponsesByUser, options, title, onAfterCollectorEnd) => async (_, reason) => {
-  const interactionResponsesByOption = groupBy(Object.values(interactionResponsesByUser), interactionResponse => getOptionIndex(interactionResponse.interaction));
+  const interactionResponsesByOption = groupBy(
+    Object.values(interactionResponsesByUser),
+    interactionResponse => getOptionIndex(interactionResponse.interaction),
+  );
   const allCount = Object.values(interactionResponsesByOption).reduce((acc, interactionResponses) => acc + interactionResponses.length, 0);
 
   const embed = new EmbedBuilder()
@@ -135,16 +139,16 @@ const onCollectorEnd = (interactionResponsesByUser, options, title, onAfterColle
       const interactionResponses = interactionResponsesByOption[index];
 
       if (!interactionResponses) {
-        return {name: option, value: t('discord:command.questionnaire.completed.field.result', {count: 0, percent: 0, users: ''})};
+        return {name: option, value: getFieldValue(0, 1, [])};
       }
 
       return {
         name: option,
-        value: t('discord:command.questionnaire.completed.field.result', {
-          count: interactionResponses.length,
-          percent: Math.floor(100 * interactionResponses.length / allCount),
-          users: interactionResponses.map(interactionResponse => interactionResponse.interaction.user.toString()).join(''),
-        }),
+        value: getFieldValue(
+          interactionResponses.length,
+          allCount,
+          interactionResponses.map(interactionResponse => interactionResponse.interaction.user.toString()),
+        ),
       };
     }))
     .setTimestamp();
@@ -171,6 +175,17 @@ const getTitleParams = (title, duration) => ({
   title,
   duration: spell(duration, Object.values(getFixedT(null, null, 'common:time')('minutes', {returnObjects: true}).name)),
 });
+
+const getFieldValue = (count, allCount, users) => {
+  const barString = progressBar.filledBar(allCount, count, 30, '◻', '◼');
+
+  return t('discord:command.questionnaire.completed.field.result', {
+    count,
+    barString: barString[0],
+    percent: Math.floor(barString[1]),
+    users: users.join(''),
+  });
+};
 
 module.exports.onCollectorCollect = onCollectorCollect;
 module.exports.onCollectorEnd = onCollectorEnd;
