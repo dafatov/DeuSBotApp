@@ -1,12 +1,12 @@
 {
   "name": "ru.demetrious.discord-bot.deus",
-  "version": "1.14.2",
+  "version": "1.14.3",
   "description": "A bot for discord by DemetriouS",
   "main": "src/main/js/bot.js",
   "type": "commonjs",
   "private": true,
   "config": {
-    "isPublic": true,
+    "isPublic": false,
     "semver": "prerelease"
   },
   "scripts": {
