@@ -1,5 +1,9 @@
-const {TYPES} = require('../../db/repositories/queue');
+const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {booleanToPromise, throughThrow} = require('../../utils/promises');
+const {TYPES: SONG_TYPES} = require('../../db/repositories/queue');
+const {audit} = require('../../actions/auditor');
 const first = require('lodash/first');
+const {stringify} = require('../../utils/string');
 const ytdl = require('ytdl-core');
 const ytpl = require('ytpl');
 const ytsr = require('ytsr');
@@ -7,11 +11,24 @@ const ytsr = require('ytsr');
 module.exports.getPlaylist = (interaction, audio) =>
   ytpl.getPlaylistID(audio)
     .then(playlistId => ytpl(playlistId, {limit: Infinity, ...options()})
-      .then(playlist => generatePlaylistInfo(interaction.user.id, playlist)));
+      .then(playlist => generatePlaylistInfo(interaction.user.id, playlist))
+      .catch(e => throughThrow(e, audit({
+        guildId: null,
+        type: TYPES.ERROR,
+        category: CATEGORIES.API,
+        message: stringify(e),
+      }))));
 
 module.exports.getSong = (interaction, audio) =>
-  ytdl.getBasicInfo(audio, options())
-    .then(video => generateSongInfo(interaction.user.id, video));
+  booleanToPromise(ytdl.validateURL(audio))
+    .then(() => ytdl.getBasicInfo(audio, options())
+      .then(video => generateSongInfo(interaction.user.id, video))
+      .catch(e => throughThrow(e, audit({
+        guildId: null,
+        type: TYPES.ERROR,
+        category: CATEGORIES.API,
+        message: stringify(e),
+      }))));
 
 module.exports.getSearch = (interaction, audio) =>
   ytsr.getFilters(audio, options())
@@ -45,7 +62,7 @@ const generatePlaylistInfo = (userId, playlist) => playlist.items
     songs: [
       ...acc.songs,
       {
-        type: TYPES.YOUTUBE,
+        type: SONG_TYPES.YOUTUBE,
         title: video.title,
         duration: parseInt(video.durationSec),
         url: video.shortUrl,
@@ -69,7 +86,7 @@ const generatePlaylistInfo = (userId, playlist) => playlist.items
 
 const generateSongInfo = (userId, video) => ({
   info: {
-    type: TYPES.YOUTUBE,
+    type: SONG_TYPES.YOUTUBE,
     title: video.videoDetails.title,
     duration: parseInt(video.videoDetails.lengthSeconds),
     url: video.videoDetails.video_url,

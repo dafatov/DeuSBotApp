@@ -8,6 +8,8 @@ const search = require('../../../resources/api/external/youtube/search');
 const searchSong = require('../../../resources/api/external/youtube/searchSong');
 const song = require('../../../resources/api/external/youtube/song');
 
+const auditorModuleName = '../../../../main/js/actions/auditor';
+const auditorMocked = jest.mock(auditorModuleName).requireMock(auditorModuleName);
 const ytplMocked = jest.mock('ytpl').requireMock('ytpl');
 const ytdlMocked = jest.mock('ytdl-core').requireMock('ytdl-core');
 const ytsrMocked = jest.mock('ytsr').requireMock('ytsr');
@@ -22,7 +24,7 @@ beforeAll(() => {
 
 describe('getPlaylist', () => {
   test('success', async () => {
-    ytplMocked.getPlaylistID.mockResolvedValueOnce('PLtcD_4Y3uPJNGDm-igZ5jYOmRI5XBABdn');
+    ytplMocked.getPlaylistID.mockImplementationOnce((...args) => jest.requireActual('ytpl').getPlaylistID(...args));
     ytplMocked.mockResolvedValueOnce(playlist);
 
     const result = await getPlaylist(interaction, 'https://www.youtube.com/playlist?list=PLtcD_4Y3uPJNGDm-igZ5jYOmRI5XBABdn');
@@ -32,17 +34,69 @@ describe('getPlaylist', () => {
     expect(ytplMocked).toHaveBeenCalledWith('PLtcD_4Y3uPJNGDm-igZ5jYOmRI5XBABdn', {
       limit: Infinity, ...expectedOptions,
     });
+    expect(auditorMocked.audit).not.toHaveBeenCalled();
+  });
+
+  test('not playlist', async () => {
+    ytplMocked.getPlaylistID.mockImplementationOnce((...args) => jest.requireActual('ytpl').getPlaylistID(...args));
+
+    const result = () => getPlaylist(interaction, 'https://www.youtube.com/watch?v=W6q1AWnjNiU');
+
+    await expect(result()).rejects.toBeDefined();
+    expect(ytplMocked.getPlaylistID).toHaveBeenCalledWith('https://www.youtube.com/watch?v=W6q1AWnjNiU');
+    expect(ytplMocked).not.toHaveBeenCalled();
+    expect(auditorMocked.audit).not.toHaveBeenCalled();
+  });
+
+  test('failure', async () => {
+    ytplMocked.getPlaylistID.mockImplementationOnce((...args) => jest.requireActual('ytpl').getPlaylistID(...args));
+    ytplMocked.mockRejectedValueOnce();
+
+    const result = () => getPlaylist(interaction, 'https://www.youtube.com/playlist?list=PLtcD_4Y3uPJNGDm-igZ5jYOmRI5XBABdn');
+
+    await expect(result()).rejects.toBeDefined();
+    expect(ytplMocked.getPlaylistID).toHaveBeenCalledWith('https://www.youtube.com/playlist?list=PLtcD_4Y3uPJNGDm-igZ5jYOmRI5XBABdn');
+    expect(ytplMocked).toHaveBeenCalledWith('PLtcD_4Y3uPJNGDm-igZ5jYOmRI5XBABdn', {
+      limit: Infinity, ...expectedOptions,
+    });
+    expect(auditorMocked.audit).toHaveBeenCalled();
   });
 });
 
 describe('getSong', () => {
   test('success', async () => {
+    ytdlMocked.validateURL.mockImplementationOnce((...args) => jest.requireActual('ytdl-core').validateURL(...args));
     ytdlMocked.getBasicInfo.mockResolvedValueOnce(song);
 
     const result = await getSong(interaction, 'https://www.youtube.com/watch?v=W6q1AWnjNiU');
 
     expect(result).toEqual(expectedSong);
+    expect(ytdlMocked.validateURL).toHaveBeenCalledWith('https://www.youtube.com/watch?v=W6q1AWnjNiU');
     expect(ytdlMocked.getBasicInfo).toHaveBeenCalledWith('https://www.youtube.com/watch?v=W6q1AWnjNiU', expectedOptions);
+    expect(auditorMocked.audit).not.toHaveBeenCalled();
+  });
+
+  test('not song', async () => {
+    ytdlMocked.validateURL.mockImplementationOnce((...args) => jest.requireActual('ytdl-core').validateURL(...args));
+
+    const result = () => getSong(interaction, 'red alert 3 song');
+
+    await expect(result()).rejects.toBeUndefined();
+    expect(ytdlMocked.validateURL).toHaveBeenCalledWith('red alert 3 song');
+    expect(ytdlMocked.getBasicInfo).not.toHaveBeenCalled();
+    expect(auditorMocked.audit).not.toHaveBeenCalled();
+  });
+
+  test('failure', async () => {
+    ytdlMocked.validateURL.mockImplementationOnce((...args) => jest.requireActual('ytdl-core').validateURL(...args));
+    ytdlMocked.getBasicInfo.mockRejectedValueOnce();
+
+    const result = () => getSong(interaction, 'https://www.youtube.com/watch?v=W6q1AWnjNiU');
+
+    await expect(result()).rejects.toBeDefined();
+    expect(ytdlMocked.validateURL).toHaveBeenCalledWith('https://www.youtube.com/watch?v=W6q1AWnjNiU');
+    expect(ytdlMocked.getBasicInfo).toHaveBeenCalledWith('https://www.youtube.com/watch?v=W6q1AWnjNiU', expectedOptions);
+    expect(auditorMocked.audit).toHaveBeenCalled();
   });
 });
 

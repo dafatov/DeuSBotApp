@@ -8,3 +8,16 @@ module.exports.throughPromise = (through, callback) =>
     callback?.();
     resolve(through);
   });
+
+module.exports.throughThrow = (error, callback) =>
+  new Promise((_, reject) => {
+    callback?.();
+    reject(new Error(error));
+  });
+
+module.exports.booleanToPromise = boolean =>
+  new Promise((resolve, reject) =>
+    boolean
+      ? resolve()
+      : reject(),
+  );
