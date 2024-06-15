@@ -45,6 +45,11 @@ module.exports.comparePostgresIntervals = (a, b) => {
         : aPart - bPart, 0);
 };
 
+module.exports.youtubeDurationToSeconds = duration => duration
+  .match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/)
+  .slice(1)
+  .reduce((acc, item, index) => acc + (item ?? 0) * Math.pow(60, 2 - index), 0);
+
 module.exports.isExactlyTime = (now, hours, minutes) => {
   const targetDate = new Date();
 

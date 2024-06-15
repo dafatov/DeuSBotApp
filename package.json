@@ -1,6 +1,6 @@
 {
   "name": "ru.demetrious.discord-bot.deus",
-  "version": "1.14.3",
+  "version": "1.14.4-0",
   "description": "A bot for discord by DemetriouS",
   "main": "src/main/js/bot.js",
   "type": "commonjs",
@@ -51,9 +51,7 @@
     "sodium-native": "4.0.4",
     "string-progressbar": "1.0.4",
     "xml2js": "0.6.2",
-    "ytdl-core": "4.11.5",
-    "ytpl": "2.3.0",
-    "ytsr": "3.8.4"
+    "ytdl-core": "4.11.5"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.22.9",
