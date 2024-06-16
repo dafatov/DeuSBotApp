@@ -1,41 +1,60 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
-const {booleanToPromise, throughThrow} = require('../../utils/promises');
 const {TYPES: SONG_TYPES} = require('../../db/repositories/queue');
 const {audit} = require('../../actions/auditor');
+const axios = require('axios');
 const first = require('lodash/first');
 const {stringify} = require('../../utils/string');
+const {throughThrow} = require('../../utils/promises');
+const {youtubeDurationToSeconds} = require('../../utils/dateTime');
 const ytdl = require('ytdl-core');
-const ytpl = require('ytpl');
-const ytsr = require('ytsr');
 
 module.exports.getPlaylist = (interaction, audio) =>
-  ytpl.getPlaylistID(audio)
-    .then(playlistId => ytpl(playlistId, {limit: Infinity, ...options()})
-      .then(playlist => generatePlaylistInfo(interaction.user.id, playlist))
+  getPlaylistId(audio)
+    .then(id => axios.get(`${process.env.YOUTUBE_API_URL}/playlists?${new URLSearchParams({
+      id,
+      key: process.env.YOUTUBE_API_KEY,
+      part: ['snippet', 'contentDetails'],
+    })}`).then(response => response.data)
+      .then(data => first(data.items))
+      .then(playlist => fillPlaylist(interaction, {
+        info: {
+          title: playlist.snippet.localized.title,
+          length: playlist.contentDetails.itemCount,
+          duration: 0,
+          url: `${process.env.YOUTUBE_URL}/playlist?list=${playlist.id}`,
+          isLive: false,
+          preview: getPreview(playlist.snippet.thumbnails),
+          userId: interaction.user.id,
+        },
+        songs: [],
+      }, playlist.id))
       .catch(e => throughThrow(e, audit({
-        guildId: null,
+        guildId: interaction.guildId,
         type: TYPES.ERROR,
         category: CATEGORIES.API,
         message: stringify(e),
       }))));
 
 module.exports.getSong = (interaction, audio) =>
-  booleanToPromise(ytdl.validateURL(audio))
-    .then(() => ytdl.getBasicInfo(audio, options())
-      .then(video => generateSongInfo(interaction.user.id, video))
+  getVideoId(audio)
+    .then(id => getVideo(interaction, id)
       .catch(e => throughThrow(e, audit({
-        guildId: null,
+        guildId: interaction.guildId,
         type: TYPES.ERROR,
         category: CATEGORIES.API,
         message: stringify(e),
       }))));
 
 module.exports.getSearch = (interaction, audio) =>
-  ytsr.getFilters(audio, options())
-    .then(filters => filters.get('Type').get('Video').url)
-    .then(url => ytsr(url, {gl: 'RU', hl: 'ru', limit: 1}, options()))
-    .then(videos => ytdl.getBasicInfo(first(videos.items).url, options()))
-    .then(video => generateSongInfo(interaction.user.id, video));
+  axios.get(`${process.env.YOUTUBE_API_URL}/search?${new URLSearchParams({
+    maxResults: 1,
+    relevanceLanguage: 'ru',
+    type: 'video',
+    key: process.env.YOUTUBE_API_KEY,
+    q: audio,
+  })}`).then(response => response.data)
+    .then(data => first(data.items).id.videoId)
+    .then(id => getVideo(interaction, id));
 
 module.exports.getStream = url => Promise.resolve(ytdl(url, {
   ...options(),
@@ -43,6 +62,69 @@ module.exports.getStream = url => Promise.resolve(ytdl(url, {
   quality: 'highestaudio',
   highWaterMark: 1 << 25,
 }));
+
+const fillPlaylist = async (interaction, playlist, playlistId) => {
+  let pageToken = '';
+
+  // eslint-disable-next-line no-loops/no-loops
+  do {
+    const data = await axios.get(`${process.env.YOUTUBE_API_URL}/playlistItems?${new URLSearchParams({
+      playlistId,
+      key: process.env.YOUTUBE_API_KEY,
+      maxResults: 50,
+      part: 'contentDetails',
+      pageToken,
+    })}`).then(response => response.data);
+
+    playlist = await Promise.all(data.items.map(item => getVideo(interaction, item.contentDetails.videoId)))
+      .then(videos => videos
+        .filter(r => r)
+        .reduce((acc, item) => ({
+          info: {
+            ...acc.info,
+            duration: acc.info.duration + item.info.duration,
+            isLive: item.info.isLive
+              ? true
+              : acc.info.isLive,
+          },
+          songs: [
+            ...acc.songs,
+            item.info,
+          ],
+        }), playlist));
+
+    pageToken = data.nextPageToken;
+  } while (pageToken);
+
+  return playlist;
+};
+
+const getVideo = (interaction, id) =>
+  axios.get(`${process.env.YOUTUBE_API_URL}/videos?${new URLSearchParams({
+    id,
+    key: process.env.YOUTUBE_API_KEY,
+    part: ['snippet', 'contentDetails'],
+  })}`).then(reponse => reponse.data)
+    .then(data => first(data.items))
+    .then(video => video
+      ? ({
+        info: {
+          type: SONG_TYPES.YOUTUBE,
+          title: video.snippet.localized.title,
+          duration: youtubeDurationToSeconds(video.contentDetails.duration),
+          url: `${process.env.YOUTUBE_URL}/watch?v=${video.id}`,
+          isLive: video.snippet.liveBroadcastContent === 'live',
+          preview: getPreview(video.snippet.thumbnails),
+          userId: interaction.user.id,
+        },
+        get songs() {
+          return [this.info];
+        },
+      })
+      : null);
+
+const getPreview = thumnails =>
+  (thumnails.maxres ?? thumnails.standard ?? thumnails.high).url;
 
 const options = () => ({
   requestOptions: {
@@ -53,48 +135,22 @@ const options = () => ({
   },
 });
 
-const generatePlaylistInfo = (userId, playlist) => playlist.items
-  .reduce((acc, video) => ({
-    info: {
-      ...acc.info,
-      duration: acc.info.duration + parseInt(video.durationSec),
-    },
-    songs: [
-      ...acc.songs,
-      {
-        type: SONG_TYPES.YOUTUBE,
-        title: video.title,
-        duration: parseInt(video.durationSec),
-        url: video.shortUrl,
-        isLive: video.isLive,
-        preview: video.bestThumbnail.url,
-        userId,
-      },
-    ],
-  }), {
-    info: {
-      title: playlist.title,
-      length: playlist.items.length,
-      duration: 0,
-      url: playlist.url,
-      isLive: playlist.items.some(video => video.isLive),
-      preview: playlist.bestThumbnail.url,
-      userId,
-    },
-    songs: [],
-  });
+const getVideoId = url => new Promise((resolve, reject) => {
+  const videoId = url
+    .match(/^(?:(?:https?:)?\/\/)?(?:www\.)?(?:m\.)?(?:youtu(?:be)?\.com\/(?:v\/|embed\/|watch(?:\/|\?v=))|youtu\.be\/)((?:\w|-){11})(?:\S+)?$/)
+    ?.[1];
 
-const generateSongInfo = (userId, video) => ({
-  info: {
-    type: SONG_TYPES.YOUTUBE,
-    title: video.videoDetails.title,
-    duration: parseInt(video.videoDetails.lengthSeconds),
-    url: video.videoDetails.video_url,
-    isLive: video.videoDetails.isLiveContent,
-    preview: first(video.videoDetails.thumbnails).url,
-    userId,
-  },
-  get songs() {
-    return [this.info];
-  },
+  videoId
+    ? resolve(videoId)
+    : reject();
+});
+
+const getPlaylistId = url => new Promise((resolve, reject) => {
+  const playlistId = url
+    .match(/^(?:(?:https?:)?\/\/)?(?:www\.)?youtube\.com\/playlist\?list=(\w+|-)+$/)
+    ?.[1];
+
+  playlistId
+    ? resolve(playlistId)
+    : reject();
 });
