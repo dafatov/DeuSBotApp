@@ -29,7 +29,7 @@ module.exports.getPlaylist = (interaction, audio) =>
         songs: [],
       }, playlist.id))
       .catch(e => throughThrow(e, audit({
-        guildId: null,
+        guildId: interaction.guildId,
         type: TYPES.ERROR,
         category: CATEGORIES.API,
         message: stringify(e),
@@ -39,7 +39,7 @@ module.exports.getSong = (interaction, audio) =>
   getVideoId(audio)
     .then(id => getVideo(interaction, id)
       .catch(e => throughThrow(e, audit({
-        guildId: null,
+        guildId: interaction.guildId,
         type: TYPES.ERROR,
         category: CATEGORIES.API,
         message: stringify(e),
