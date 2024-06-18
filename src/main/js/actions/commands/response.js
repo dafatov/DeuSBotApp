@@ -157,6 +157,7 @@ const onShow = async interaction => {
 
   embed
     .setFields(getRulesFields(rules, start, count))
+    .setTimestamp()
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
     .setFooter({text: Pagination.getFooter(start, pages.count, rules.length)});
   await interaction.update({embeds: [embed], components: [pagination]});

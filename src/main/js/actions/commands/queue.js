@@ -106,6 +106,7 @@ const onQueue = async interaction => {
     .setColor(config.colors.info)
     .setTitle(escaping(nowPlaying.song.title))
     .setDescription(await getDescription(interaction, start, count, songsCount, nowPlaying))
+    .setTimestamp()
     .setURL(nowPlaying.song.url)
     .setThumbnail(nowPlaying.song.preview)
     //Данные количества на странице (count) берутся из footer'а. Да, костыль

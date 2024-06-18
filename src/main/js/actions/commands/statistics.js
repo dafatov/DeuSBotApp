@@ -89,6 +89,7 @@ const onSession = async interaction => {
 
   embed
     .setDescription(getSessionsDescription(sessions, start, pages.count))
+    .setTimestamp()
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
     .setFooter({text: Pagination.getFooter(start, pages.count, sessions.length)});
 
@@ -132,6 +133,7 @@ const onMessages = async interaction => {
 
   embed
     .setDescription(getMessagesDescription(messages, start, pages.count))
+    .setTimestamp()
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
     .setFooter({text: Pagination.getFooter(start, pages.count, messages.length)});
 
@@ -175,6 +177,7 @@ const onVoices = async interaction => {
 
   embed
     .setDescription(getVoicesDescription(voices, start, pages.count))
+    .setTimestamp()
     //Данные количества на странице (count) берутся из footer'а. Да, костыль
     .setFooter({text: Pagination.getFooter(start, pages.count, voices.length)});
 
