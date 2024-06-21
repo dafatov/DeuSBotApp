@@ -127,6 +127,7 @@ describe('getStream', () => {
     expect(ytdlMocked).toHaveBeenCalledWith('https://www.youtube.com/watch?v=GKvlt6rpb4Y', {
       dlChunkSize: 0,
       filter: 'audioonly',
+      highWaterMark: 33554432,
       quality: 'highestaudio',
       requestOptions: {
         headers: {

@@ -32,10 +32,12 @@ module.exports.compareVersions = (a, b) => {
 
 module.exports.stringify = object => {
   if (typeof object === 'object') {
-    return JSON.stringify(object, Object.getOwnPropertyNames(object), 2)
+    return `${JSON.stringify(object, Object.getOwnPropertyNames(object), 2)
       .replace(/\\r/g, '\r')
-      .replace(/\\n/g, '\n');
+      .replace(/\\n/g, '\n')}
+      ${JSON.stringify(object?.response?.data, null, 2) ?? ''}`;
   }
+
   return object;
 };
 

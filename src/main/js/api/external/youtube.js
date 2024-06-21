@@ -59,13 +59,14 @@ module.exports.getSearch = (interaction, audio) =>
 module.exports.getStream = url => Promise.resolve(ytdl(url, {
   dlChunkSize: 0,
   filter: 'audioonly',
+  highWaterMark: 1 << 25,
+  quality: 'highestaudio',
   requestOptions: {
     headers: {
       cookie: process.env.YOUTUBE_COOKIE,
       'x-youtube-identity-token': process.env.YOUTUBE_ID_TOKEN,
     },
   },
-  quality: 'highestaudio',
 }));
 
 const fillPlaylist = async (interaction, playlist, playlistId) => {
