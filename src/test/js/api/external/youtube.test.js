@@ -96,6 +96,15 @@ describe('getSong', () => {
 });
 
 describe('getSearch', () => {
+  test('notFound', async () => {
+    axiosMocked.get.mockResolvedValueOnce({data: {items: []}});
+
+    const result = await getSearch(interaction, 'red alert 3 song');
+
+    expect(result).toBeUndefined();
+    expect(axiosMocked.get).toHaveBeenCalledWith('https://www.googleapis.com/youtube/v3/search?maxResults=1&relevanceLanguage=ru&type=video&key=youtube_api_key&q=red+alert+3+song');
+  });
+
   test('success', async () => {
     axiosMocked.get.mockResolvedValueOnce(search).mockResolvedValueOnce(song);
 

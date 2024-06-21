@@ -1,7 +1,7 @@
 const {AudioPlayerStatus, NoSubscriberBehavior, VoiceConnectionStatus, createAudioPlayer, createAudioResource, demuxProbe, joinVoiceChannel} = require(
   '@discordjs/voice');
 const {CATEGORIES, TYPES} = require('../db/repositories/audit');
-const {TYPES: SONG_TYPES, addAll, getAll, getCount, getDuration, getPage, hasLive, move, remove, removeAll, shuffle} = require('../db/repositories/queue');
+const {TYPES: SONG_TYPES, addAll, get, getAll, getCount, getDuration, getPage, hasLive, move, remove, removeAll, shuffle} = require('../db/repositories/queue');
 const {timeFormatMilliseconds, timeFormatSeconds} = require('../utils/dateTime');
 const {audit} = require('./auditor');
 const {getStream: getCommonStream} = require('../api/external/common');
@@ -41,6 +41,8 @@ module.exports.getDuration = getDuration;
 module.exports.addAll = (guildId, added) => addAll(guildId, added.songs);
 
 module.exports.getAll = getAll;
+
+module.exports.get = get;
 
 module.exports.getPage = getPage;
 

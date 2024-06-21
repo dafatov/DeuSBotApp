@@ -1,8 +1,22 @@
-const {EmbedBuilder} = require('discord.js');
+const {ActionRowBuilder, EmbedBuilder} = require('discord.js');
 const interaction = require('../../../mocks/commandInteraction');
 
 module.exports = [
   interaction, {
+    components: [
+      new ActionRowBuilder({
+        components: [
+          {
+            custom_id: 'first-1',
+            disabled: true,
+            label: 'В начало очереди',
+            style: 1,
+            type: 2,
+          },
+        ],
+        type: 1,
+      }),
+    ],
     embeds: [
       new EmbedBuilder({
         color: 16777040,

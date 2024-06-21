@@ -74,8 +74,11 @@ describe('getDuration', () => {
 
 describe('addAll', () => {
   test('success', async () => {
-    await player.addAll('301783183828189184', {songs: [{}]});
+    queueDbMocked.addAll.mockResolvedValueOnce(['1']);
 
+    const result = await player.addAll('301783183828189184', {songs: [{}]});
+
+    expect(result).toEqual(['1']);
     expect(queueDbMocked.addAll).toHaveBeenCalledWith('301783183828189184', [{}]);
   });
 });
@@ -88,6 +91,17 @@ describe('getAll', () => {
 
     expect(result).toEqual([{}]);
     expect(queueDbMocked.getAll).toHaveBeenCalledWith('301783183828189184');
+  });
+});
+
+describe('get', () => {
+  test('success', async () => {
+    queueDbMocked.get.mockResolvedValueOnce({});
+
+    const result = await player.get('234');
+
+    expect(result).toEqual({});
+    expect(queueDbMocked.get).toHaveBeenCalledWith('234');
   });
 });
 

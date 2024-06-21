@@ -1,7 +1,7 @@
-const {ActionRowBuilder, EmbedBuilder, ModalBuilder, SlashCommandBuilder, TextInputBuilder, TextInputStyle} = require('discord.js');
+const {ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, ModalBuilder, SlashCommandBuilder, TextInputBuilder, TextInputStyle} = require('discord.js');
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
 const {SCOPES, isForbidden} = require('../../db/repositories/permission');
-const {addAll, isConnected, isSameChannel, playPlayer} = require('../player');
+const {addAll, get, isConnected, isSameChannel, playPlayer} = require('../player');
 const {escaping, getCommandName} = require('../../utils/string');
 const {getPlaylist, getSearch, getSong} = require('../../api/external/youtube');
 const {notify, notifyForbidden, notifyUnequalChannels} = require('../commands');
@@ -13,6 +13,7 @@ const {getAddedDescription} = require('../../utils/player');
 const {getAudioDurationInSeconds} = require('get-audio-duration');
 const isUrl = require('is-url');
 const {isValidUrl: isYoutubeUrl} = require('is-youtube-url');
+const {move} = require('./move');
 const {promiseAllSequence} = require('../../utils/mapping');
 const {t} = require('i18next');
 
@@ -28,6 +29,7 @@ module.exports = {
       .setDescription(t('discord:command.play.option.file.description'))),
   isDeferReply: interaction => !!interaction.options.getString('string') || !!interaction.options.getAttachment('attachment'),
   execute: interaction => module.exports.play(interaction, true),
+  onButton: interaction => onFirst(interaction),
   onModal: interaction => onModal(interaction),
 };
 
@@ -53,9 +55,28 @@ module.exports.play = async (interaction, isExecute, audio = interaction.options
   }
 
   const added = await getAdded(interaction, audio, attachment);
+
+  if (!added) {
+    if (isExecute) {
+      const embed = new EmbedBuilder()
+        .setColor(config.colors.warning)
+        .setTitle(t('discord:command.play.notFound.title'))
+        .setDescription(t('discord:command.play.notFound.description'))
+        .setTimestamp();
+      await notify(interaction, {embeds: [embed]});
+    }
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.play.notFound'),
+    });
+    return {result: t('web:info.notFound')};
+  }
+
   const description = await getAddedDescription(interaction.guildId, added.info);
 
-  await addAll(interaction.guildId, added);
+  const addedIds = await addAll(interaction.guildId, added);
   await playPlayer(interaction);
 
   if (isExecute) {
@@ -66,7 +87,15 @@ module.exports.play = async (interaction, isExecute, audio = interaction.options
       .setURL(added.info.url)
       .setThumbnail(added.info.preview)
       .setTimestamp();
-    await notify(interaction, {embeds: [embed]});
+    const control = new ActionRowBuilder()
+      .addComponents(
+        new ButtonBuilder()
+          .setCustomId(`first-${addedIds[0]}`)
+          .setLabel(t('common:player.toFirst'))
+          .setStyle(ButtonStyle.Primary)
+          .setDisabled(!!added.info.length),
+      );
+    await notify(interaction, {embeds: [embed], components: [control]});
   }
   await audit({
     guildId: interaction.guildId,
@@ -137,6 +166,38 @@ const getAdded = (interaction, audio, attachment) => {
         },
       }));
   }
+};
+
+const onFirst = async interaction => {
+  if (await isForbidden(interaction.user.id, SCOPES.COMMAND_MOVE)) {
+    await notifyForbidden('first', interaction);
+    return;
+  }
+
+  const control = ActionRowBuilder.from(interaction.message.components[0]);
+  const first = control.components[0];
+  const song = await get(first.data.custom_id.split('-')[1]);
+
+  if (!song) {
+    first.setDisabled(true);
+
+    const embed = new EmbedBuilder()
+      .setColor(config.colors.warning)
+      .setTitle(t('discord:command.play.noInQueue.title'))
+      .setDescription(t('discord:command.play.noInQueue.description'))
+      .setTimestamp();
+    await interaction.update({components: [control]});
+    await notify(interaction, {embeds: [embed]});
+    await audit({
+      guildId: interaction.guildId,
+      type: TYPES.WARNING,
+      category: CATEGORIES.COMMAND,
+      message: t('inner:audit.command.play.notInQueue'),
+    });
+    return;
+  }
+
+  await move(interaction, true, 0, song.index);
 };
 
 const onModal = async interaction => {

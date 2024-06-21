@@ -1,10 +1,10 @@
 const {CATEGORIES, TYPES} = require('../../db/repositories/audit');
+const {ifPromise, throughThrow} = require('../../utils/promises');
 const {TYPES: SONG_TYPES} = require('../../db/repositories/queue');
 const {audit} = require('../../actions/auditor');
 const axios = require('axios');
 const first = require('lodash/first');
 const {stringify} = require('../../utils/string');
-const {throughThrow} = require('../../utils/promises');
 const {youtubeDurationToSeconds} = require('../../utils/dateTime');
 const ytdl = require('ytdl-core');
 
@@ -53,8 +53,8 @@ module.exports.getSearch = (interaction, audio) =>
     key: process.env.YOUTUBE_API_KEY,
     q: audio,
   })}`).then(response => response.data)
-    .then(data => first(data.items).id.videoId)
-    .then(id => getVideo(interaction, id));
+    .then(data => first(data.items))
+    .then(video => ifPromise(video, () => getVideo(interaction, video.id.videoId)));
 
 module.exports.getStream = url => Promise.resolve(ytdl(url, {
   ...options(),
