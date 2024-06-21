@@ -93,7 +93,7 @@ module.exports.play = async (interaction, isExecute, audio = interaction.options
           .setCustomId(`first-${addedIds[0]}`)
           .setLabel(t('common:player.toFirst'))
           .setStyle(ButtonStyle.Primary)
-          .setDisabled(!!added.info.length),
+          .setDisabled(addedIds.length > 1),
       );
     await notify(interaction, {embeds: [embed], components: [control]});
   }
