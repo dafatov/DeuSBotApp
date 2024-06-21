@@ -16,6 +16,14 @@ module.exports.getAll = async guildId => {
   return rows.map(row => ({...row, guildId: row.guild_id, userId: row.user_id, isLive: row.is_live}));
 };
 
+module.exports.get = async id => {
+  const row = (await db.query('SELECT * FROM queue WHERE id=$1', [id])).rows?.[0];
+
+  return row
+    ? {...row, guildId: row.guild_id, userId: row.user_id, isLive: row.is_live}
+    : row;
+};
+
 module.exports.getPage = async (guildId, start, finish) => {
   const rows = (await db.query('SELECT * FROM queue WHERE guild_id=$1 AND index >= $2 AND index < $3', [guildId, start, finish])).rows ?? [];
 
@@ -31,15 +39,15 @@ module.exports.getDuration = async guildId => {
 };
 
 module.exports.addAll = async (guildId, songs) => {
-  await transaction(async () => {
+  return await transaction(async () => {
     const startIndex = (await db.query('SELECT max(index) + 1 AS index FROM queue')).rows[0].index ?? 0;
 
     await backup(getCommandName(__filename), guildId);
-    await db.query(format(
-      'INSERT INTO queue (type, title, duration, url, is_live, preview, user_id, index, guild_id) VALUES %L',
+    return (await db.query(format(
+      'INSERT INTO queue (type, title, duration, url, is_live, preview, user_id, index, guild_id) VALUES %L RETURNING id',
       songs.map(({type, title, duration, url, isLive, preview, userId}, index) =>
         [type, title, duration, url, isLive, preview, userId, startIndex + index, guildId]),
-    ));
+    ))).rows.map(row => row.id);
   });
 };
 

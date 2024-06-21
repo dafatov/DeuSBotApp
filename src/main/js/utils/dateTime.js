@@ -2,6 +2,8 @@ const {getFixedT} = require('i18next');
 const {spell} = require('./string');
 const zip = require('lodash/zip');
 
+const SECONDS = [86400, 3600, 60, 1];
+
 module.exports.timeFormatSeconds = s => {
   const time = new Date(0, 0, 0, 0, 0, s);
 
@@ -46,9 +48,9 @@ module.exports.comparePostgresIntervals = (a, b) => {
 };
 
 module.exports.youtubeDurationToSeconds = duration => duration
-  .match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/)
+  .match(/P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/)
   .slice(1)
-  .reduce((acc, item, index) => acc + (item ?? 0) * Math.pow(60, 2 - index), 0);
+  .reduce((acc, item, index) => acc + (item ?? 0) * SECONDS[index], 0);
 
 module.exports.isExactlyTime = (now, hours, minutes) => {
   const targetDate = new Date();
