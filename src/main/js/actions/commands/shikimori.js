@@ -300,7 +300,10 @@ const search = async (interaction, audios, login, isExecute) => {
     const embed = new EmbedBuilder()
       .setTitle(t('discord:command.play.shikimori.title', {login}))
       .setColor(config.colors.info)
-      .setURL(`${process.env.SHIKIMORI_URL}/${login}/list/anime/mylist/completed,watching/order-by/ranked`)
+      .setURL(`${process.env.SHIKIMORI_URL}/${login}/list/anime?${new URLSearchParams({
+        mylist: ['watching', 'completed'],
+        order: 'rate_score',
+      })}`)
       .setDescription(description)
       .setThumbnail('https://i.ibb.co/PGFbnkS/Afk-W8-Fi-E-400x400.png')
       .setTimestamp();
