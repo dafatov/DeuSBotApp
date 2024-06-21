@@ -125,17 +125,15 @@ describe('getStream', () => {
 
     expect(result).toEqual('some stream');
     expect(ytdlMocked).toHaveBeenCalledWith('https://www.youtube.com/watch?v=GKvlt6rpb4Y', {
-      filter: 'audioonly', highWaterMark: 33554432, quality: 'highestaudio',
-      ...expectedOptions,
+      dlChunkSize: 0,
+      filter: 'audioonly',
+      quality: 'highestaudio',
+      requestOptions: {
+        headers: {
+          cookie: 'youtube_cookie',
+          'x-youtube-identity-token': 'youtube_id_token',
+        },
+      },
     });
   });
 });
-
-const expectedOptions = {
-  requestOptions: {
-    headers: {
-      Cookie: 'youtube_cookie',
-      'x-youtube-identity-token': 'youtube_id_token',
-    },
-  },
-};

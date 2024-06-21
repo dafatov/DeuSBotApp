@@ -57,10 +57,15 @@ module.exports.getSearch = (interaction, audio) =>
     .then(video => ifPromise(video, () => getVideo(interaction, video.id.videoId)));
 
 module.exports.getStream = url => Promise.resolve(ytdl(url, {
-  ...options(),
+  dlChunkSize: 0,
   filter: 'audioonly',
+  requestOptions: {
+    headers: {
+      cookie: process.env.YOUTUBE_COOKIE,
+      'x-youtube-identity-token': process.env.YOUTUBE_ID_TOKEN,
+    },
+  },
   quality: 'highestaudio',
-  highWaterMark: 1 << 25,
 }));
 
 const fillPlaylist = async (interaction, playlist, playlistId) => {
@@ -125,15 +130,6 @@ const getVideo = (interaction, id) =>
 
 const getPreview = thumnails =>
   (thumnails.maxres ?? thumnails.standard ?? thumnails.high).url;
-
-const options = () => ({
-  requestOptions: {
-    headers: {
-      Cookie: process.env.YOUTUBE_COOKIE,
-      'x-youtube-identity-token': process.env.YOUTUBE_ID_TOKEN,
-    },
-  },
-});
 
 const getVideoId = url => new Promise((resolve, reject) => {
   const videoId = url
