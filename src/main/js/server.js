@@ -8,7 +8,7 @@ const express = require('express');
 const fs = require('fs');
 const {t} = require('i18next');
 
-module.exports.init = async client => {
+module.exports.init = client => {
   const app = express()
     .use(bodyParser.json({type: '*/*'}))
     .use(cors());
@@ -33,11 +33,10 @@ module.exports.init = async client => {
       });
   });
 
-  httpServer.listen(process.env.PORT);
-  await audit({
+  httpServer.listen(process.env.PORT, () => audit({
     guildId: null,
     type: TYPES.INFO,
     category: CATEGORIES.INIT,
-    message: t('inner:audit.init.server'),
-  });
+    message: t('inner:audit.init.server', {port: process.env.PORT}),
+  }));
 };
