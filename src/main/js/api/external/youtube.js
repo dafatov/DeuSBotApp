@@ -64,7 +64,6 @@ module.exports.getStream = url => Promise.resolve(ytdl(url, {
   requestOptions: {
     headers: {
       cookie: process.env.YOUTUBE_COOKIE,
-      'x-youtube-identity-token': process.env.YOUTUBE_ID_TOKEN,
     },
   },
 }));
