@@ -56,17 +56,21 @@ module.exports.getSearch = (interaction, audio) =>
     .then(data => first(data.items))
     .then(video => ifPromise(video, () => getVideo(interaction, video.id.videoId)));
 
-module.exports.getStream = url => Promise.resolve(ytdl(url, {
-  dlChunkSize: 0,
-  filter: 'audioonly',
-  highWaterMark: 1 << 25,
-  quality: 'highestaudio',
-  requestOptions: {
-    headers: {
-      cookie: process.env.YOUTUBE_COOKIE,
+module.exports.getStream = url => {
+  // eslint-disable-next-line no-console
+  console.log(process.env.YOUTUBE_COOKIE);
+  return Promise.resolve(ytdl(url, {
+    dlChunkSize: 0,
+    filter: 'audioonly',
+    highWaterMark: 1 << 25,
+    quality: 'highestaudio',
+    requestOptions: {
+      headers: {
+        cookie: process.env.YOUTUBE_COOKIE,
+      },
     },
-  },
-}));
+  }));
+};
 
 const fillPlaylist = async (interaction, playlist, playlistId) => {
   let pageToken = '';
