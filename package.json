@@ -1,6 +1,6 @@
 {
   "name": "ru.demetrious.discord-bot.deus",
-  "version": "1.16.2-5",
+  "version": "1.16.2-6",
   "description": "A bot for discord by DemetriouS",
   "main": "src/main/js/bot.js",
   "type": "commonjs",
@@ -23,6 +23,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dafatov/DeusBot.git"
+  },
+  "overrides": {
+    "miniget": "git@github.com:dafatov/node-miniget"
   },
   "dependencies": {
     "@discordjs/opus": "0.9.0",
@@ -75,6 +78,6 @@
     "supertest": "^6.3.3"
   },
   "engines": {
-    "node": "16.13.0"
+    "node": "20.15.0"
   }
 }
