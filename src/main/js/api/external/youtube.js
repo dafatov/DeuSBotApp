@@ -66,7 +66,7 @@ module.exports.getStream = url => {
     quality: 'highestaudio',
     requestOptions: {
       headers: {
-        cookie: process.env.YOUTUBE_COOKIE,
+        Cookie: process.env.YOUTUBE_COOKIE,
       },
     },
   }));

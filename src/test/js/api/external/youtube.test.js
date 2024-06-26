@@ -131,7 +131,7 @@ describe('getStream', () => {
       quality: 'highestaudio',
       requestOptions: {
         headers: {
-          cookie: 'youtube_cookie',
+          Cookie: 'youtube_cookie',
         },
       },
     });
