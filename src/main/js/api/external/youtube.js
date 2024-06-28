@@ -67,6 +67,7 @@ module.exports.getStream = url => {
     requestOptions: {
       headers: {
         Cookie: process.env.YOUTUBE_COOKIE,
+        'x-youtube-identity-token': process.env.YOUTUBE_ID_TOKEN,
       },
     },
   }));

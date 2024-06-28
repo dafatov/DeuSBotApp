@@ -132,6 +132,7 @@ describe('getStream', () => {
       requestOptions: {
         headers: {
           Cookie: 'youtube_cookie',
+          'x-youtube-identity-token': 'youtube_id_token',
         },
       },
     });
